@@ -1,0 +1,72 @@
+# Flutter/Dart generated files
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+build_onedrive_stale_*/
+.build_onedrive_stale_*/
+coverage/
+
+# Android/Gradle generated state and local toolchains
+.gradle/
+/.android/
+/android-sdk/
+/Android/Sdk/
+/emulator/
+/avd/
+*.avd/
+
+# Android packages are local build artifacts, never repository inputs
+*.apk
+*.aab
+*.apks
+
+# IDE/editor state (Visual Studio Code is the supported editor)
+.idea/
+*.iml
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.p12
+*.pfx
+*.jks
+*.keystore
+key.properties
+android/key.properties
+android/local.properties
+google-services.json
+GoogleService-Info.plist
+
+# Credentials, tokens, and sensitive data exports
+*credentials*.json
+*service-account*.json
+*token*.txt
+*.sql
+*.sql.gz
+*.dump
+*.bak
+
+# Operating system files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs and transient output
+*.log
+*.tmp
+*.temp
+
+# OneDrive conflict copies of canonical status reports
+docs/PROJECT_STATUS-DESKTOP-*.md
+docs/PROGRESS_REPORT-DESKTOP-*.md

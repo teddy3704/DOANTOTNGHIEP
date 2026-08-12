@@ -1,0 +1,24 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "DLU LMS Mobile — Production shell",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "preLaunchTask": "DLU: prepare external Flutter build",
+      "postDebugTask": "DLU: restore OneDrive after Flutter build",
+      "args": [
+        "--dart-define=MOODLE_BASE_URL=https://lms.dlu.edu.vn"
+      ]
+    },
+    {
+      "name": "DLU LMS Mobile — DEV fixture",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main_development.dart",
+      "preLaunchTask": "DLU: prepare external Flutter build",
+      "postDebugTask": "DLU: restore OneDrive after Flutter build"
+    }
+  ]
+}

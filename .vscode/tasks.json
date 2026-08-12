@@ -1,0 +1,35 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "DLU: prepare external Flutter build",
+      "type": "shell",
+      "command": "pwsh",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}\\tool\\build_storage.ps1",
+        "-Action",
+        "Prepare"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "DLU: restore OneDrive after Flutter build",
+      "type": "shell",
+      "command": "pwsh",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}\\tool\\build_storage.ps1",
+        "-Action",
+        "Cleanup"
+      ],
+      "problemMatcher": []
+    }
+  ]
+}

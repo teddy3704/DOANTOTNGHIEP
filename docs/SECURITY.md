@@ -1,0 +1,126 @@
+# Security Baseline
+
+**Status:** Phase 2 baseline implemented; live authentication controls remain blocked.
+
+**Scope:** Flutter client, Moodle REST boundary, local data, build/release process.
+
+## 1. Security invariants
+
+- Production traffic dùng HTTPS.
+- Token/password/private key/signing key/database credential không nằm trong source, Git history, logs, screenshots hoặc analytics.
+- Password Moodle không được lưu lâu dài.
+- Token/session secret dùng OS-backed secure storage và được xóa khi logout/user switch.
+- Flutter không kết nối trực tiếp Moodle database.
+- Authorization cuối cùng thuộc Moodle/backend; UI visibility không phải security boundary.
+- Không bypass SSO, CAPTCHA, MFA/2FA hoặc certificate validation.
+- Không WRITE production Moodle/database khi chưa có explicit approval.
+- Không dùng dữ liệu cá nhân thật làm fixture.
+
+## 2. Data classification
+
+| Class | Ví dụ | Client handling |
+|---|---|---|
+| Public | Public course title nếu DLU công khai | Cache có giới hạn theo UX |
+| Internal | Non-public course metadata | Authenticated access; clear on logout as required |
+| Personal | Profile, enrolment, messages | Data minimization; no logs; controlled cache |
+| Sensitive Academic | Grades, submissions, feedback | Strongest minimization; no analytics payload; retention documented |
+| Secret | Token, password, signing/database credentials | Secure storage/runtime only; never log/commit |
+
+## 3. Threat model
+
+| Threat | Risk | Required control | Verification |
+|---|---|---|---|
+| Token leakage through logs/URL/errors | Account compromise | Central redaction; no request body/tokenized URL logs | Unit tests + log review |
+| Credential persistence | Password theft | Never persist password; clear input/memory references when feasible | Code review + tests |
+| Insecure local token storage | Session theft | `flutter_secure_storage`; platform configuration review | Device/integration test |
+| Client-side role spoofing | Unauthorized UI/action | Server capability checks; no trusted role boolean from client | Permission-negative tests |
+| TLS interception/misconfiguration | Data exposure | HTTPS validation; no trust-all certificate handler | Static/code review + network test |
+| Overbroad Web Service token | Excess data/action scope | DLU service allowlist, expiry/revocation, least privilege | Admin config evidence |
+| PII in fixtures/screenshots | Privacy breach | Synthetic fixtures; screenshot checklist/redaction | Repository scan + review |
+| Cached data after logout/user switch | Cross-user exposure | Namespaced cache; atomic clear on logout/switch | Integration test |
+| Malicious filename/path | File overwrite/path traversal | Safe app-owned directory and sanitized display filename | Unit/integration tests |
+| Accidental production WRITE | Academic data integrity loss | Environment banner/guard; WRITE disabled until approved | Config tests + manual gate |
+| Supply-chain/dependency issue | App compromise | Minimal dependencies, lockfile review, advisories/license review | CI/release checklist |
+| Secret in Git/database dump | Long-lived exposure | `.gitignore`, pre-commit/CI scan, history review before publish | Secret scan |
+
+## 4. Secret lifecycle
+
+1. Secret được DLU/người dùng cung cấp qua approved private channel, không qua committed file.
+2. Development token có scope nhỏ, expiry ngắn và test data.
+3. App nhận runtime token qua approved auth flow.
+4. Token được lưu secure storage, không copy vào general cache/state dump.
+5. Logout/session invalidation xóa token và user-scoped cache.
+6. Suspected exposure được report; revocation/rotation do authorized owner thực hiện.
+
+Không tự rotate credentials.
+
+## 5. Safe network logging
+
+Production logging chỉ giữ metadata tối thiểu như operation category, local correlation ID, duration, status class và sanitized Moodle error code. Luôn redact:
+
+- authorization/token/password fields;
+- query/body values có token;
+- tokenized file URLs;
+- username, email, student ID và profile fields;
+- grades, feedback, submission content và message content.
+
+Không log raw request/response body trên production.
+
+## 6. Authentication and session controls
+
+- Validate base URL and site identity after authentication.
+- Treat HTTP success with Moodle exception payload as failure.
+- On invalid/expired token: clear session safely, preserve no private screen data, require re-authentication.
+- Rate-limit repeated interactive login attempts in UX; do not defeat server controls.
+- SSO uses system browser/deep-link flow only according to DLU contract; validate redirect/state parameters where protocol requires.
+- Do not embed a WebView to capture password or scrape authenticated pages.
+
+## 7. Authorization controls
+
+- Bind every sensitive operation to correct user/course/module context.
+- UI capability snapshot only changes affordances; each request may still receive `PermissionFailure`.
+- Student negative tests include other-user profile, grades, submissions and hidden course content.
+- Teacher negative tests include courses/modules where the teacher has no grading/management capability.
+- WRITE operations are disabled in production configuration until specifically approved and verified.
+
+## 8. Android/release controls
+
+- No debug logging/backup exposure of secrets in release configuration.
+- Review Android backup/data extraction rules before release.
+- Release signing key ownership, storage and rotation policy belong to an authorized DLU/project owner; key is never committed.
+- Use unique production application ID after ownership approval.
+- Review exported Android components, deep links and intent validation.
+- Minification/obfuscation is defense-in-depth, not secret protection.
+
+## 9. Repository controls
+
+Current `.gitignore` blocks common env, credential, key and database dump patterns. Before first public/pushed commit:
+
+- inspect `git status` and staged diff;
+- run an approved secret scan;
+- confirm no DLU PII or copyrighted/unauthorized logo asset;
+- check generated Android signing/config files;
+- review dependency lockfile and licenses.
+
+## 10. Security release gate
+
+- [ ] Authentication method and token lifecycle documented from DLU evidence.
+- [ ] No plaintext token/password persistence.
+- [ ] Redaction tests PASS.
+- [ ] Permission-negative tests PASS for student and teacher contexts.
+- [ ] Logout/user-switch cache clearing PASS.
+- [ ] TLS verification is not disabled.
+- [ ] Production WRITE policy reviewed and explicitly approved where applicable.
+- [ ] Secret/PII scan PASS.
+- [ ] Android exported components/backup/deep-link configuration reviewed.
+- [ ] Known limitations and incident contact/owner documented.
+
+## 11. Implemented Phase 2 controls
+
+- `AppConfig` enforces HTTPS and refuses DEV fixtures in production.
+- Production repositories and request authorizer fail closed until DLU contract exists.
+- `SecureTokenStorage` uses `flutter_secure_storage`; no password persistence exists.
+- Android disables cleartext traffic and application backup.
+- Release build has no debug signing fallback or fabricated release secret.
+- DEV fixtures are synthetic, isolated behind `main_development.dart` and tested not to appear through production repositories.
+- No request/response logging is enabled in `MoodleApiClient`.
