@@ -1,10 +1,10 @@
 # Project Status
 
-**Cập nhật:** 2026-08-12 (Asia/Saigon)
+**Cập nhật:** 2026-08-14 (Asia/Saigon)
 
-**Milestone:** Phase 2 — Flutter Foundation + Android Emulator Demo Milestone
+**Milestone:** Phase 3B — Authenticated DLU Discovery + Production Safety Hardening
 
-**Trạng thái tổng thể:** `PARTIAL` — local foundation PASS, live Moodle integration BLOCKED
+**Trạng thái tổng thể:** `PARTIAL / BLOCKED_EXTERNAL` — authenticated UI + local hardening PASS; DLU Web Services currently disabled, so live API integration is blocked externally
 
 ## Executive summary
 
@@ -12,18 +12,20 @@ Repository greenfield đã được scaffold thành Android-only Flutter project
 
 Production entrypoint không phụ thuộc mock; do DLU authentication/Web Services chưa được xác nhận, production repository fail closed và hiển thị blocker phù hợp. Development entrypoint riêng inject dữ liệu synthetic có nhãn `DEV FIXTURE` để kiểm thử/demo UI.
 
-Không có bằng chứng cho thấy DLU Moodle REST Web Services, mobile service, token login, SSO flow, Moodle version, function list, capability hoặc database schema đã được cung cấp/xác nhận. Tất cả tích hợp thật tiếp tục ở trạng thái `BLOCKED`.
+Phase 3B đã dùng chính browser session hiện có để xác minh read-only Dashboard, My Courses, một course đại diện, Profile, Calendar, own-grades navigation, notifications/messages navigation và course activity/resource metadata. Không lưu tên user/course, ID, grade, message, cookie/token hoặc `sesskey`.
+
+Hai token/mobile site-check request không credential trả `errorcode=enablewsdescription`; REST entrypoint trả `403`. Vì vậy DLU hiện báo Web Services chưa được bật, `0` function đạt `VERIFIED_API`, mobile auth strategy vẫn `UNKNOWN`, và không có live DTO/repository nào được dựng từ HTML. Flutter production đã được harden để không hiển thị username/password; DEV fixture vẫn tách riêng.
 
 ## Repository audit
 
 | Hạng mục | Kết quả | Trạng thái |
 |---|---|---|
-| Git repository | `.git` tồn tại; `main`; chưa có commit | DONE |
+| Git repository | `.git` tồn tại; `main`; Phase 2 baseline commit `67953f8` | DONE |
 | Uncommitted work | Không có file tracked/untracked tại thời điểm audit ban đầu | DONE |
 | `README.md` | Không tồn tại trước audit; đã tạo entry point Phase 0 | DONE |
 | `pubspec.yaml` | Flutter/Riverpod/go_router/Dio/secure storage | DONE |
 | `lib/` | Feature-first foundation + demo milestone UI | DONE (Phase 2 scope) |
-| `test/` | 13 unit/widget tests | DONE |
+| `test/` | 21 unit/widget tests | DONE |
 | `android/` | Android-only scaffold, `vn.edu.dlu.lmsmobile`, security baseline | DONE (debug) |
 | `docs/` | Không tồn tại trước audit; baseline được tạo ở Phase 0 | DONE |
 | `.gitignore` | Không tồn tại trước audit; baseline bảo mật được tạo | DONE |
@@ -71,6 +73,18 @@ Toolchain được cài user-local, không dùng Android Studio. Hướng dẫn/
 - Chạy thực tế DEV app qua Splash/Login/Dashboard/Courses/Course Detail/Profile/Logout; runtime log có 0 crash, ANR, Flutter exception hoặc overflow.
 - Thay native Android splash/logo Flutter mặc định bằng generic academic mark theo palette app; đây chưa phải logo DLU chính thức.
 - Chụp bộ screenshot emulator tại `docs/screenshots/emulator/`.
+- Hoàn tất Phase 3A public read-only discovery cho `https://lms.dlu.edu.vn/`: DNS/HTTPS/TLS/redirect, Moodle identity, public structure và login surface.
+- Xác minh login page có local username/password form và `Google Login` qua Moodle OAuth2; không nhập credential và không suy đoán backend auth/mobile-token support.
+- Tạo evidence docs tại `docs/live-dlu/`; không lưu cookie value, token, credential hoặc PII.
+- Phase 3A quality gate PASS: `dart format` 39 files/0 changed, analyze 0 issues, 13 tests PASS; OneDrive cloud-placeholder conflict được bảo toàn dưới ignored stale path và build target D không bị xóa.
+- Xác minh authenticated session và lập feature/network/data/evidence/traceability maps với exact evidence labels; browser session được bàn giao lại tại `/my/` vẫn authenticated.
+- Xác minh `MOODLE_WEB_SERVICES_NOT_ENABLED` qua `/login/token.php?appsitecheck=1` trả `enablewsdescription`; REST entrypoint trả `403`; không gửi credential/token/service shortname.
+- Production Login không còn thu username/password khi auth strategy chưa được xác nhận; hiển thị hai blocker `AUTHENTICATION_METHOD_UNCONFIRMED` và `MOODLE_WEB_SERVICES_NOT_ENABLED`.
+- `AppConfig` chỉ nhận credential-free HTTPS origin; client chặn origin lệch trước authorization và kiểm tra lại trước network; network failure không giữ raw Dio exception/header/body/query/cross-origin path và có sentinel redaction tests.
+- Course/detail/profile Riverpod providers dùng `autoDispose`; regression test xác minh cache được giải phóng và tải lại giữa listener/session boundaries.
+- Sửa runtime launch bug `negative minimum height` phát hiện trên emulator và thêm regression viewport test.
+- Phase 3B final gate PASS: format 40 files/0 changed, analyze 0 issues, 21 tests PASS, production + DEV debug APK builds PASS.
+- Emulator PASS: production blocker có 0 credential field và 0 runtime-error match; DEV synthetic flow Login → Dashboard → Courses → Course Detail → Profile → Logout PASS, 0 runtime-error match.
 
 ### Latest emulator re-verification — 2026-08-12 22:47 ICT
 
@@ -85,16 +99,17 @@ Toolchain được cài user-local, không dùng Android Studio. Hướng dẫn/
 
 ## IN PROGRESS
 
-- Không có task local foundation đang chạy. Milestone tiếp theo là Phase 3 Moodle Authentication sau khi DLU cung cấp evidence/access.
+- Local Phase 3B work is complete and quality-gated.
+- Live Flutter authentication/current-user/courses integration remains intentionally unimplemented until DLU enables and approves an application-layer service/auth flow.
 
 ## BLOCKED
 
 | Blocker code | Ảnh hưởng | Bằng chứng/thông tin cần có | Nguồn cung cấp phù hợp |
 |---|---|---|---|
-| `AUTHENTICATION_METHOD_UNCONFIRMED` | Không thể thiết kế login production cuối cùng | Xác nhận token login chuẩn, SSO/OAuth hoặc phương thức do DLU hỗ trợ | DLU LMS administrator |
-| `MOODLE_WEB_SERVICES_STATUS_REQUIRED` | Không thể gọi live API | Web Services, REST và mobile/external service status | DLU LMS administrator |
-| `TEST_ACCOUNT_REQUIRED` | Không thể kiểm chứng quyền/student-teacher flow | Student và teacher test account trên staging/test hoặc scope an toàn | DLU/GVHD |
-| `MOODLE_API_TOKEN_REQUIRED` | Không thể xác minh function responses | Token/test-token theo policy được duyệt; không gửi qua Git | DLU LMS administrator |
+| `AUTHENTICATION_METHOD_UNCONFIRMED` | Public page có form local + Google OAuth2 nhưng chưa chứng minh backend/policy mobile | Xác nhận token login chuẩn, approved browser OAuth/SSO hoặc phương thức do DLU hỗ trợ | DLU LMS/identity administrator |
+| `MOODLE_WEB_SERVICES_NOT_ENABLED` | Token/mobile site check trả `enablewsdescription`; không thể chạy API POC | DLU phê duyệt và bật Web Services + selected REST/mobile/external service, ưu tiên staging/test | DLU LMS administrator |
+| `TEST_ACCOUNT_REQUIRED` | Sau enablement, cần kiểm chứng least-privilege student/teacher contexts | Student test identity trước; teacher account chỉ sau Student core PASS | DLU/GVHD |
+| `MOODLE_API_TOKEN_REQUIRED` | Sau enablement, chưa có credential/token scope được phê duyệt | Approved short-lived test token/interactive auth; không gửi qua Git/docs/chat | DLU LMS administrator |
 | `MOODLE_VERSION_REQUIRED_FOR_PLUGIN` | Không thể đánh giá/code custom plugin | Moodle, PHP và DB versions; plugin policy | DLU LMS administrator |
 | `DLU_MOODLE_DATABASE_NOT_PROVIDED` | Không thể xác nhận prefix/schema/ERD vật lý | Schema/dump đã ẩn danh hoặc read-only access được duyệt | DLU database/LMS administrator |
 | `PACKAGE_IDENTITY_OWNERSHIP_UNCONFIRMED` | Package tạm đã dùng nhưng chưa có ownership/branding approval | DLU xác nhận application ID/branding/release ownership | DLU/GVHD/người dùng |
@@ -103,7 +118,7 @@ Không yêu cầu production admin password và không cần production database
 
 ## Technical debt / risks hiện tại
 
-1. Authentication topology của DLU chưa rõ; token endpoint không được coi là khả dụng cho đến khi được xác nhận.
+1. Authentication topology của DLU chưa rõ; token/mobile site check hiện xác nhận Web Services disabled và không thể đi tiếp trước admin enablement.
 2. Moodle version/function exposure/capabilities chưa rõ; API matrix mới là discovery backlog.
 3. Chưa có branding/release signing ownership approval; UI dùng generic school icon, không dùng logo DLU chính thức.
 4. Workspace nằm trong OneDrive và OneDrive không hỗ trợ junction trong synced root. Junction `build/` hiện được giữ ngoài OneDrive tại `%LOCALAPPDATA%\DLU-LMS\WorkspaceLinks`, chỉ kích hoạt trong lúc wrapper tạm dừng OneDrive rồi được tháo trước khi sync chạy lại. Build thật vẫn ở `D:\DLU-LMS\Build\DoAnTotNghiep`.
@@ -116,7 +131,7 @@ Không yêu cầu production admin password và không cần production database
 | Phase | Mục tiêu | Exit criteria | Trạng thái |
 |---|---|---|---|
 | 0 | Audit repository/environment; governance/docs | Toolchain status và blockers rõ; docs baseline verified | PASS |
-| 1 | Moodle/system analysis | Use cases, role/capability evidence, live function inventory, auth decision | BLOCKED — cần DLU evidence |
+| 1 | Moodle/system analysis | Use cases, role/capability evidence, live function inventory, auth decision | PARTIAL — authenticated UI verified; API/version/capability blocked |
 | 2 | Flutter foundation | App scaffold, Material 3, router, config, errors/network/storage, shell tests | PASS |
 | 3 | Moodle authentication | Login → token/session → site/user info → dashboard trên account test | BLOCKED — auth/API/test account |
 | 4 | Courses | Courses thật theo user/capability | BLOCKED — Phase 3 + function access |
@@ -128,7 +143,8 @@ Không yêu cầu production admin password và không cần production database
 
 ## NEXT STEP
 
-1. Xin DLU/GVHD: authentication method, Moodle version, Web Services/REST/mobile service status, sanitized function list và student/teacher test accounts.
-2. Khi có evidence, triển khai Phase 3 `AuthRepository` thật: approved login → token/session → site/user info → secure storage → dashboard.
-3. Nếu có thiết bị Android vật lý, chạy thêm smoke test để bổ sung coverage ngoài emulator.
-4. Xác nhận ownership của `vn.edu.dlu.lmsmobile`, branding chính thức và release signing trước Phase 9.
+1. DLU LMS administrator phê duyệt mobile integration và bật Web Services + selected REST/mobile/external service, ưu tiên staging/test.
+2. DLU cung cấp Moodle version, approved auth strategy, sanitized service shortname/function allowlist và least-privilege student test identity qua kênh bí mật phù hợp.
+3. Khi gate mở, chạy POC đúng thứ tự: auth → current user/site info → own courses → one course content; chỉ sau sanitized successful contracts mới tạo DTO/repository live.
+4. Nếu có thiết bị Android vật lý, chạy thêm smoke test để bổ sung coverage ngoài emulator.
+5. Xác nhận ownership của `vn.edu.dlu.lmsmobile`, branding chính thức và release signing trước Phase 9.

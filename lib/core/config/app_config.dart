@@ -5,17 +5,10 @@ enum AppEnvironment { development, production }
 class AppConfig {
   AppConfig({
     required this.environment,
-    required this.moodleBaseUri,
+    required Uri moodleBaseUri,
     required this.enableDevFixtures,
     this.appName = 'DLU LMS Mobile',
-  }) {
-    if (!moodleBaseUri.hasScheme || moodleBaseUri.scheme != 'https') {
-      throw ArgumentError.value(
-        moodleBaseUri,
-        'moodleBaseUri',
-        'Production-capable LMS configuration must use HTTPS.',
-      );
-    }
+  }) : moodleBaseUri = _normalizeMoodleOrigin(moodleBaseUri) {
     if (environment == AppEnvironment.production && enableDevFixtures) {
       throw ArgumentError(
         'DEV fixtures cannot be enabled in a production configuration.',
@@ -47,6 +40,50 @@ class AppConfig {
   final String appName;
 
   bool get isProduction => environment == AppEnvironment.production;
+
+  static Uri _normalizeMoodleOrigin(Uri uri) {
+    if (!uri.hasScheme || uri.scheme.toLowerCase() != 'https') {
+      throw ArgumentError.value(
+        uri,
+        'moodleBaseUri',
+        'Production-capable LMS configuration must use HTTPS.',
+      );
+    }
+    if (!uri.hasAuthority || uri.host.isEmpty) {
+      throw ArgumentError.value(
+        uri,
+        'moodleBaseUri',
+        'The LMS origin must include a host.',
+      );
+    }
+    if (uri.userInfo.isNotEmpty || uri.authority.contains('@')) {
+      throw ArgumentError.value(
+        uri,
+        'moodleBaseUri',
+        'The LMS origin cannot contain user information.',
+      );
+    }
+    if (uri.hasQuery || uri.hasFragment) {
+      throw ArgumentError.value(
+        uri,
+        'moodleBaseUri',
+        'The LMS origin cannot contain a query or fragment.',
+      );
+    }
+    if (uri.path.isNotEmpty && uri.path != '/') {
+      throw ArgumentError.value(
+        uri,
+        'moodleBaseUri',
+        'The LMS base URI must be an origin without a path.',
+      );
+    }
+
+    return Uri(
+      scheme: 'https',
+      host: uri.host.toLowerCase(),
+      port: uri.hasPort && uri.port != 443 ? uri.port : null,
+    );
+  }
 }
 
 final appConfigProvider = Provider<AppConfig>(

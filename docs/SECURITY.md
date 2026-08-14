@@ -1,6 +1,6 @@
 # Security Baseline
 
-**Status:** Phase 2 baseline implemented; live authentication controls remain blocked.
+**Status:** Phase 3B local hardening implemented; live authentication remains blocked by DLU service/auth configuration.
 
 **Scope:** Flutter client, Moodle REST boundary, local data, build/release process.
 
@@ -66,6 +66,8 @@ Production logging chỉ giữ metadata tối thiểu như operation category, l
 
 Không log raw request/response body trên production.
 
+`MoodleApiClient` hiện không giữ raw `DioException`, request options, headers, request/response body hoặc cross-origin URL trong `AppFailure`. `NetworkFailureDiagnostic` chỉ giữ scalar method, same-origin path đã bỏ query, HTTP status và Dio error type; cross-origin path bị ẩn hoàn toàn. Request origin được kiểm tra trước authorizer và kiểm tra lại sau authorizer trước khi gửi, nên injected client/authorizer không thể chuyển secret sang origin khác. Synthetic sentinel tests xác minh token/query/header/body/transport error không xuất hiện trong diagnostics.
+
 ## 6. Authentication and session controls
 
 - Validate base URL and site identity after authentication.
@@ -74,6 +76,8 @@ Không log raw request/response body trên production.
 - Rate-limit repeated interactive login attempts in UX; do not defeat server controls.
 - SSO uses system browser/deep-link flow only according to DLU contract; validate redirect/state parameters where protocol requires.
 - Do not embed a WebView to capture password or scrape authenticated pages.
+- Production Login không hiển thị trường username/password trong khi `AUTHENTICATION_METHOD_UNCONFIRMED`; credential form chỉ tồn tại ở DEV fixture.
+- Browser session dùng cho discovery không được đọc cookie/session store hoặc chuyển sang Flutter.
 
 ## 7. Authorization controls
 
@@ -124,3 +128,7 @@ Current `.gitignore` blocks common env, credential, key and database dump patter
 - Release build has no debug signing fallback or fabricated release secret.
 - DEV fixtures are synthetic, isolated behind `main_development.dart` and tested not to appear through production repositories.
 - No request/response logging is enabled in `MoodleApiClient`.
+- `AppConfig` chỉ nhận credential-free HTTPS origin và loại userinfo/path/query/fragment trước khi tạo client.
+- Course/course-detail/profile Riverpod providers dùng `autoDispose`; test xác minh state được giải phóng và tải lại thay vì tái sử dụng cache phiên trước.
+- Authenticated DLU discovery chỉ lưu URL pattern/evidence đã khử định danh; không lưu user/course/grade/message values.
+- Web Services probe không gửi credential/cookie/token và nhận `enablewsdescription`; không thực hiện token/API brute force hoặc fallback sang HTML scraping.

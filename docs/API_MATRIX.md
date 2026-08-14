@@ -1,55 +1,58 @@
-# Moodle API Matrix
+# DLU Moodle API Matrix
 
-**Status:** Discovery backlog; `0` functions verified against DLU.
-**Cập nhật:** 2026-08-12
+**Status:** `BLOCKED_EXTERNAL` — authenticated UI verified, but DLU currently reports Web Services disabled and `0` Moodle Web Service functions are `VERIFIED_API`.
 
-## Cách đọc bảng
+**Updated:** 2026-08-14 ICT
 
-- Tên function dưới đây là **candidate standard Moodle functions**, không phải cam kết rằng DLU version/service expose chúng.
-- `Student`/`Teacher` mô tả persona cần kiểm thử, không khẳng định quyền.
-- Permission/capability cuối cùng phải lấy từ DLU live API documentation và test trong đúng Moodle context.
-- Tất cả WRITE functions giữ `BLOCKED` cho đến khi có test environment và explicit permission.
+## Service gate
 
-| Feature | Candidate Moodle function/endpoint | Permission evidence cần xác nhận | Student | Teacher | Status | Notes |
-|---|---|---|---|---|---|---|
-| Site/user info | `core_webservice_get_site_info` | Function in service; valid token/session | VERIFY | VERIFY | BLOCKED | First post-auth validation call candidate |
-| User profile lookup | `core_user_get_users_by_field` | User privacy + function access | VERIFY own only | VERIFY scoped | BLOCKED | Prefer site-info fields when sufficient |
-| My courses | `core_enrol_get_users_courses` | Enrolment visibility and target user scope | VERIFY | VERIFY | BLOCKED | Exact response varies by Moodle version |
-| Timeline courses | `core_course_get_enrolled_courses_by_timeline_classification` | Function availability and enrolment visibility | VERIFY | VERIFY | BLOCKED | Optional alternative to course list |
-| Course contents | `core_course_get_contents` | Course/module visibility, enrolment/context | VERIFY | VERIFY | BLOCKED | Must respect hidden/restricted modules |
-| Course details | `core_course_get_courses_by_field` | Course visibility and service allowlist | VERIFY | VERIFY | BLOCKED | Avoid broad course enumeration |
-| Enrolled users | `core_enrol_get_enrolled_users` | Roster/user visibility in course context | EXPECT DENY unless allowed | VERIFY | BLOCKED | Teacher UI only after permission evidence |
-| Assignments list | `mod_assign_get_assignments` | Course/module visibility | VERIFY | VERIFY | BLOCKED | Map nested course/assignment payload carefully |
-| Own submission status | `mod_assign_get_submission_status` | Assignment access and own submission scope | VERIFY | VERIFY where relevant | BLOCKED | Read-only first |
-| Submission list | `mod_assign_get_submissions` | Grading/submission visibility in context | EXPECT DENY | VERIFY | BLOCKED | Contains sensitive student data |
-| Save submission | `mod_assign_save_submission` | Submit capability, assignment state, file policy | VERIFY on test only | N/A/VERIFY | BLOCKED-WRITE | No production probe |
-| Save grade/feedback | `mod_assign_save_grade` | Grading capability in course/module context | DENY | VERIFY on test only | BLOCKED-WRITE | No production probe; exact contract version-dependent |
-| User grades | `gradereport_user_get_grade_items` | Grade visibility and target user scope | VERIFY own only | VERIFY scoped | BLOCKED | Sensitive academic data; minimize cache/logging |
-| Upcoming calendar | `core_calendar_get_calendar_upcoming_view` | Event visibility and user context | VERIFY | VERIFY | BLOCKED | Candidate for dashboard deadlines |
-| Action events | `core_calendar_get_action_events_by_timesort` | Event visibility/function availability | VERIFY | VERIFY | BLOCKED | Candidate alternative for actionable deadlines |
-| Popup notifications | `message_popup_get_popup_notifications` | Messaging/notification visibility | VERIFY own only | VERIFY own only | BLOCKED | Confirm plugin/component enabled |
-| File metadata | File fields returned by content functions | Course/module/file visibility | VERIFY | VERIFY | BLOCKED | Do not expose tokenized URLs |
-| File download | DLU-approved authenticated Moodle file endpoint | Service download flag + file context permission | VERIFY | VERIFY | BLOCKED | Endpoint/path must be confirmed from DLU contract |
-| File upload | DLU-approved Moodle upload endpoint | Service upload flag + draft/file-area permission | VERIFY on test only | VERIFY on test only | BLOCKED-WRITE | Needed only for approved submission flow |
+| Item | DLU Evidence | Status | Consequence |
+| ---- | ------------ | ------ | ----------- |
+| Authenticated web session | `VERIFIED_UI` (`UI-AUTH-001`) | Available in the user-controlled browser | Supports read-only discovery only; browser cookies cannot become app authentication |
+| Local login option | `VERIFIED_UI` (`UI-AUTH-OPTION-001`) | Visible | Does not prove approved mobile credential exchange |
+| Google OAuth2 option | `VERIFIED_UI` (`UI-AUTH-OPTION-001`) | Visible | Redirect/app-registration/PKCE contract remains `UNKNOWN` |
+| Web Services global enablement | `VERIFIED_NETWORK` (`NET-TOKEN-001`, `NET-TOKEN-002`) returned `enablewsdescription` | `MOODLE_WEB_SERVICES_NOT_ENABLED` | Token/site-check flow cannot proceed |
+| REST entrypoint | `VERIFIED_NETWORK` (`NET-REST-001`) returned `403 text/html` | Access denied; denial layer `UNKNOWN` | No REST function POC can be claimed |
+| External/mobile service | No enabled service evidence | `UNKNOWN` | Service shortname and function allowlist must not be guessed |
+| Successful API response | None | `0 VERIFIED_API` | No live DTO/repository may be implemented from HTML |
 
-## Authentication matrix
+## Read-only integration matrix
 
-| Strategy | DLU evidence required | Client secret handling | Status |
-|---|---|---|---|
-| Moodle username/password token acquisition | Approved endpoint, service shortname/policy, CAPTCHA/MFA/SSO compatibility | Password exists in memory only for request; token in secure storage; no logs | BLOCKED |
-| Browser-based SSO/deep link | IdP protocol, allowed redirect URI, app registration, token/session exchange | System browser; validate state/redirect; store approved session secret | BLOCKED |
-| Administrator-issued per-user test token | Service/function scope, expiry/IP rules, secure delivery | Never commit; secure storage/runtime injection | BLOCKED |
+| App Feature | DLU Evidence | Moodle Function | Verified | Permission | Response Verified | Flutter Status |
+| ----------- | ------------ | --------------- | -------- | ---------- | ----------------- | -------------- |
+| Authentication | `VERIFIED_UI` login options; `VERIFIED_NETWORK` service-disabled response | `UNKNOWN` | NO | Mobile auth policy `UNKNOWN` | NO successful auth response | Production fail-closed; DEV fixture only |
+| Site + current user | Authenticated identity UI exists (`UI-AUTH-001`) | `UNKNOWN` | NO | Approved session/token and function permission `UNKNOWN` | NO | `AuthSession` foundation; live mapper/repository absent |
+| Own user profile | Profile UI verified (`UI-PROFILE-001`) | `UNKNOWN` | NO | Own-field visibility by API `UNKNOWN` | NO | Profile foundation; live fields/DTO absent |
+| My Courses | Course overview verified (`UI-COURSES-001`) | `UNKNOWN` | NO | Enrolment/course visibility by API `UNKNOWN` | NO | Loading/empty/error/retry foundation; live repository blocked |
+| One course detail | `COURSE-A` UI verified (`UI-COURSE-001`) | `UNKNOWN` | NO | Course-context API permission `UNKNOWN` | NO | Placeholder detail only |
+| Course sections/activities | Section and activity types verified in UI (`UI-COURSE-002`) | `UNKNOWN` | NO | Module visibility/availability by API `UNKNOWN` | NO | Section/module models and repository method absent |
+| Course file metadata/download | Protected-file link presence verified (`UI-COURSE-003`) | `UNKNOWN` | NO | File context/service-download policy `UNKNOWN` | NO | Not implemented |
+| Own assignments — read only | Assignment activity type observed in `COURSE-A` UI | `UNKNOWN` | NO | Own-assignment/submission scope `UNKNOWN` | NO | Deferred until core live contracts PASS |
+| Own grades — read only | Current-user grade overview UI verified (`UI-GRADES-001`) | `UNKNOWN` | NO | Sensitive own-grade API scope `UNKNOWN` | NO | Not implemented |
+| Calendar — read only | Current-user calendar UI verified (`UI-CALENDAR-001`) | `UNKNOWN` | NO | Event visibility by API `UNKNOWN` | NO | Not implemented |
+| Notifications — own only | Navigation control verified (`UI-NOTIFY-001`) | `UNKNOWN` | NO | Notification visibility/API availability `UNKNOWN` | NO | Not implemented |
 
-Không chọn strategy trước khi DLU xác nhận. Không dùng embedded WebView scraping như fallback.
+## Authentication/service classification
 
-## Verification criteria per row
+```text
+LOGIN_OPTION_OBSERVED = local form + Google OAuth2 route
+MOBILE_AUTH_STRATEGY_VERIFIED = NO
+WEB_SERVICES_ENABLED = NO (DLU response: enablewsdescription)
+REST_FUNCTION_ACCESS = UNKNOWN / BLOCKED
+SERVICE_SHORTNAME = UNKNOWN
+VERIFIED_API_FUNCTION_COUNT = 0
+```
 
-Một row chỉ chuyển sang `PASS` khi:
+`VERIFIED_NETWORK` for a standard entrypoint or error envelope is not `VERIFIED_API` for a Moodle function. No username/password, service shortname, token or function name was guessed or submitted.
 
-1. Function/endpoint xuất hiện trong live DLU API documentation hoặc contract được administrator duyệt.
-2. Request/response được kiểm thử bằng test account đúng persona/context.
-3. Success, permission denied, invalid token, empty data và relevant error behavior được ghi nhận.
-4. Sanitized DTO contract/test fixture tồn tại.
-5. Không có token/PII trong source, logs hoặc test artifact.
+## Row exit criteria
 
-Nếu function không tồn tại nhưng use case được đáp ứng bằng function chuẩn khác, cập nhật row theo bằng chứng. Chỉ mở custom plugin proposal sau khi API gap được ghi rõ.
+A function row can become `VERIFIED_API` only after all conditions are met:
+
+1. DLU enables and approves the relevant authentication/service path.
+2. Exact function and service membership are present in DLU-specific configuration/documentation.
+3. An approved test identity invokes the function read-only in the intended context.
+4. Success, empty, permission-denied and invalid-session behavior are recorded without secrets/PII.
+5. A sanitized typed DTO/mapper, production repository wiring and deterministic tests exist.
+
+No WRITE function will be probed on production. Teacher write features remain blocked until a test/staging environment and explicit authorization exist.

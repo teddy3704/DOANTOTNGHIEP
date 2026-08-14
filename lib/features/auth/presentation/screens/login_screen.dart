@@ -63,7 +63,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               padding: const EdgeInsets.all(24),
               child: ConstrainedBox(
                 constraints: BoxConstraints(
-                  minHeight: constraints.maxHeight - 48,
+                  minHeight:
+                      constraints.hasBoundedHeight && constraints.maxHeight > 48
+                      ? constraints.maxHeight - 48
+                      : 0,
                 ),
                 child: Center(
                   child: ConstrainedBox(
@@ -89,141 +92,153 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           child: Card(
                             child: Padding(
                               padding: const EdgeInsets.all(28),
-                              child: Form(
-                                key: _formKey,
-                                child: Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.stretch,
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(
-                                      'Đăng nhập',
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .headlineSmall
-                                          ?.copyWith(
-                                            fontWeight: FontWeight.w900,
+                              child: config.enableDevFixtures
+                                  ? Form(
+                                      key: _formKey,
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.stretch,
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(
+                                            'Đăng nhập',
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .headlineSmall
+                                                ?.copyWith(
+                                                  fontWeight: FontWeight.w900,
+                                                ),
                                           ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      'Sử dụng tài khoản theo cơ chế được DLU LMS cho phép.',
-                                      style: TextStyle(
-                                        color: colors.onSurfaceVariant,
-                                        height: 1.45,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 24),
-                                    TextFormField(
-                                      controller: _usernameController,
-                                      enabled: !auth.isSubmitting,
-                                      textInputAction: TextInputAction.next,
-                                      autofillHints: const [
-                                        AutofillHints.username,
-                                      ],
-                                      decoration: const InputDecoration(
-                                        labelText: 'Tên đăng nhập',
-                                        prefixIcon: Icon(
-                                          Icons.person_outline_rounded,
-                                        ),
-                                      ),
-                                      validator: (value) =>
-                                          value == null || value.trim().isEmpty
-                                          ? 'Vui lòng nhập tên đăng nhập.'
-                                          : null,
-                                    ),
-                                    const SizedBox(height: 14),
-                                    TextFormField(
-                                      controller: _passwordController,
-                                      enabled: !auth.isSubmitting,
-                                      obscureText: _obscurePassword,
-                                      textInputAction: TextInputAction.done,
-                                      autofillHints: const [
-                                        AutofillHints.password,
-                                      ],
-                                      onFieldSubmitted: (_) => _submit(),
-                                      decoration: InputDecoration(
-                                        labelText: 'Mật khẩu',
-                                        prefixIcon: const Icon(
-                                          Icons.lock_outline_rounded,
-                                        ),
-                                        suffixIcon: IconButton(
-                                          onPressed: () => setState(
-                                            () => _obscurePassword =
-                                                !_obscurePassword,
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            'Sử dụng tài khoản theo cơ chế được DLU LMS cho phép.',
+                                            style: TextStyle(
+                                              color: colors.onSurfaceVariant,
+                                              height: 1.45,
+                                            ),
                                           ),
-                                          tooltip: _obscurePassword
-                                              ? 'Hiện mật khẩu'
-                                              : 'Ẩn mật khẩu',
-                                          icon: Icon(
-                                            _obscurePassword
-                                                ? Icons.visibility_outlined
-                                                : Icons.visibility_off_outlined,
-                                          ),
-                                        ),
-                                      ),
-                                      validator: (value) =>
-                                          value == null || value.isEmpty
-                                          ? 'Vui lòng nhập mật khẩu.'
-                                          : null,
-                                    ),
-                                    if (auth.error != null) ...[
-                                      const SizedBox(height: 16),
-                                      _InlineMessage(
-                                        message: userMessageFor(auth.error!),
-                                      ),
-                                    ],
-                                    const SizedBox(height: 20),
-                                    FilledButton.icon(
-                                      onPressed: auth.isSubmitting
-                                          ? null
-                                          : _submit,
-                                      icon: auth.isSubmitting
-                                          ? const SizedBox.square(
-                                              dimension: 18,
-                                              child: CircularProgressIndicator(
-                                                strokeWidth: 2.4,
+                                          const SizedBox(height: 24),
+                                          TextFormField(
+                                            controller: _usernameController,
+                                            enabled: !auth.isSubmitting,
+                                            textInputAction:
+                                                TextInputAction.next,
+                                            autofillHints: const [
+                                              AutofillHints.username,
+                                            ],
+                                            decoration: const InputDecoration(
+                                              labelText: 'Tên đăng nhập',
+                                              prefixIcon: Icon(
+                                                Icons.person_outline_rounded,
                                               ),
-                                            )
-                                          : const Icon(Icons.login_rounded),
-                                      label: Text(
-                                        auth.isSubmitting
-                                            ? 'Đang xác thực…'
-                                            : 'Tiếp tục',
-                                      ),
-                                    ),
-                                    const SizedBox(height: 18),
-                                    Row(
-                                      children: [
-                                        Icon(
-                                          Icons.shield_outlined,
-                                          size: 18,
-                                          color: colors.primary,
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Expanded(
-                                          child: Text(
-                                            'Ứng dụng không lưu mật khẩu Moodle.',
-                                            style: Theme.of(
-                                              context,
-                                            ).textTheme.bodySmall,
+                                            ),
+                                            validator: (value) =>
+                                                value == null ||
+                                                    value.trim().isEmpty
+                                                ? 'Vui lòng nhập tên đăng nhập.'
+                                                : null,
                                           ),
-                                        ),
-                                      ],
-                                    ),
-                                    if (config.enableDevFixtures) ...[
-                                      const SizedBox(height: 14),
-                                      Text(
-                                        'DEV FIXTURE: nhập giá trị bất kỳ để xem giao diện demo.',
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .labelMedium
-                                            ?.copyWith(color: colors.tertiary),
+                                          const SizedBox(height: 14),
+                                          TextFormField(
+                                            controller: _passwordController,
+                                            enabled: !auth.isSubmitting,
+                                            obscureText: _obscurePassword,
+                                            textInputAction:
+                                                TextInputAction.done,
+                                            autofillHints: const [
+                                              AutofillHints.password,
+                                            ],
+                                            onFieldSubmitted: (_) => _submit(),
+                                            decoration: InputDecoration(
+                                              labelText: 'Mật khẩu',
+                                              prefixIcon: const Icon(
+                                                Icons.lock_outline_rounded,
+                                              ),
+                                              suffixIcon: IconButton(
+                                                onPressed: () => setState(
+                                                  () => _obscurePassword =
+                                                      !_obscurePassword,
+                                                ),
+                                                tooltip: _obscurePassword
+                                                    ? 'Hiện mật khẩu'
+                                                    : 'Ẩn mật khẩu',
+                                                icon: Icon(
+                                                  _obscurePassword
+                                                      ? Icons
+                                                            .visibility_outlined
+                                                      : Icons
+                                                            .visibility_off_outlined,
+                                                ),
+                                              ),
+                                            ),
+                                            validator: (value) =>
+                                                value == null || value.isEmpty
+                                                ? 'Vui lòng nhập mật khẩu.'
+                                                : null,
+                                          ),
+                                          if (auth.error != null) ...[
+                                            const SizedBox(height: 16),
+                                            _InlineMessage(
+                                              message: userMessageFor(
+                                                auth.error!,
+                                              ),
+                                            ),
+                                          ],
+                                          const SizedBox(height: 20),
+                                          FilledButton.icon(
+                                            onPressed: auth.isSubmitting
+                                                ? null
+                                                : _submit,
+                                            icon: auth.isSubmitting
+                                                ? const SizedBox.square(
+                                                    dimension: 18,
+                                                    child:
+                                                        CircularProgressIndicator(
+                                                          strokeWidth: 2.4,
+                                                        ),
+                                                  )
+                                                : const Icon(
+                                                    Icons.login_rounded,
+                                                  ),
+                                            label: Text(
+                                              auth.isSubmitting
+                                                  ? 'Đang xác thực…'
+                                                  : 'Tiếp tục',
+                                            ),
+                                          ),
+                                          const SizedBox(height: 18),
+                                          Row(
+                                            children: [
+                                              Icon(
+                                                Icons.shield_outlined,
+                                                size: 18,
+                                                color: colors.primary,
+                                              ),
+                                              const SizedBox(width: 8),
+                                              Expanded(
+                                                child: Text(
+                                                  'Ứng dụng không lưu mật khẩu Moodle.',
+                                                  style: Theme.of(
+                                                    context,
+                                                  ).textTheme.bodySmall,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 14),
+                                          Text(
+                                            'DEV FIXTURE: nhập giá trị bất kỳ để xem giao diện demo.',
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .labelMedium
+                                                ?.copyWith(
+                                                  color: colors.tertiary,
+                                                ),
+                                          ),
+                                        ],
                                       ),
-                                    ],
-                                  ],
-                                ),
-                              ),
+                                    )
+                                  : const _AuthenticationBlocker(),
                             ),
                           ),
                         ),
@@ -273,6 +288,110 @@ class _WelcomePanel extends StatelessWidget {
       ],
     ),
   );
+}
+
+class _AuthenticationBlocker extends StatelessWidget {
+  const _AuthenticationBlocker();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Align(
+          alignment: Alignment.centerLeft,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: colors.secondaryContainer,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(14),
+              child: Icon(
+                Icons.admin_panel_settings_outlined,
+                color: colors.onSecondaryContainer,
+                size: 30,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 22),
+        Text(
+          'Đăng nhập ứng dụng chưa được bật',
+          style: Theme.of(
+            context,
+          ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900),
+        ),
+        const SizedBox(height: 10),
+        Text(
+          'DLU chưa bật Web Services và chưa xác nhận phương thức xác thực '
+          'dành cho ứng dụng di động. '
+          'Để bảo vệ tài khoản, phiên bản production không yêu cầu hoặc thu '
+          'thập tên đăng nhập và mật khẩu Moodle.',
+          style: TextStyle(color: colors.onSurfaceVariant, height: 1.5),
+        ),
+        const SizedBox(height: 20),
+        DecoratedBox(
+          decoration: BoxDecoration(
+            color: colors.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: colors.outlineVariant),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Trạng thái tích hợp',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w800),
+                ),
+                const SizedBox(height: 6),
+                const FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'AUTHENTICATION_METHOD_UNCONFIRMED',
+                    maxLines: 1,
+                    style: TextStyle(fontFamily: 'monospace'),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                const FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'MOODLE_WEB_SERVICES_NOT_ENABLED',
+                    maxLines: 1,
+                    style: TextStyle(fontFamily: 'monospace'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 18),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(Icons.shield_outlined, size: 20, color: colors.primary),
+            const SizedBox(width: 10),
+            const Expanded(
+              child: Text(
+                'Tiếp tục sử dụng cổng LMS chính thức trong khi DLU xác nhận '
+                'luồng đăng nhập an toàn cho ứng dụng.',
+                style: TextStyle(height: 1.45),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
 }
 
 class _InlineMessage extends StatelessWidget {

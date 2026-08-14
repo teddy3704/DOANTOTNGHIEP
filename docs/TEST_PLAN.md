@@ -1,8 +1,8 @@
 # Test Plan
 
-**Status:** Phase 2 executable baseline.
+**Status:** Phase 3B executable baseline; live API contract tests blocked externally.
 
-**Current executable test result:** `PASS — doctor no issues, analyze 0 issues, 13 tests, production/DEV debug APK builds, Android 15 emulator demo flow`.
+**Current executable test result:** `PASS — analyze 0 issues, 21 tests, production/DEV debug APK builds, Android 15 production + DEV emulator smoke`.
 
 ## 1. Objectives
 
@@ -155,3 +155,19 @@ Không gọi phase `PASS` nếu bất kỳ required gate nào fail.
 - Android 15/API 35 x86_64 emulator smoke test covers Splash, login, dashboard, courses, course detail, profile and logout.
 - PID-scoped runtime log review reports 0 crash, ANR, Flutter exception or RenderFlex overflow.
 - Physical-device smoke remains TODO when a device is available; it no longer blocks the emulator demo milestone.
+
+## 11. Phase 3B verification — 2026-08-14
+
+- Production Login widget test verifies both integration blockers, no DEV label, no credential field and no submit button.
+- Viewport regression test resizes Login below its outer padding after Splash to prevent the emulator cold-launch `negative minimum height` bug from returning.
+- Config tests reject missing host, userinfo, path, query, fragment and non-HTTPS base URLs; canonical origin normalization is verified.
+- Network diagnostic tests use synthetic sentinels to prove raw Dio exceptions, headers, request/response body, query values, arbitrary PII slugs and cross-origin paths do not leak.
+- Origin-gate regression injects a mismatched Dio base URL and proves the request is rejected before authorizer/network execution, then rechecked after authorization.
+- Provider lifecycle test proves Courses, Course Detail and Profile data providers dispose and reload instead of retaining data across released session/listener boundaries.
+- `dart format .`: PASS — 40 files, 0 changed on final run.
+- `flutter analyze`: PASS — 0 issues.
+- `flutter test`: PASS — 21/21.
+- `flutter build apk --debug`: PASS for production; DEV fixture was also built/run separately.
+- Production emulator smoke: blocker semantics present, 0 editable credential fields, visual review PASS and PID log scan found 0 crash/widget exception/overflow.
+- DEV emulator smoke: synthetic Login → Dashboard → Courses → Course Detail → Profile → Logout PASS; PID log scan found 0 matching runtime error.
+- Live DLU API tests remain uncreated by design because Web Services currently return `enablewsdescription`; default tests never call production DLU.

@@ -13,7 +13,7 @@ void main() {
         isA<ConfigurationFailure>().having(
           (failure) => failure.code,
           'code',
-          'MOODLE_WEB_SERVICES_STATUS_REQUIRED',
+          'MOODLE_WEB_SERVICES_NOT_ENABLED',
         ),
       ),
     );
@@ -28,7 +28,7 @@ void main() {
         isA<ConfigurationFailure>().having(
           (failure) => failure.code,
           'code',
-          'MOODLE_WEB_SERVICES_STATUS_REQUIRED',
+          'MOODLE_WEB_SERVICES_NOT_ENABLED',
         ),
       ),
     );

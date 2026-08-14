@@ -22,24 +22,21 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Đăng nhập'), findsOneWidget);
-    expect(find.textContaining('DEV FIXTURE'), findsNothing);
-
-    await tester.enterText(
-      find.widgetWithText(TextFormField, 'Tên đăng nhập'),
-      'synthetic-user',
-    );
-    await tester.enterText(
-      find.widgetWithText(TextFormField, 'Mật khẩu'),
-      'synthetic-password',
-    );
-    await tester.tap(find.widgetWithText(FilledButton, 'Tiếp tục'));
+    // Android can briefly report a viewport below the screen's outer padding
+    // during cold launch. Resize after Splash has left the tree so this
+    // specifically exercises LoginScreen's constraint guard.
+    tester.view.physicalSize = const Size(390, 40);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
     await tester.pumpAndSettle();
 
-    expect(
-      find.textContaining('DLU chưa xác nhận cơ chế đăng nhập'),
-      findsOneWidget,
-    );
+    expect(find.text('Đăng nhập ứng dụng chưa được bật'), findsOneWidget);
+    expect(find.text('AUTHENTICATION_METHOD_UNCONFIRMED'), findsOneWidget);
+    expect(find.text('MOODLE_WEB_SERVICES_NOT_ENABLED'), findsOneWidget);
+    expect(find.textContaining('DEV FIXTURE'), findsNothing);
+    expect(find.byType(TextFormField), findsNothing);
+    expect(find.widgetWithText(FilledButton, 'Tiếp tục'), findsNothing);
     expect(find.textContaining('Xin chào'), findsNothing);
   });
 

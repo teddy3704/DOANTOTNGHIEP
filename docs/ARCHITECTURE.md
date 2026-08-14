@@ -4,7 +4,7 @@
 
 **Implementation status:** Phase 2 foundation đã được triển khai. Các module Moodle live và phần được gắn `BLOCKED`/`PROPOSED` vẫn chưa phải chức năng production hoàn chỉnh.
 
-**Cập nhật:** 2026-08-12
+**Cập nhật:** 2026-08-14
 
 ## 1. Architecture goals
 
@@ -20,7 +20,7 @@ Thiết kế phải:
 - hỗ trợ loading/empty/error/retry nhất quán;
 - cho phép bổ sung local cache read-only mà không làm thay đổi source of truth về quyền.
 
-## 2. System context
+## 2. Conditional target system context
 
 ```mermaid
 flowchart LR
@@ -38,45 +38,38 @@ flowchart LR
 
 Flutter không kết nối trực tiếp database. Database access chỉ dành cho phân tích read-only hoặc server-side work được DLU phê duyệt.
 
+Diagram trên là target sau khi DLU enable/approve Web Services. Hiện tại `NET-TOKEN-001/002` trả `enablewsdescription`, nên runtime production vẫn dừng tại fail-closed configuration boundary; không có đường Flutter → Moodle REST đang hoạt động.
+
 ## 3. Implemented Flutter structure
 
 ```text
 lib/
   app/
     app.dart
-    bootstrap.dart
     router/
     theme/
   core/
     config/
-    constants/
     errors/
     network/
-    security/
     storage/
-    utils/
     widgets/
+  dev/
+    fixtures/
   features/
     auth/
-      data/
       domain/
       presentation/
     dashboard/
     courses/
-    course_detail/
-    assignments/
-    submissions/
-    grades/
-    calendar/
-    notifications/
     profile/
-    teacher/
-    settings/
+    splash/
+  main.dart
+  main_development.dart
 test/
   core/
   features/
-  fixtures/
-integration_test/
+  app/
 ```
 
 Hiện đã triển khai `auth`, `dashboard`, `courses`, `profile`, `splash`, core config/errors/network/storage/widgets và dev fixture boundary. Các feature chưa bắt đầu không được tạo placeholder hàng loạt.
@@ -134,11 +127,11 @@ Compile-time/runtime configuration tối thiểu dự kiến:
 - non-secret network timeout values.
 - build flavor/environment label để ngăn nhầm staging/production.
 
-Token, username và password không nằm trong `.env` committed hoặc compile-time Dart define. `AppConfig` đọc `MOODLE_BASE_URL` qua Dart define, validate HTTPS và cấm DEV fixtures trong production. Token sẽ được nhận runtime và lưu qua `SecureTokenStorage` sau khi auth contract được xác nhận.
+Token, username và password không nằm trong `.env` committed hoặc compile-time Dart define. `AppConfig` đọc `MOODLE_BASE_URL` qua Dart define, chỉ chấp nhận credential-free HTTPS origin (không path/query/fragment/userinfo), normalize origin và cấm DEV fixtures trong production. Token sẽ được nhận runtime và lưu qua `SecureTokenStorage` sau khi auth contract được xác nhận.
 
 ## 8. Authentication architecture
 
-Do DLU authentication chưa được xác nhận, production dùng `UnconfiguredAuthRepository` và `UnconfiguredRequestAuthorizer`, trả blocker rõ thay vì gọi endpoint phỏng đoán. `AuthRepository` là boundary để bổ sung implementation khi có bằng chứng:
+Do DLU authentication chưa được xác nhận và DLU mobile site check hiện trả `enablewsdescription`, production dùng `UnconfiguredAuthRepository` và `UnconfiguredRequestAuthorizer`, trả blocker rõ thay vì gọi endpoint phỏng đoán. Production Login không thu username/password; form credential chỉ xuất hiện trong DEV fixture. `AuthRepository` là boundary để bổ sung implementation khi có bằng chứng:
 
 - Moodle token authentication nếu DLU cho phép;
 - approved browser/SSO flow nếu DLU dùng SSO;
@@ -194,9 +187,11 @@ flowchart LR
 - validate/canonicalize base URL;
 - HTTPS enforcement ở production;
 - `RequestAuthorizer` boundary; production authorizer hiện fail closed vì chưa xác nhận auth;
+- same-origin gate trước authorization và kiểm tra lại sau authorization trước network fetch;
 - connect/send/receive timeout;
-- response envelope parsing và Moodle exception mapping;
+- Dio/HTTP failure mapping; Moodle body-level exception-envelope parsing vẫn `BLOCKED` đến khi response contract DLU được xác minh;
 - cancellation qua Dio `CancelToken`.
+- raw `DioException`, request options, headers, body và response không được giữ trong `AppFailure`; network diagnostic chỉ chứa method/path cùng-origin đã khử query, status và Dio type.
 
 Correlation ID, safe retry và file download progress được giữ cho phase API thật sau khi contract tồn tại.
 
@@ -281,7 +276,7 @@ Release signing/CI/CD chưa được thiết kế chi tiết vì application ide
 | ADR-002 | Moodle REST through application layer; no direct DB from Flutter | ACCEPTED |
 | ADR-003 | Feature-first + pragmatic clean layers | ACCEPTED/IMPLEMENTED |
 | ADR-004 | Riverpod/go_router/Dio/secure storage baseline | ACCEPTED/IMPLEMENTED |
-| ADR-005 | Authentication strategy selected from DLU evidence | BLOCKED |
+| ADR-005 | Authentication strategy selected from DLU evidence | BLOCKED — `AUTHENTICATION_METHOD_UNCONFIRMED`, `MOODLE_WEB_SERVICES_NOT_ENABLED` |
 | ADR-006 | Offline persistence technology | DEFERRED until data/retention needs exist |
 | ADR-007 | Custom Moodle plugin | DEFERRED/BLOCKED pending API gap + Moodle/PHP/plugin policy |
 | ADR-008 | Temporary application ID `vn.edu.dlu.lmsmobile`; release signing/branding ownership | PARTIAL/BLOCKED |

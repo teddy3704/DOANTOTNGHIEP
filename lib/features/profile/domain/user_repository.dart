@@ -14,7 +14,7 @@ class UnconfiguredUserRepository implements UserRepository {
   Future<AppUser> getCurrentUser() {
     throw const ConfigurationFailure(
       'API thông tin người dùng DLU chưa được xác nhận.',
-      code: 'MOODLE_WEB_SERVICES_STATUS_REQUIRED',
+      code: 'MOODLE_WEB_SERVICES_NOT_ENABLED',
     );
   }
 }
@@ -23,6 +23,6 @@ final userRepositoryProvider = Provider<UserRepository>(
   (ref) => const UnconfiguredUserRepository(),
 );
 
-final currentUserProvider = FutureProvider<AppUser>(
+final currentUserProvider = FutureProvider.autoDispose<AppUser>(
   (ref) => ref.watch(userRepositoryProvider).getCurrentUser(),
 );

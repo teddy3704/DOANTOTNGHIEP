@@ -286,4 +286,178 @@ Repository `build\` được wrapper kích hoạt tạm thời tới `D:\DLU-LMS
 ### Blocker còn lại
 
 - Không có blocker local/emulator cho demo milestone.
-- Live Moodle vẫn cần `AUTHENTICATION_METHOD_UNCONFIRMED`, `MOODLE_WEB_SERVICES_STATUS_REQUIRED`, `TEST_ACCOUNT_REQUIRED` và `MOODLE_API_TOKEN_REQUIRED` trước Phase 3.
+- At this earlier emulator milestone, live Moodle still required auth/Web Services evidence. Phase 3B later resolved the service-status question to `MOODLE_WEB_SERVICES_NOT_ENABLED`.
+
+## 2026-08-13 — Phase 3A Live DLU Moodle Public Discovery
+
+### Scope and safety
+
+- Truy cập `https://lms.dlu.edu.vn/` công khai, read-only; không login, không submit form, không scan/fuzz/spider hoặc ghi dữ liệu lên LMS.
+- Không in/lưu cookie value, login token, credential, MFA, user data hoặc response private.
+- Flutter source không thay đổi; production tiếp tục fail-closed.
+
+### Evidence findings
+
+| Finding | Result | Confidence |
+|---|---|---|
+| DNS | IPv4 `14.238.96.169` observed | VERIFIED_NETWORK |
+| HTTP → HTTPS | `302` to canonical HTTPS root | VERIFIED_NETWORK |
+| HTTPS root | `200 OK`, Vietnamese HTML, LiteSpeed header | VERIFIED_NETWORK |
+| TLS connection | Valid wildcard `*.dlu.edu.vn` certificate; observed TLS 1.2 negotiation | VERIFIED_NETWORK |
+| Platform | Moodle via routes/runtime/assets/cookie-name/footer evidence | VERIFIED_NETWORK |
+| Exact Moodle version | No authoritative evidence | UNKNOWN |
+| Theme | Lambda asset/class evidence | VERIFIED_NETWORK |
+| Public structure | Course search/category tree, news/online blocks, DLU navigation/contact | VERIFIED_UI |
+| Local login | Username/password form at `/login/index.php` | VERIFIED_UI |
+| Federated login | `Google Login` via Moodle OAuth2 route | VERIFIED_UI |
+| Web Services/mobile service | No DLU-specific evidence yet | UNKNOWN |
+
+The public form does not prove Moodle-native authentication or authorize mobile token acquisition. The Google option does not yet provide an approved Flutter redirect/token exchange contract.
+
+### Documentation changed
+
+- Created `docs/live-dlu/SITE_DISCOVERY.md`.
+- Created `docs/live-dlu/AUTH_DISCOVERY.md`.
+- Created a public-only `docs/live-dlu/WEB_FEATURE_MAP.md`.
+- Created `docs/live-dlu/DLU_ADMIN_REQUIREMENTS.md`.
+- Reworked `docs/API_MATRIX.md` so no DLU function is claimed before live/admin evidence.
+- Updated Moodle integration, database evidence boundary, architecture claim, project status and this report.
+
+### Tooling limitation
+
+Browser DOM/metadata inspection succeeded, but screenshot capture repeatedly timed out. No partial/corrupt public screenshot was retained and no private data was captured.
+
+### Quality gate
+
+| Check | Result |
+|---|---|
+| `dart format .` | PASS — 39 files, 0 changed |
+| `flutter analyze` | PASS — 0 issues |
+| `flutter test` | PASS — 13 tests |
+| Secret/session-value scan | PASS — no cookie value, login token, bearer credential or private key; only existing synthetic test password matched |
+
+Lượt wrapper đầu bị chặn trước khi Flutter chạy vì OneDrive đồng bộ ngược một cloud placeholder vào repository `build/` trong khi junction thật đang được cất ngoài OneDrive. Reparse tag, Git ignore/tracking state và D target đã được xác minh; placeholder được bảo toàn dưới tên ignored `build_onedrive_stale_phase3a_20260813`, không xóa build target/data. Sau remediation, analyze và test đều PASS và wrapper trả junction về trạng thái inactive.
+
+### Current gate
+
+`ACTION_REQUIRED: USER_INTERACTIVE_LOGIN` — authenticated read-only discovery requires the user to enter their own credential/MFA in the handed-off browser. Codex must never receive the password or OTP.
+
+This Phase 3A action was completed before Phase 3B; it is retained only as chronological history and is no longer the active blocker.
+
+### Next step
+
+After the user reports `Đã đăng nhập`, continue in the same session with read-only Dashboard → My Courses → one course → Profile discovery, then assess DLU-specific Web Service/auth strategy before any production Flutter change.
+
+## 2026-08-14 — Phase 3B Authenticated Discovery + Safety Hardening
+
+### Scope and privacy
+
+- Reused the existing user-authenticated browser session; no login replay and no credential/MFA request.
+- Inspected only current-user Dashboard, course overview, one representative enrolled course, Profile, Calendar, own grades navigation, notification/message navigation and minimum activity/resource metadata.
+- No user/course name, identifier, grade, private message, participant list, cookie, token, Authorization header or `sesskey` value was written to source/docs/Git.
+- Browser session was handed back at `/my/` and remained authenticated at final check.
+
+### Authenticated DLU evidence
+
+| Finding | Result | Evidence |
+|---|---|---|
+| Authenticated session | Dashboard/private navigation verified | `VERIFIED_UI` (`UI-AUTH-001`) |
+| Dashboard/My Courses | Course overview, recent items and calendar-related blocks verified | `VERIFIED_UI` |
+| One representative course | Sections plus assignment/forum/label/resource/URL activity types verified; no quiz observed in this course | `VERIFIED_UI` |
+| Profile | Profile container/avatar/grouped fields verified; values omitted | `VERIFIED_UI` |
+| Calendar | Month/event/filter UI verified; values omitted | `VERIFIED_UI` |
+| Own grades | Overview/navigation verified; values omitted | `VERIFIED_UI` |
+| Notifications/messages | Navigation verified; notification content not opened; messages target showed generic error state | `VERIFIED_UI` |
+| Successful Moodle function | None | `0 VERIFIED_API` |
+
+### Web Services/auth investigation
+
+| Request | Outcome | Conclusion |
+|---|---|---|
+| GET `/webservice/rest/server.php` without parameters/cookie | `403 text/html` | Endpoint access denied; denial layer `UNKNOWN` |
+| GET `/login/token.php` without credentials | `200 application/json`, `errorcode=enablewsdescription`, no token field | Web Services gate failed before credential processing |
+| GET `/login/token.php?appsitecheck=1` | Same error; no `appsitecheck=ok` | `MOODLE_WEB_SERVICES_NOT_ENABLED` |
+
+Official Moodle stable token source was used only to interpret the standard error semantics; it does not establish DLU's Moodle version. No credential, service shortname, token or function was guessed, so no live API POC could safely proceed.
+
+### Flutter/security changes
+
+- Production Login now displays a professional fail-closed integration state and never renders username/password fields while auth strategy is unconfirmed. DEV fixture retains its separate credential form.
+- Added `AppConfig` credential-free HTTPS-origin validation and canonicalization.
+- Replaced raw failure `cause` retention with scalar-only `NetworkFailureDiagnostic`; arbitrary same-origin slugs and all cross-origin paths are redacted.
+- Added a pre-authorizer and post-authorizer same-origin gate; a regression with an injected mismatched Dio base URL proves 0 authorizer calls, 0 network attempts and no sentinel leakage.
+- Changed course list/detail/profile providers to `autoDispose` and added cache-lifecycle regression coverage.
+- Fixed emulator cold-launch layout failure caused by a transient zero-height viewport and added a small-viewport regression.
+- Added authenticated feature map, sanitized network evidence, data dictionary, evidence index and production feature traceability.
+
+### Quality gate
+
+| Check | Result |
+|---|---|
+| `dart format .` | PASS — 40 files, 0 changed on final run |
+| `flutter analyze` | PASS — 0 issues |
+| `flutter test` | PASS — 21/21 |
+| Production `flutter build apk --debug` | PASS |
+| Production `flutter run -d emulator-5554 -t lib/main.dart --no-resident` | PASS |
+| Production semantics | Blocker state present; 0 editable credential fields |
+| Production PID log scan | PASS — 0 crash/widget exception/overflow/ANR pattern |
+| DEV emulator synthetic flow | PASS — Login → Dashboard → Courses → Course Detail → Profile → Logout |
+| DEV PID log scan | PASS — 0 matching runtime error |
+
+The first production emulator run exposed `BoxConstraints has a negative minimum height` during the initial zero-size viewport. The constraint was guarded, a regression test was added, and all gates/emulator checks were repeated successfully. Visual review also corrected blocker-code wrapping before the final run.
+
+### APK artifacts on D
+
+- `D:\DLU-LMS\Artifacts\dlu-lms-mobile-phase3b-dev-fixture-debug.apk`
+  - 178,470,619 bytes
+  - SHA-256 `5998CB902B8CFA6322011DE8EB2E95904FF790BBACE5BDEA4535DA7D9330B5B8`
+- `D:\DLU-LMS\Artifacts\dlu-lms-mobile-phase3b-production-debug.apk`
+  - 178,470,619 bytes
+  - SHA-256 `0BCAA88446475CA6C0CCA0CF63AE7921ABCBC1B945906393A08D6A2341790895`
+- Production badging: `vn.edu.dlu.lmsmobile`, version `0.1.0`, minSdk 24, targetSdk 36.
+
+Production screenshot used for local visual QA is stored only at `D:\DLU-LMS\Artifacts\phase3b-production-blocker.png`; it contains no credential or DLU personal data and is not staged in Git.
+
+### Storage/OneDrive
+
+| Check | Result |
+|---|---|
+| Final C free | 20.65 GB — PASS (>=15 GB) |
+| Final D free after both APK artifacts | 75.00 GB — PASS (>=25 GB) |
+| Build target | `D:\DLU-LMS\Build\DoAnTotNghiep` |
+| Final build junction | Inactive outside OneDrive synced root |
+| OneDrive | Running after every quality/build session |
+
+OneDrive recreated cloud placeholders named `build` while the real junction was inactive. Each verified non-junction placeholder was preserved under ignored `build_onedrive_stale_*` names; none was deleted or confused with the D build target.
+
+### External blocker
+
+```text
+ACTION_REQUIRED: DLU_ENABLE_MOODLE_WEB_SERVICES
+
+REASON:
+DLU's read-only Moodle mobile site check returns errorcode=enablewsdescription,
+so no supported token/API POC can proceed.
+
+EVIDENCE:
+NET-TOKEN-001 and NET-TOKEN-002; REST entrypoint independently returns 403.
+
+WHAT I ALREADY TRIED:
+Authenticated read-only UI discovery plus minimal credential-free REST/token/site-check requests.
+
+MINIMUM REQUIRED FROM YOU/DLU:
+Approve mobile integration; enable Web Services and the selected REST/mobile or
+external service, preferably on test/staging; provide approved auth strategy,
+sanitized service shortname/function allowlist and one least-privilege student
+test identity through an approved secret channel.
+
+SECURITY NOTE:
+No production admin password, database password, broad token, cookie reuse or
+write permission is requested.
+
+WHAT I WILL DO NEXT:
+Run read-only POCs in order: auth -> current user/site info -> own courses ->
+one course content; then implement only response-verified DTOs/repositories.
+```
+
+Database is not required for the next step. The application-layer service gate must be resolved first.

@@ -22,6 +22,38 @@ void main() {
       );
     });
 
+    test('rejects values that are not a credential-free HTTPS origin', () {
+      final invalidOrigins = <Uri>[
+        Uri(scheme: 'https'),
+        Uri.parse('https://user:password@lms.example.test'),
+        Uri.parse('https://lms.example.test/moodle'),
+        Uri.parse('https://lms.example.test?service=mobile'),
+        Uri.parse('https://lms.example.test#private'),
+      ];
+
+      for (final origin in invalidOrigins) {
+        expect(
+          () => AppConfig(
+            environment: AppEnvironment.production,
+            moodleBaseUri: origin,
+            enableDevFixtures: false,
+          ),
+          throwsArgumentError,
+          reason: '$origin must not be accepted as an LMS origin.',
+        );
+      }
+    });
+
+    test('normalizes the root slash, host case, and default HTTPS port', () {
+      final config = AppConfig(
+        environment: AppEnvironment.production,
+        moodleBaseUri: Uri.parse('https://LMS.Example.Test:443/'),
+        enableDevFixtures: false,
+      );
+
+      expect(config.moodleBaseUri, Uri.parse('https://lms.example.test'));
+    });
+
     test('rejects DEV fixtures in production', () {
       expect(
         () => AppConfig(

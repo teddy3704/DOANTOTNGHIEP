@@ -2,6 +2,8 @@
 
 **Status:** `BLOCKED — DLU Moodle schema/database not provided`
 
+**Live discovery update 2026-08-13:** Public Moodle/login evidence không cung cấp database engine, version, prefix, table hoặc field evidence; physical mapping vẫn giữ nguyên `BLOCKED`.
+
 **Access rule:** Read-only analysis first; never connect Flutter directly to the database.
 
 ## 1. Current evidence
@@ -97,3 +99,10 @@ Classification tối thiểu: Public, Internal, Personal, Sensitive Academic, Se
 - official data dictionary/ERD đủ để xác nhận mapping.
 
 Database access không phải điều kiện bắt buộc để dùng standard Moodle APIs; chỉ thực hiện nếu có mục tiêu analysis rõ.
+
+## 8. Phase 3B evidence boundary — 2026-08-14
+
+- Authenticated Dashboard/course/Profile/Calendar/Grades UI is `VERIFIED_UI`, not database evidence.
+- The DLU token/mobile site check reports `MOODLE_WEB_SERVICES_NOT_ENABLED`; this is a service-configuration blocker, not a reason to bypass Moodle through direct database access.
+- No table, prefix, column, relationship, engine or version became `VERIFIED_DATABASE` in this milestone.
+- `DATABASE REQUIRED? NO` for the next step. DLU should first approve/enable the supported application-layer integration and provide its service contract.
