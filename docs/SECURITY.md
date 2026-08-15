@@ -1,8 +1,17 @@
 # Security Baseline
 
-**Status:** Phase 3B local hardening implemented; live authentication remains blocked by DLU service/auth configuration.
+**Status:** Phase 3B hardening + synthetic-data controls implemented; live authentication remains blocked by DLU service/auth configuration.
 
 **Scope:** Flutter client, Moodle REST boundary, local data, build/release process.
+
+## Synthetic dataset controls — 2026-08-15
+
+- Canonical fixture được phân loại `SYNTHETIC_DATA`, sinh offline với seed `202608`, chỉ được dùng trong DEV/test.
+- Identity dùng `SVTEST*`/`GVTEST*` và `example.test`; generator không tạo password, Moodle token, cookie, signing secret, database credential hoặc live DLU payload.
+- `main.dart` giữ unconfigured repositories và không fallback asset. Chỉ `main_development.dart` tạo `SyntheticFixtureDataSource`.
+- Validator kiểm tra PK uniqueness, declared/local fixture links, mandatory values, state coverage và privacy markers trước khi asset được chấp nhận.
+- `schema.sql`/`seed.sql` là local `PROJECT_SUBSET_SCHEMA`, không phải deployment migration và không tạo đường Flutter → MySQL.
+- File rows chỉ có synthetic metadata. `contenthash` không được coi là download URL; repository không chứa file bytes hoặc `moodledata`.
 
 ## 1. Security invariants
 

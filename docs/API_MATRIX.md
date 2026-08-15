@@ -24,12 +24,12 @@
 | Site + current user | Authenticated identity UI exists (`UI-AUTH-001`) | `UNKNOWN` | NO | Approved session/token and function permission `UNKNOWN` | NO | `AuthSession` foundation; live mapper/repository absent |
 | Own user profile | Profile UI verified (`UI-PROFILE-001`) | `UNKNOWN` | NO | Own-field visibility by API `UNKNOWN` | NO | Profile foundation; live fields/DTO absent |
 | My Courses | Course overview verified (`UI-COURSES-001`) | `UNKNOWN` | NO | Enrolment/course visibility by API `UNKNOWN` | NO | Loading/empty/error/retry foundation; live repository blocked |
-| One course detail | `COURSE-A` UI verified (`UI-COURSE-001`) | `UNKNOWN` | NO | Course-context API permission `UNKNOWN` | NO | Placeholder detail only |
-| Course sections/activities | Section and activity types verified in UI (`UI-COURSE-002`) | `UNKNOWN` | NO | Module visibility/availability by API `UNKNOWN` | NO | Section/module models and repository method absent |
-| Course file metadata/download | Protected-file link presence verified (`UI-COURSE-003`) | `UNKNOWN` | NO | File context/service-download policy `UNKNOWN` | NO | Not implemented |
-| Own assignments — read only | Assignment activity type observed in `COURSE-A` UI | `UNKNOWN` | NO | Own-assignment/submission scope `UNKNOWN` | NO | Deferred until core live contracts PASS |
-| Own grades — read only | Current-user grade overview UI verified (`UI-GRADES-001`) | `UNKNOWN` | NO | Sensitive own-grade API scope `UNKNOWN` | NO | Not implemented |
-| Calendar — read only | Current-user calendar UI verified (`UI-CALENDAR-001`) | `UNKNOWN` | NO | Event visibility by API `UNKNOWN` | NO | Not implemented |
+| One course detail | `COURSE-A` UI verified (`UI-COURSE-001`) | `UNKNOWN` | NO | Course-context API permission `UNKNOWN` | NO | Domain/UI implemented from canonical `SYNTHETIC_DATA`; live repository absent |
+| Course sections/activities | Section and activity types verified in UI (`UI-COURSE-002`) | `UNKNOWN` | NO | Module visibility/availability by API `UNKNOWN` | NO | DEV repository maps generated sections/modules; production fail-closed |
+| Course file metadata/download | Protected-file link presence verified (`UI-COURSE-003`) | `UNKNOWN` | NO | File context/service-download policy `UNKNOWN` | NO | DEV shows synthetic resource metadata only; no live download |
+| Own assignments — read only | Assignment activity type observed in `COURSE-A` UI | `UNKNOWN` | NO | Own-assignment/submission scope `UNKNOWN` | NO | DEV Assignment/submission states implemented; live repository absent |
+| Own grades — read only | Current-user grade overview UI verified (`UI-GRADES-001`) | `UNKNOWN` | NO | Sensitive own-grade API scope `UNKNOWN` | NO | DEV gradebook implemented from synthetic fixture; live repository absent |
+| Calendar — read only | Current-user calendar UI verified (`UI-CALENDAR-001`) | `UNKNOWN` | NO | Event visibility by API `UNKNOWN` | NO | DEV Dashboard upcoming events implemented; live repository absent |
 | Notifications — own only | Navigation control verified (`UI-NOTIFY-001`) | `UNKNOWN` | NO | Notification visibility/API availability `UNKNOWN` | NO | Not implemented |
 
 ## Authentication/service classification

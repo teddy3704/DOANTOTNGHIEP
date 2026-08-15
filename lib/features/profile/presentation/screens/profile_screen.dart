@@ -68,7 +68,10 @@ class _ProfileContent extends ConsumerWidget {
                           child: Text(
                             _initials(profile.displayName),
                             style: Theme.of(context).textTheme.headlineMedium
-                                ?.copyWith(fontWeight: FontWeight.w900),
+                                ?.copyWith(
+                                  color: colors.onPrimaryContainer,
+                                  fontWeight: FontWeight.w900,
+                                ),
                           ),
                         ),
                         SizedBox(
@@ -89,19 +92,22 @@ class _ProfileContent extends ConsumerWidget {
                                     ?.copyWith(fontWeight: FontWeight.w900),
                               ),
                               const SizedBox(height: 5),
-                              Text(
-                                profile.roleLabel,
-                                textAlign: TextAlign.center,
-                                style: TextStyle(color: colors.primary),
-                              ),
-                              const SizedBox(height: 5),
-                              Text(
-                                profile.faculty,
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  color: colors.onSurfaceVariant,
+                              if (profile.roleLabel case final roleLabel?)
+                                Text(
+                                  roleLabel,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(color: colors.primary),
                                 ),
-                              ),
+                              if (profile.faculty case final faculty?) ...[
+                                const SizedBox(height: 5),
+                                Text(
+                                  faculty,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: colors.onSurfaceVariant,
+                                  ),
+                                ),
+                              ],
                             ],
                           ),
                         ),
@@ -114,12 +120,22 @@ class _ProfileContent extends ConsumerWidget {
               Card(
                 child: Column(
                   children: [
-                    _InfoTile(
-                      icon: Icons.alternate_email_rounded,
-                      title: 'Email',
-                      value: profile.email,
-                    ),
-                    const Divider(),
+                    if (profile.email case final email?) ...[
+                      _InfoTile(
+                        icon: Icons.alternate_email_rounded,
+                        title: 'Email',
+                        value: email,
+                      ),
+                      const Divider(),
+                    ],
+                    if (profile.idNumber case final idNumber?) ...[
+                      _InfoTile(
+                        icon: Icons.badge_outlined,
+                        title: 'Mã người dùng',
+                        value: idNumber,
+                      ),
+                      const Divider(),
+                    ],
                     _InfoTile(
                       icon: Icons.language_rounded,
                       title: 'LMS',

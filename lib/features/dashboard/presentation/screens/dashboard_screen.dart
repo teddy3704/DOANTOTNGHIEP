@@ -5,7 +5,11 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/router/app_routes.dart';
 import '../../../../core/config/app_config.dart';
 import '../../../../core/errors/failure_message.dart';
+import '../../../assignments/domain/assignment.dart';
+import '../../../assignments/domain/assignment_repository.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
+import '../../../calendar/domain/calendar_repository.dart';
+import '../../../calendar/domain/learning_event.dart';
 import '../../../courses/domain/course_repository.dart';
 import '../../../courses/presentation/widgets/course_card.dart';
 
@@ -17,6 +21,8 @@ class DashboardScreen extends ConsumerWidget {
     final config = ref.watch(appConfigProvider);
     final auth = ref.watch(authControllerProvider);
     final courses = ref.watch(myCoursesProvider);
+    final assignments = ref.watch(upcomingAssignmentsProvider);
+    final events = ref.watch(upcomingEventsProvider);
     final name = auth.session?.displayName ?? 'bạn';
 
     return CustomScrollView(
@@ -72,6 +78,16 @@ class DashboardScreen extends ConsumerWidget {
           padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
           sliver: SliverToBoxAdapter(child: _StatusHero(config: config)),
         ),
+        if (config.enableDevFixtures)
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+            sliver: SliverToBoxAdapter(
+              child: _LearningOverview(
+                assignments: assignments,
+                events: events,
+              ),
+            ),
+          ),
         SliverPadding(
           padding: const EdgeInsets.fromLTRB(20, 28, 20, 16),
           sliver: SliverToBoxAdapter(
@@ -146,6 +162,162 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 }
+
+class _LearningOverview extends StatelessWidget {
+  const _LearningOverview({required this.assignments, required this.events});
+
+  final AsyncValue<List<AssignmentDetail>> assignments;
+  final AsyncValue<List<LearningEvent>> events;
+
+  @override
+  Widget build(BuildContext context) => ConstrainedBox(
+    constraints: const BoxConstraints(maxWidth: 1180),
+    child: LayoutBuilder(
+      builder: (context, constraints) {
+        final children = <Widget>[
+          _OverviewCard(
+            title: 'Bài tập cần chú ý',
+            icon: Icons.assignment_outlined,
+            child: assignments.when(
+              loading: () => const _MiniLoading(),
+              error: (_, _) => const Text('Chưa thể tải bài tập.'),
+              data: (items) {
+                final visible = items
+                    .where(
+                      (item) => item.submissionState != SubmissionState.graded,
+                    )
+                    .take(3)
+                    .toList();
+                if (visible.isEmpty) {
+                  return const Text('Không có bài tập đang chờ.');
+                }
+                return Column(
+                  children: [
+                    for (final item in visible)
+                      ListTile(
+                        dense: true,
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(
+                          item.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        subtitle: Text(
+                          '${item.timing.label} · ${item.submissionState.label}',
+                        ),
+                        trailing: const Icon(Icons.chevron_right_rounded),
+                        onTap: () => context.push(
+                          AppRoutes.assignment(item.courseId, item.id),
+                        ),
+                      ),
+                  ],
+                );
+              },
+            ),
+          ),
+          _OverviewCard(
+            title: 'Lịch sắp tới',
+            icon: Icons.event_outlined,
+            child: events.when(
+              loading: () => const _MiniLoading(),
+              error: (_, _) => const Text('Chưa thể tải lịch.'),
+              data: (items) {
+                final visible = items.take(3).toList();
+                if (visible.isEmpty) {
+                  return const Text('Không có sự kiện sắp tới.');
+                }
+                return Column(
+                  children: [
+                    for (final item in visible)
+                      ListTile(
+                        dense: true,
+                        contentPadding: EdgeInsets.zero,
+                        leading: CircleAvatar(
+                          radius: 18,
+                          child: Text(
+                            item.startsAt.day.toString().padLeft(2, '0'),
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ),
+                        title: Text(
+                          item.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        subtitle: Text(_dashboardDate(item.startsAt)),
+                      ),
+                  ],
+                );
+              },
+            ),
+          ),
+        ];
+        if (constraints.maxWidth >= 760) {
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(child: children[0]),
+              const SizedBox(width: 16),
+              Expanded(child: children[1]),
+            ],
+          );
+        }
+        return Column(
+          children: [children[0], const SizedBox(height: 12), children[1]],
+        );
+      },
+    ),
+  );
+}
+
+class _OverviewCard extends StatelessWidget {
+  const _OverviewCard({
+    required this.title,
+    required this.icon,
+    required this.child,
+  });
+
+  final String title;
+  final IconData icon;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => Card(
+    child: Padding(
+      padding: const EdgeInsets.all(18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: Theme.of(context).colorScheme.primary),
+              const SizedBox(width: 10),
+              Text(title, style: const TextStyle(fontWeight: FontWeight.w900)),
+            ],
+          ),
+          const SizedBox(height: 10),
+          child,
+        ],
+      ),
+    ),
+  );
+}
+
+class _MiniLoading extends StatelessWidget {
+  const _MiniLoading();
+
+  @override
+  Widget build(BuildContext context) => const Padding(
+    padding: EdgeInsets.all(14),
+    child: Center(child: CircularProgressIndicator()),
+  );
+}
+
+String _dashboardDate(DateTime value) =>
+    '${value.day.toString().padLeft(2, '0')}/${value.month.toString().padLeft(2, '0')}/${value.year}';
 
 class _StatusHero extends StatelessWidget {
   const _StatusHero({required this.config});

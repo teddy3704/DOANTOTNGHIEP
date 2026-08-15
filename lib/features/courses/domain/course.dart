@@ -5,6 +5,7 @@ class Course {
     required this.fullName,
     required this.category,
     required this.accentIndex,
+    this.summary,
     this.progress,
     this.nextActivity,
   });
@@ -14,6 +15,7 @@ class Course {
   final String fullName;
   final String category;
   final int accentIndex;
+  final String? summary;
   final double? progress;
   final String? nextActivity;
 }

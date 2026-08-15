@@ -1,8 +1,19 @@
 # Test Plan
 
-**Status:** Phase 3B executable baseline; live API contract tests blocked externally.
+**Status:** Schema/synthetic Student DEV milestone executable; live API contract tests blocked externally.
 
-**Current executable test result:** `PASS — analyze 0 issues, 21 tests, production/DEV debug APK builds, Android 15 production + DEV emulator smoke`.
+**Current executable test result:** `PASS — validator, analyze 0 issues, 32 tests, production/DEV debug APK builds, Android 15 production + expanded Student DEV emulator smoke`.
+
+## Moodle subset and canonical fixture gate — 2026-08-15
+
+1. Chạy `dart run tool/generate_moodle_sample_data.dart` hai lần và so sánh JSON/SQL hash.
+2. Chạy `dart run tool/validate_moodle_sample_data.dart` để kiểm table count, PK uniqueness, FK/local-convention integrity, enrolment uniqueness, required fields, assignment/grade state coverage và privacy markers.
+3. Parser asset phải xác nhận seed `202608`, 20 selected tables, 23 synthetic users, 4 categories và 6 courses.
+4. Repository tests bao phủ user→enrolment→course, course→sections/activities, resource metadata, assignment/submission states, grade mapping và upcoming events.
+5. Widget tests bao phủ loading/populated/error/retry cho Assignment; loading/populated/empty/error/retry cho Grades; DEV flow bao phủ navigation Assignment và Grades.
+6. Production repository tests xác nhận mọi student repository mới trả `MOODLE_WEB_SERVICES_NOT_ENABLED`, không trả fixture.
+
+Default tests chạy offline, không dùng DLU session, token, credential, private content hoặc network call.
 
 ## 1. Objectives
 

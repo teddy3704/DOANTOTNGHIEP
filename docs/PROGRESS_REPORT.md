@@ -461,3 +461,91 @@ one course content; then implement only response-verified DTOs/repositories.
 ```
 
 Database is not required for the next step. The application-layer service gate must be resolved first.
+
+## 2026-08-15 — Moodle Schema Analysis & Synthetic Data
+
+### Scope and evidence boundary
+
+- Truy cập trực tiếp teacher-provided [Moodle SchemaSpy](https://moodleschema.zoola.io/): `Moodle LMS 3.9`, generated `2020-08-12`, database type `MySQL 5.7.31`.
+- Phân tích feature-first, không copy 461 bảng. Chốt `MOODLE_SUBSET_V1` ở đúng 20 bảng: 13 CORE + 7 SUPPORTING.
+- Gắn ba lớp bằng chứng riêng: `TEACHER_SCHEMA_REFERENCE`, `DLU_LIVE_EVIDENCE`, `SYNTHETIC_DATA`. Không tuyên bố schema tham khảo là production DLU.
+- Các hop không có physical FK trên source (`course_modules.section/instance`, `grade_items.iteminstance`, plugin file item) được ghi `SCHEMA_RELATIONSHIP_UNRESOLVED` hoặc `LOCAL_SYNTHETIC_CONVENTION`, không nâng thành verified FK.
+
+### Database/report artifacts
+
+- Tạo Feature Table Matrix, Selected Tables, 20-table Catalog, Join Paths, Source Manifest, CRUD Matrix, ERD core/extensions và Synthetic Data Policy tại `docs/database/`.
+- Tạo `PROJECT_SUBSET_SCHEMA` MySQL 5.7-compatible selected-column DDL; không cài MySQL/Docker và không tuyên bố SQL load runtime PASS khi máy không có MySQL CLI.
+- Tạo offline Dart generator + validator; một nguồn canonical sinh cả JSON asset và SQL seed.
+- `REAL_DLU_DATABASE: NOT_REQUIRED_FOR_CURRENT_PHASE` theo chỉ đạo GVHD; database thật/version/prefix DLU vẫn `UNKNOWN` nhưng không còn là blocker phase này.
+
+### Synthetic dataset
+
+| Item | Count/result |
+|---|---:|
+| Fixed seed | `202608` |
+| Selected tables | 20 |
+| Users | 23 — 3 `GVTEST*`, 20 `SVTEST*` |
+| Categories / Courses | 4 / 6 |
+| Sections / Course modules | 33 / 30 |
+| Resources / Assignments | 12 / 18 |
+| Submissions / Assignment grades | 103 / 49 |
+| Grade rows / Events | 198 / 18 |
+| Privacy | `example.test`; no password/token/cookie/real DLU data |
+
+Hai lượt generator byte-identical:
+
+- JSON SHA-256 `29DF789B51C16D311F4622C74BF2488482E2F11665BA29FDA312C5BBA3E7104C`.
+- SQL seed SHA-256 `09C6E1680DF8AA4279CB5C375A119FD005CE399A040DA253733D513D66404DA1`.
+- Validator PASS cho PK/FK/local-convention integrity, duplicate enrolment, mandatory fields, privacy và đủ future/soon/overdue/draft/submitted/not-submitted/graded/ungraded/low/medium/high states.
+
+### Flutter integration
+
+- Thay fixture hard-code bằng `SyntheticFixtureDataSource` đọc canonical generated JSON.
+- Shared DEV data source cấp dữ liệu nhất quán cho Auth, Profile, Courses, Course Content, Assignments, Grades và Calendar repositories.
+- Course Detail render sections/modules/resources; resource sheet chỉ hiển thị synthetic metadata.
+- Assignment screen render deadline, trạng thái nộp và grade/feedback; write action vẫn blocked.
+- Grades screen render graded/ungraded states; Dashboard có upcoming assignments/calendar và progress từ completion fixture.
+- Emulator visual QA phát hiện và sửa tương phản chữ trên hero card Assignment/Grades và avatar Profile; widget/demo tests khóa màu `onPrimaryContainer` để tránh regression.
+- `main.dart` production không inject fixture. Emulator production xác nhận blocker đúng, 0 editable credential field và không có `DEV FIXTURE`.
+
+### Quality gate
+
+| Check | Result |
+|---|---|
+| `dart run tool/generate_moodle_sample_data.dart` ×2 | PASS — byte-identical |
+| `dart run tool/validate_moodle_sample_data.dart` | PASS |
+| `dart format .` | PASS — 56 files, 0 changed |
+| `flutter analyze` | PASS — 0 issues |
+| `flutter test` | PASS — 32/32 |
+| DEV debug APK | PASS — 154,968,946 bytes; SHA-256 `B9492E81D45ED62D37ADF31CBE931A9460FFEF631D3BA5983EE36CDAD33ABC7E` |
+| Production debug APK | PASS — 154,968,946 bytes; SHA-256 `3750875260D900E204B4EA9801D97BA2EBAC4CCAC83CB352E5F6102A6723AF1E` |
+| Android 15/API 35 emulator | PASS |
+| DEV PID log scan | 0 crash/ANR/Flutter exception/overflow |
+| Production PID log scan | 0 runtime-error match |
+
+APK artifacts nằm ngoài Git tại:
+
+- `D:\DLU-LMS\Artifacts\dlu-lms-mobile-schema-synthetic-dev-debug.apk`
+- `D:\DLU-LMS\Artifacts\dlu-lms-mobile-schema-production-debug.apk`
+
+### Emulator flow and screenshots
+
+Flow PASS trực tiếp:
+
+```text
+Splash → Login DEV → Dashboard → Assignment/Submission Status
+→ Courses → Course Detail/Resources → Grades → Profile
+```
+
+Đã cập nhật `03-dashboard.png` đến `06-profile.png` và thêm `07-assignment.png`, `08-grades.png` trong `docs/screenshots/emulator/`. `06-profile.png`, `07-assignment.png` và `08-grades.png` được chụp lại sau bản sửa tương phản. Tất cả chỉ chứa synthetic data.
+
+### Storage and environment
+
+- C luôn cao hơn threshold: khoảng `57.7 GB` free; D khoảng `72.5 GB` free sau emulator, build output, APK và vùng quarantine có thể phục hồi.
+- Android SDK/AVD, Gradle/Pub cache, build output và APK artifacts vẫn ở D.
+- OneDrive tái tạo một `build` Microsoft reparse chứa 900,585,095 byte generated output trên C. Nội dung đã được chuyển có thể phục hồi sang `D:\DLU-LMS\Quarantine\onedrive-build-20260815\build`; reparse rỗng được đổi tên thành ignored `build_onedrive_stale_schema_20260815_02`. Không xóa source hay dữ liệu người dùng.
+- Hai lần build DEV đầu lỗi do các thư mục incremental resources trên D mang cờ Windows `ReadOnly`. Đã dừng Gradle daemon, bỏ cờ trên đúng 380 generated entries và retry; DEV/production build sau đó PASS. Warning SDK XML version không chặn build.
+
+### Current external blocker
+
+Live Moodle integration vẫn chờ `MOODLE_WEB_SERVICES_NOT_ENABLED` và `AUTHENTICATION_METHOD_UNCONFIRMED`. Đây không làm giảm trạng thái PASS của schema/synthetic DEV milestone. Supabase chưa được nối ở milestone này; nếu làm phase kế tiếp phải là app-owned/RLS/Edge Function boundary, không thay Moodle hoặc cho Flutter kết nối database Moodle trực tiếp.

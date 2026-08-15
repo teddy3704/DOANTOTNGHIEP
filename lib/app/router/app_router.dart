@@ -4,10 +4,12 @@ import 'package:go_router/go_router.dart';
 
 import '../../features/auth/presentation/controllers/auth_controller.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
+import '../../features/assignments/presentation/screens/assignment_screen.dart';
 import '../../features/courses/presentation/screens/course_detail_screen.dart';
 import '../../features/courses/presentation/screens/courses_screen.dart';
 import '../../features/dashboard/presentation/screens/dashboard_screen.dart';
 import '../../features/dashboard/presentation/widgets/app_shell.dart';
+import '../../features/grades/presentation/screens/grades_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../../features/splash/presentation/splash_screen.dart';
 import 'app_routes.dart';
@@ -78,6 +80,20 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 const NoTransitionPage(child: ProfileScreen()),
           ),
         ],
+      ),
+      GoRoute(
+        path: AppRoutes.assignmentDetail,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => AssignmentScreen(
+          courseId: state.pathParameters['courseId']!,
+          assignmentId: state.pathParameters['assignmentId']!,
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.courseGrades,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) =>
+            GradesScreen(courseId: state.pathParameters['courseId']!),
       ),
       GoRoute(
         path: AppRoutes.courseDetail,

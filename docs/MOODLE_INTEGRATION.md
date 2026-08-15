@@ -150,10 +150,9 @@ Conclusion: PASS / FAIL / BLOCKED / PARTIAL
 - Student and teacher test accounts with representative, non-production data.
 - Function/capability documentation and permission to test specific WRITE flows.
 - File download/upload policy.
-- Sanitized schema/dump or read-only database access nếu cần database analysis.
 - Custom plugin review/deployment policy.
 
-Không yêu cầu production admin password.
+Không yêu cầu production admin password hoặc database/schema dump thật. Database analysis hiện dùng teacher-provided schema + synthetic data theo chỉ đạo GVHD; production mobile integration vẫn chỉ qua Moodle application/API.
 
 ## 10. Official references
 

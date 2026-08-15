@@ -4,7 +4,7 @@
 
 **Implementation status:** Phase 2 foundation đã được triển khai. Các module Moodle live và phần được gắn `BLOCKED`/`PROPOSED` vẫn chưa phải chức năng production hoàn chỉnh.
 
-**Cập nhật:** 2026-08-14
+**Cập nhật:** 2026-08-15
 
 ## 1. Architecture goals
 
@@ -57,11 +57,14 @@ lib/
   dev/
     fixtures/
   features/
+    assignments/
     auth/
       domain/
       presentation/
+    calendar/
     dashboard/
     courses/
+    grades/
     profile/
     splash/
   main.dart
@@ -72,7 +75,28 @@ test/
   app/
 ```
 
-Hiện đã triển khai `auth`, `dashboard`, `courses`, `profile`, `splash`, core config/errors/network/storage/widgets và dev fixture boundary. Các feature chưa bắt đầu không được tạo placeholder hàng loạt.
+Hiện đã triển khai `auth`, `dashboard`, `courses`, `assignments`, `grades`, `calendar`, `profile`, `splash`, core config/errors/network/storage/widgets và dev fixture boundary. Student data screens dùng một canonical generated fixture; production adapters tương ứng vẫn fail closed.
+
+### Teacher schema and synthetic-data boundary
+
+```mermaid
+flowchart LR
+    TeacherSchema["TEACHER_SCHEMA_REFERENCE\nMoodle LMS 3.9 / MySQL 5.7.31"] --> Selection["MOODLE_SUBSET_V1\n20 selected tables"]
+    Selection --> Generator["Offline Dart generator\nseed 202608"]
+    Generator --> JSON["Canonical SYNTHETIC_DATA JSON"]
+    Generator --> SQL["PROJECT_SUBSET_SCHEMA seed.sql"]
+    JSON --> FixtureSource["SyntheticFixtureDataSource\nDEV/test only"]
+    FixtureSource --> DevRepos["DEV repositories"]
+    DevRepos --> Providers["Riverpod providers"]
+    Providers --> StudentUI["Dashboard / Courses / Resources /\nAssignments / Grades / Profile"]
+    MainProd["main.dart"] -. "never wires fixture" .-> Closed["Unconfigured production repositories"]
+```
+
+- `moodleschema.zoola.io` là schema tham khảo do GVHD chỉ định, không phải bằng chứng database production DLU.
+- SQL/JSON chỉ chứa dữ liệu AI-generated synthetic; không có tài khoản, mã sinh viên, email hay điểm thật.
+- Flutter không đọc SQL. `SyntheticFixtureDataSource` tải JSON asset rồi repository ánh xạ sang domain model.
+- `main_development.dart` là composition root duy nhất inject fixture repositories; `main.dart` không import hoặc fallback sang chúng.
+- Quan hệ đa hình/không có FK vật lý trên nguồn, ví dụ `course_modules.instance`, được ghi là `LOCAL_SYNTHETIC_CONVENTION` trong fixture và không được nâng thành live API contract.
 
 ## 4. Layer responsibilities
 
@@ -103,6 +127,12 @@ flowchart TD
 ```
 
 Dependency injection được thực hiện qua Riverpod provider. Không dùng global mutable singleton cho session/token.
+
+DEV có repository contract riêng cho course content, assignments, grades và calendar. Các provider dữ liệu theo session đều `autoDispose`; thay DEV adapter bằng live adapter chỉ được làm sau khi có `VERIFIED_API` contract.
+
+### Supabase boundary
+
+Supabase chưa được nối vào runtime của milestone này và không thay Moodle làm nguồn dữ liệu LMS. Nếu được phê duyệt ở phase sau, Supabase chỉ có thể đảm nhiệm dữ liệu do ứng dụng sở hữu hoặc Edge Function/backend mediation; client chỉ dùng publishable key, mọi bảng exposed phải bật RLS, còn service-role key chỉ được giữ server-side. Moodle course/assignment/grade vẫn phải đi qua Moodle application/API được DLU cho phép. `MOODLE_SUBSET_V1` là MySQL reference subset và không được đổi sang PostgreSQL rồi gọi là schema Moodle/DLU chính xác.
 
 ## 6. Proposed packages (not installed)
 

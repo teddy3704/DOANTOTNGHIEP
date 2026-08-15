@@ -57,6 +57,10 @@ GoogleService-Info.plist
 *.dump
 *.bak
 
+# Reviewed, generated synthetic Moodle subset artifacts (no credentials/PII)
+!database/moodle_subset/schema.sql
+!database/moodle_subset/seed.sql
+
 # Operating system files
 .DS_Store
 Thumbs.db

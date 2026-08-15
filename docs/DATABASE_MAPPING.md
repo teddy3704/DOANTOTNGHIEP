@@ -1,108 +1,115 @@
 # Database Mapping
 
-**Status:** `BLOCKED — DLU Moodle schema/database not provided`
+**Status:** `PARTIAL — MOODLE_SUBSET_V1 GROUNDED; DLU PRODUCTION SCHEMA UNKNOWN`
 
-**Live discovery update 2026-08-13:** Public Moodle/login evidence không cung cấp database engine, version, prefix, table hoặc field evidence; physical mapping vẫn giữ nguyên `BLOCKED`.
+**REAL_DLU_DATABASE:** `NOT_REQUIRED_FOR_CURRENT_PHASE`
 
-**Access rule:** Read-only analysis first; never connect Flutter directly to the database.
+**Production integration:** `MOODLE_APPLICATION_API_ONLY`
+**Flutter direct database access:** `PROHIBITED`
 
-## 1. Current evidence
+Theo hướng dẫn hiện tại của GVHD, Phase 3 dùng schema tham chiếu tại `https://moodleschema.zoola.io/` và dữ liệu do AI tạo hoàn toàn synthetic. Vì vậy việc chưa có database thật của DLU **không còn là blocker của phase hiện tại**. Điều này không đồng nghĩa schema DLU đã được xác minh và không cho phép dùng schema tham chiếu như hợp đồng production.
 
-Chưa có database dump, schema, ERD, read-only connection, Moodle version, database engine hoặc table prefix. Vì vậy:
+## 1. Evidence classification
 
-- không có table/field nào được xác nhận;
-- prefix `mdl_` không được giả định;
-- danh sách `*_...` dưới đây chỉ là **candidate table families để discovery**, không phải schema DLU;
-- chưa thể tạo physical ERD chính xác.
+| Classification | Current state | May support | Must not be represented as |
+|---|---|---|---|
+| `TEACHER_SCHEMA_REFERENCE` | Moodle LMS 3.9 SchemaSpy snapshot, generated 2020-08-12, MySQL 5.7.31 | Chọn bảng, ghi catalog, thiết kế join path và tạo local subset | DLU Moodle version, DLU physical schema, DLU table prefix hoặc DLU API contract |
+| `SYNTHETIC_DATA` | Dataset deterministic seed `202608`, không có PII/credential thật | DEV repositories, widget/unit tests, demo UI và local validation | Dữ liệu sinh viên/giảng viên/điểm/bài nộp thật của DLU |
+| `DLU_LIVE_EVIDENCE` | Chưa có database/schema/API response được duyệt cho các mapping này | Chỉ được ghi nhận sau khi có bằng chứng trực tiếp, được phép | Không được suy ra từ schema tham chiếu hoặc UI web đã quan sát |
 
-## 2. Read-only analysis workflow
+Ranh giới DLU hiện tại:
 
-Khi DLU cung cấp artifact/access được phép:
+- Moodle version, database engine, table prefix, columns, indexes và physical constraints của production: `UNKNOWN`.
+- Không giả định prefix `mdl_` hay bất kỳ prefix nào khác.
+- Public web/UI evidence không xác minh database schema.
+- Live authentication và Moodle Web Service contract vẫn chưa được xác nhận; production repositories tiếp tục fail-closed.
 
-1. Xác minh artifact source, sensitivity, encryption, retention và quyền xử lý.
-2. Làm việc trên bản read-only/isolated; không chạy migration hoặc destructive SQL.
-3. Xác định database engine/version và Moodle table prefix từ configuration/schema evidence, không đoán.
-4. Xác định Moodle version từ version metadata/source evidence nếu được cung cấp.
-5. Inventory tables/columns/indexes/foreign-key-like relations; Moodle có thể không khai báo mọi FK vật lý.
-6. Chỉ lấy metadata hoặc dữ liệu đã ẩn danh tối thiểu cần thiết.
-7. Đối chiếu entity → table → field → API function → capability/context.
-8. Cập nhật physical reduced ERD chỉ với bảng mobile app thực sự cần.
-9. Xóa/hoàn trả local sensitive artifacts theo policy; không commit dump hoặc credentials.
+## 2. MOODLE_SUBSET_V1
 
-## 3. Mapping discovery matrix
+Bộ dữ liệu phát triển được giới hạn ở 20 bảng có liên quan trực tiếp đến student demo:
 
-Các field cũng là candidate để tìm kiếm, không khẳng định tồn tại/ý nghĩa trên DLU.
+- CORE: `user`, `course`, `enrol`, `user_enrolments`, `course_sections`, `modules`, `course_modules`, `resource`, `assign`, `assign_submission`, `assign_grades`, `grade_items`, `grade_grades`.
+- SUPPORTING: `course_categories`, `files`, `context`, `role`, `role_assignments`, `course_modules_completion`, `event`.
 
-| App feature | Conceptual Moodle entity | Candidate table family (unverified) | Candidate fields to inspect | Relationship to confirm | Candidate Moodle API | Permission/context to confirm | Status |
-|---|---|---|---|---|---|---|---|
-| Identity/profile | User | `*_user` | `id`, username/profile/name fields, status flags | User referenced by enrolment/role/grade/event | Site info / user functions | Own profile vs other-user visibility | BLOCKED |
-| Course catalog/my courses | Course, category | `*_course`, `*_course_categories` | IDs, category, names, visibility, dates | Course belongs to category | Enrol/course functions | Enrolment and course visibility | BLOCKED |
-| Enrolment | Enrol instance, user enrolment | `*_enrol`, `*_user_enrolments` | IDs, course/user links, status, time range | User enrolment links user to enrol instance/course | Enrol functions | Enrolment/context restrictions | BLOCKED |
-| Roles/capabilities | Context, role assignment, role | `*_context`, `*_role_assignments`, `*_role` | IDs, context level/instance, role/user links | Role assignment applies in a context tree | No client-side DB mapping as auth source | Moodle capability system is authority | BLOCKED |
-| Course content | Course modules/sections/resources | Version/plugin-dependent families | IDs, visibility, ordering, instance links | Module belongs to course/section/plugin instance | Course content functions | Module visibility/restrictions | BLOCKED |
-| Assignments | Assignment | `*_assign` | IDs, course, name, due/cutoff/config fields | Assignment belongs to course | Assignment functions | Module/course context | BLOCKED |
-| Submissions | Assignment submission | `*_assign_submission` | IDs, assignment/user/team, status, timestamps, attempt | Submission belongs to assignment and actor/team | Assignment submission functions | Own vs grading visibility | BLOCKED |
-| Gradebook | Grade item, user grade | `*_grade_items`, `*_grade_grades` | IDs, course/item/user, grade range, final grade, feedback links | Grade item belongs to course; grade belongs to user/item | Grade report functions | Grade visibility/privacy | BLOCKED |
-| Files | Stored file metadata | `*_files` | IDs, context/component/file area/item, path/name/size/hash | File belongs to Moodle context and component area | Content response/file endpoints | File context + service flags | BLOCKED |
-| Calendar/deadlines | Event | `*_event` | IDs, course/user/group/module links, time/type | Event scoped to user/course/group/module | Calendar functions | Event visibility | BLOCKED |
-| Notifications/messages | Message/notification subsystem | Version-dependent families | To be discovered from exact version | User/component/conversation relations | Message/notification functions | Own data and messaging capabilities | BLOCKED |
+Selection này là mô hình giảm gọn để sinh fixture và trace feature; không phải bản sao đầy đủ của Moodle và không phải migration nhắm vào database DLU.
 
-## 4. Conceptual reduced ERD
+## 3. App-to-schema mapping summary
 
-Đây là conceptual ERD để định hướng analysis, không phải physical DLU schema.
+| App area | Reference tables | Mapping status | Production boundary |
+|---|---|---|---|
+| Profile/identity | `user`; presentation context via `context`, `role`, `role_assignments` | `TEACHER_SCHEMA_REFERENCE` + `SYNTHETIC_DATA` mapping | Login/profile phải đến từ Moodle application/API được DLU duyệt; không đọc `user` trực tiếp. |
+| My Courses | `user_enrolments -> enrol -> course -> course_categories` | Chuỗi chính có declared reference FKs | API phải áp dụng enrolment/visibility/capability của user hiện tại. |
+| Course structure | `course -> course_sections`; `course -> course_modules -> modules` | Course/module links được reference hỗ trợ; section membership có local convention | API course contents là authority; không tự query bảng từ mobile. |
+| Resources/files | `course_modules`, `modules`, `resource`, `context`, `files` | Module/file paths là discriminator-based/polymorphic | Nội dung file chỉ tải qua endpoint được Moodle authorize; không mở file pool. |
+| Assignments/submissions | `assign`, `assign_submission`, `assign_grades` | Assignment child FKs được reference hỗ trợ; một số user/course links chỉ implied/local | Read/write bài nộp phải qua service function và capability đã xác minh. |
+| Grades | `grade_items -> grade_grades`; optional correlation to `assign` | Grade-item/user joins có declared reference FKs; activity correlation polymorphic | Moodle/API lọc visibility/privacy; client không phải authorization source. |
+| Progress | `course_modules_completion -> course_modules`, `user` | Declared reference FKs cho activity completion | Local tỷ lệ completion chỉ là projection demo; production semantics theo API. |
+| Dashboard/calendar | Tổng hợp các bảng trên và `event` | Course/user/activity event paths gồm implied và polymorphic relations | API phải trả projection được phép; fixture không được dùng khi API lỗi. |
+
+Trace chi tiết theo screen/model/repository/test nằm tại [Feature–Data Traceability](FEATURE_DATA_TRACEABILITY.md).
+
+## 4. Relationship accuracy
+
+Không phải mọi relation hữu ích cho ứng dụng đều là declared physical FK trong schema tham chiếu:
+
+- `course_modules.instance` được giải theo `modules.name` tới `resource.id` hoặc `assign.id`.
+- `course_modules.section -> course_sections.id` được giữ nhất quán trong local fixture nhưng reference đã kiểm tra không đủ để nâng thành declared FK.
+- `grade_items.iteminstance` chỉ liên hệ assignment khi discriminator (`itemmodule`, `itemtype`) phù hợp.
+- `files.itemid` chỉ có nghĩa cùng `contextid`, `component` và `filearea`.
+- `context.instanceid` phụ thuộc `contextlevel`.
+- `event.courseid`, `event.userid` là SchemaSpy implied paths; `event.instance` phụ thuộc module/component.
+- `assign.course`, `resource.course`, `assign_submission.userid` và `assign_grades.userid` không được trình bày như declared DLU FKs khi nguồn tham chiếu chỉ hỗ trợ index/implied/application relation.
+
+Constraint bổ sung trong local `schema.sql` hoặc validator phải mang nhãn `PROJECT_SUBSET_SCHEMA`/`LOCAL_SYNTHETIC_CONVENTION`. Một validation rule hữu ích không tạo ra bằng chứng về physical schema DLU.
+
+## 5. Runtime architecture boundary
 
 ```mermaid
-erDiagram
-    USER ||--o{ ENROLMENT : participates
-    COURSE ||--o{ ENROLMENT : contains
-    CATEGORY ||--o{ COURSE : groups
-    COURSE ||--o{ COURSE_MODULE : exposes
-    COURSE ||--o{ ASSIGNMENT : contains
-    ASSIGNMENT ||--o{ SUBMISSION : receives
-    USER ||--o{ SUBMISSION : creates
-    COURSE ||--o{ GRADE_ITEM : defines
-    GRADE_ITEM ||--o{ USER_GRADE : records
-    USER ||--o{ USER_GRADE : receives
-    CONTEXT ||--o{ ROLE_ASSIGNMENT : scopes
-    USER ||--o{ ROLE_ASSIGNMENT : receives
-    ROLE ||--o{ ROLE_ASSIGNMENT : grants
-    CONTEXT ||--o{ FILE_METADATA : protects
-    USER ||--o{ CALENDAR_EVENT : sees
-    COURSE ||--o{ CALENDAR_EVENT : schedules
+flowchart LR
+    A["Flutter production app"] -->|"HTTPS, verified contract"| B["DLU Moodle application / Web Services"]
+    B -->|"Moodle-owned DB access"| C["DLU Moodle database"]
+    D["Flutter DEV entrypoint"] --> E["DEV repositories"]
+    E --> F["Canonical SYNTHETIC_DATA fixture"]
+    G["Teacher Moodle 3.9 SchemaSpy"] -->|"reference-only design input"| F
 ```
 
-Physical relationships có thể dùng indirect/context-based links và phải được xác nhận trên schema thật.
+- Production không phụ thuộc fixture và không silently fallback sang fixture.
+- DEV fixture không chứa token, password, hash, session, signing key hoặc dữ liệu cá nhân thật.
+- Không xây database riêng để thay Moodle, không nối Flutter trực tiếp tới Moodle DB và không bypass Moodle capability checks.
+- Nếu sau này dùng một backend app-owned (ví dụ Supabase), nó phải là boundary riêng, có ownership/RLS rõ ràng và không được mạo danh Moodle production schema hoặc trở thành đường vòng vào Moodle DB.
 
-## 5. Data dictionary template
+## 6. Current artifacts and detailed evidence
 
-| Verified prefix.table | Column | Type/nullability | Meaning | Classification | Relationship/index | Source evidence | Used by app/API |
-|---|---|---|---|---|---|---|---|
-| TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD |
+- [Schema Sources](database/SCHEMA_SOURCES.md): URL, snapshot/version và classification nguồn.
+- [Feature-to-Table Matrix](database/FEATURE_TABLE_MATRIX.md): lý do feature cần từng bảng.
+- [Selected Tables](database/SELECTED_TABLES.md): quyết định 13 CORE + 7 SUPPORTING và exclusions.
+- [Table Catalog](database/TABLE_CATALOG.md): columns/types/defaults/indexes và relationship labels đã kiểm chứng.
+- [Join Paths](database/JOIN_PATHS.md): declared, implied, polymorphic và unresolved paths.
+- [ERD Core](database/ERD_CORE.md) và [ERD Extensions](database/ERD_EXTENSIONS.md): reduced diagrams, không phải DLU physical ERD.
+- [CRUD Matrix](database/CRUD_MATRIX.md): app operation boundary; production client không có raw-table CRUD.
+- [Synthetic Data Policy](database/SYNTHETIC_DATA_POLICY.md): fixed seed, privacy và regeneration rules.
+- `database/fixtures/dlu_lms_fixture.json`: canonical development fixture, bắt buộc có marker `SYNTHETIC_DATA`.
+- `database/moodle_subset/schema.sql` và `seed.sql`: local analysis/demo artifacts khi được generate; không chạy trên DLU.
 
-Classification tối thiểu: Public, Internal, Personal, Sensitive Academic, Secret. Password hashes/auth secrets không thuộc mobile data scope.
+## 7. Read-only DLU verification, if later authorized
 
-## 6. Query safety requirements
+Database access không cần cho phase hiện tại. Nếu DLU sau này cung cấp schema artifact hoặc read-only metadata access cho mục tiêu đối chiếu cụ thể:
 
-- Chỉ metadata queries/read-only `SELECT` sau khi target được xác minh.
-- Không dùng `UPDATE`, `DELETE`, `INSERT`, `ALTER`, `DROP`, `TRUNCATE`, migration hoặc stored routine trên DLU database.
-- Không export toàn bộ user/grade/submission data nếu không cần.
-- Không paste credential/query results chứa PII vào chat, source hoặc progress report.
-- Mọi server-side production integration vẫn phải ưu tiên Moodle API/DB API, không cung cấp raw DB access cho mobile.
+1. Xác minh nguồn, quyền xử lý, sensitivity, retention và phạm vi trước khi đọc.
+2. Chỉ dùng schema-only/sanitized artifact hoặc metadata read-only; không chạy migration hay write query.
+3. Xác minh engine/version/prefix từ bằng chứng, không suy đoán.
+4. Đối chiếu từng table/column/relation với `MOODLE_SUBSET_V1`; ghi mismatch thay vì ép schema khớp.
+5. Không export PII, grades, submissions, password hashes hoặc authentication secrets.
+6. Không commit dump, credentials hay query output nhạy cảm.
 
-## 7. Exit criteria
+Chỉ khi đó mapping liên quan mới có thể nâng từ `TEACHER_SCHEMA_REFERENCE` lên `DLU_LIVE_EVIDENCE`. Việc tích hợp mobile production vẫn ưu tiên Moodle standard Web Services/application layer.
 
-`DLU_MOODLE_DATABASE_NOT_PROVIDED` chỉ được giải quyết khi có một trong các nguồn được duyệt:
+## 8. Current integration blockers
 
-- sanitized schema-only dump;
-- anonymized representative dump;
-- read-only metadata access;
-- official data dictionary/ERD đủ để xác nhận mapping.
+`REAL_DLU_DATABASE: NOT_REQUIRED_FOR_CURRENT_PHASE` không gỡ các gate độc lập sau:
 
-Database access không phải điều kiện bắt buộc để dùng standard Moodle APIs; chỉ thực hiện nếu có mục tiêu analysis rõ.
+- `MOODLE_WEB_SERVICES_NOT_ENABLED`: cần đơn vị quản trị DLU xác nhận/bật service phù hợp.
+- `AUTHENTICATION_METHOD_UNCONFIRMED`: cần DLU xác nhận phương thức đăng nhập mobile được hỗ trợ.
+- `MOODLE_API_TOKEN_REQUIRED`: chỉ áp dụng khi service/token flow đã được duyệt; không yêu cầu production admin password và không ghi token vào source.
 
-## 8. Phase 3B evidence boundary — 2026-08-14
-
-- Authenticated Dashboard/course/Profile/Calendar/Grades UI is `VERIFIED_UI`, not database evidence.
-- The DLU token/mobile site check reports `MOODLE_WEB_SERVICES_NOT_ENABLED`; this is a service-configuration blocker, not a reason to bypass Moodle through direct database access.
-- No table, prefix, column, relationship, engine or version became `VERIFIED_DATABASE` in this milestone.
-- `DATABASE REQUIRED? NO` for the next step. DLU should first approve/enable the supported application-layer integration and provide its service contract.
+Cho đến khi các gate API/auth được giải quyết bằng bằng chứng được phép, kết quả đúng của production là fail-closed; chỉ DEV entrypoint được dùng `SYNTHETIC_DATA`.
