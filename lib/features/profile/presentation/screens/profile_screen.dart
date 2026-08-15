@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/config/app_config.dart';
+import '../../../../app/theme/app_tokens.dart';
+import '../../../../app/theme/theme_mode_provider.dart';
 import '../../../../core/errors/failure_message.dart';
+import '../../../../core/widgets/content_skeleton.dart';
 import '../../../../core/widgets/error_state.dart';
-import '../../../../core/widgets/loading_state.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../../domain/app_user.dart';
 import '../../domain/user_repository.dart';
@@ -16,7 +17,7 @@ class ProfileScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(currentUserProvider);
     return user.when(
-      loading: () => const LoadingState(label: 'Đang tải hồ sơ…'),
+      loading: () => const ContentSkeleton(rows: 4, rowHeight: 96),
       error: (error, _) => ErrorState(
         message: userMessageFor(error),
         onRetry: () => ref.invalidate(currentUserProvider),
@@ -33,10 +34,10 @@ class _ProfileContent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final config = ref.watch(appConfigProvider);
     final colors = Theme.of(context).colorScheme;
+    final themeMode = ref.watch(appThemeModeProvider);
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(20, 18, 20, 32),
+      padding: AppLayout.pagePadding,
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 820),
@@ -44,114 +45,160 @@ class _ProfileContent extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                'Thông tin cá nhân',
+                'Hồ sơ',
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: -0.5,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.4,
                 ),
               ),
-              const SizedBox(height: 22),
+              const SizedBox(height: AppSpacing.xl),
               Card(
                 child: Padding(
-                  padding: const EdgeInsets.all(24),
+                  padding: const EdgeInsets.all(AppSpacing.xl),
                   child: LayoutBuilder(
-                    builder: (context, constraints) => Flex(
-                      direction: constraints.maxWidth >= 520
-                          ? Axis.horizontal
-                          : Axis.vertical,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        CircleAvatar(
-                          radius: 48,
-                          backgroundColor: colors.primaryContainer,
-                          foregroundColor: colors.onPrimaryContainer,
-                          child: Text(
-                            _initials(profile.displayName),
-                            style: Theme.of(context).textTheme.headlineMedium
-                                ?.copyWith(
-                                  color: colors.onPrimaryContainer,
-                                  fontWeight: FontWeight.w900,
-                                ),
-                          ),
-                        ),
-                        SizedBox(
-                          width: constraints.maxWidth >= 520 ? 22 : 0,
-                          height: constraints.maxWidth >= 520 ? 0 : 18,
-                        ),
-                        Expanded(
-                          flex: constraints.maxWidth >= 520 ? 1 : 0,
-                          child: Column(
-                            crossAxisAlignment: constraints.maxWidth >= 520
-                                ? CrossAxisAlignment.start
-                                : CrossAxisAlignment.center,
-                            children: [
-                              Text(
-                                profile.displayName,
-                                textAlign: TextAlign.center,
-                                style: Theme.of(context).textTheme.titleLarge
-                                    ?.copyWith(fontWeight: FontWeight.w900),
-                              ),
-                              const SizedBox(height: 5),
-                              if (profile.roleLabel case final roleLabel?)
-                                Text(
-                                  roleLabel,
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(color: colors.primary),
-                                ),
-                              if (profile.faculty case final faculty?) ...[
-                                const SizedBox(height: 5),
-                                Text(
-                                  faculty,
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    color: colors.onSurfaceVariant,
+                    builder: (context, constraints) {
+                      final wide =
+                          constraints.maxWidth >= AppLayout.compactBreakpoint;
+                      return Flex(
+                        direction: wide ? Axis.horizontal : Axis.vertical,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          CircleAvatar(
+                            radius: 46,
+                            backgroundColor: colors.primaryContainer,
+                            foregroundColor: colors.onPrimaryContainer,
+                            child: Text(
+                              _initials(profile.displayName),
+                              style: Theme.of(context).textTheme.headlineMedium
+                                  ?.copyWith(
+                                    color: colors.onPrimaryContainer,
+                                    fontWeight: FontWeight.w800,
                                   ),
-                                ),
-                              ],
-                            ],
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
+                          SizedBox(
+                            width: wide ? AppSpacing.xl : 0,
+                            height: wide ? 0 : AppSpacing.md,
+                          ),
+                          Expanded(
+                            flex: wide ? 1 : 0,
+                            child: Column(
+                              crossAxisAlignment: wide
+                                  ? CrossAxisAlignment.start
+                                  : CrossAxisAlignment.center,
+                              children: [
+                                Text(
+                                  profile.displayName.trim().isEmpty
+                                      ? 'Người học'
+                                      : profile.displayName,
+                                  textAlign: wide
+                                      ? TextAlign.left
+                                      : TextAlign.center,
+                                  style: Theme.of(context).textTheme.titleLarge
+                                      ?.copyWith(fontWeight: FontWeight.w800),
+                                ),
+                                if (profile.roleLabel case final role?) ...[
+                                  const SizedBox(height: AppSpacing.xxs),
+                                  Text(
+                                    role,
+                                    textAlign: wide
+                                        ? TextAlign.left
+                                        : TextAlign.center,
+                                    style: TextStyle(color: colors.primary),
+                                  ),
+                                ],
+                                if (profile.faculty case final faculty?) ...[
+                                  const SizedBox(height: AppSpacing.xxs),
+                                  Text(
+                                    faculty,
+                                    textAlign: wide
+                                        ? TextAlign.left
+                                        : TextAlign.center,
+                                    style: TextStyle(
+                                      color: colors.onSurfaceVariant,
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ],
+                      );
+                    },
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
+              if (profile.email case final email?) ...[
+                const SizedBox(height: AppSpacing.md),
+                Card(
+                  child: _InfoTile(
+                    icon: Icons.alternate_email_rounded,
+                    title: 'Email',
+                    value: email,
+                  ),
+                ),
+              ],
+              const SizedBox(height: AppSpacing.xl),
+              Text(
+                'Tùy chọn ứng dụng',
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+              ),
+              const SizedBox(height: AppSpacing.sm),
               Card(
-                child: Column(
-                  children: [
-                    if (profile.email case final email?) ...[
-                      _InfoTile(
-                        icon: Icons.alternate_email_rounded,
-                        title: 'Email',
-                        value: email,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.md,
+                    vertical: AppSpacing.sm,
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.contrast_rounded, color: colors.primary),
+                      const SizedBox(width: AppSpacing.sm),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Giao diện',
+                              style: TextStyle(fontWeight: FontWeight.w700),
+                            ),
+                            Text('Chọn chế độ hiển thị phù hợp.'),
+                          ],
+                        ),
                       ),
-                      const Divider(),
-                    ],
-                    if (profile.idNumber case final idNumber?) ...[
-                      _InfoTile(
-                        icon: Icons.badge_outlined,
-                        title: 'Mã người dùng',
-                        value: idNumber,
+                      DropdownButtonHideUnderline(
+                        child: DropdownButton<ThemeMode>(
+                          value: themeMode,
+                          borderRadius: BorderRadius.circular(AppRadius.medium),
+                          items: const [
+                            DropdownMenuItem(
+                              value: ThemeMode.system,
+                              child: Text('Hệ thống'),
+                            ),
+                            DropdownMenuItem(
+                              value: ThemeMode.light,
+                              child: Text('Sáng'),
+                            ),
+                            DropdownMenuItem(
+                              value: ThemeMode.dark,
+                              child: Text('Tối'),
+                            ),
+                          ],
+                          onChanged: (value) {
+                            if (value != null) {
+                              ref.read(appThemeModeProvider.notifier).state =
+                                  value;
+                            }
+                          },
+                        ),
                       ),
-                      const Divider(),
                     ],
-                    _InfoTile(
-                      icon: Icons.language_rounded,
-                      title: 'LMS',
-                      value: config.moodleBaseUri.host,
-                    ),
-                    const Divider(),
-                    const _InfoTile(
-                      icon: Icons.shield_outlined,
-                      title: 'Bảo mật',
-                      value:
-                          'Token được lưu bằng secure storage khi tích hợp thật',
-                    ),
-                  ],
+                  ),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: AppSpacing.xl),
               OutlinedButton.icon(
                 onPressed: () =>
                     ref.read(authControllerProvider.notifier).signOut(),
@@ -166,9 +213,15 @@ class _ProfileContent extends ConsumerWidget {
   }
 
   String _initials(String name) {
-    final parts = name.trim().split(RegExp(r'\s+'));
-    if (parts.length == 1) return parts.first.substring(0, 1).toUpperCase();
-    return '${parts.first[0]}${parts.last[0]}'.toUpperCase();
+    final parts = name
+        .trim()
+        .split(RegExp(r'\s+'))
+        .where((part) => part.isNotEmpty)
+        .toList();
+    if (parts.isEmpty) return 'NH';
+    if (parts.length == 1) return parts.first.characters.first.toUpperCase();
+    return '${parts.first.characters.first}${parts.last.characters.first}'
+        .toUpperCase();
   }
 }
 
@@ -185,11 +238,11 @@ class _InfoTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.all(18),
+    padding: const EdgeInsets.all(AppSpacing.md),
     child: Row(
       children: [
         Icon(icon, color: Theme.of(context).colorScheme.primary),
-        const SizedBox(width: 14),
+        const SizedBox(width: AppSpacing.sm),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -201,7 +254,7 @@ class _InfoTile extends StatelessWidget {
                   fontSize: 12,
                 ),
               ),
-              const SizedBox(height: 3),
+              const SizedBox(height: AppSpacing.xxs),
               Text(value, style: const TextStyle(fontWeight: FontWeight.w700)),
             ],
           ),

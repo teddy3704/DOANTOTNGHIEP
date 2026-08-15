@@ -21,7 +21,7 @@ void main() {
     await tester.pump();
 
     expect(find.text('Đang tải điểm…'), findsOneWidget);
-    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(find.byType(CircularProgressIndicator), findsNothing);
   });
 
   testWidgets('grades screen renders populated grade book', (tester) async {
@@ -33,11 +33,13 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Phát triển ứng dụng di động'), findsOneWidget);
-    expect(find.text('Trung bình các mục đã chấm: 80.0%'), findsOneWidget);
+    expect(find.text('1/2 kết quả đã công bố'), findsOneWidget);
     expect(find.text('Bài tập phân tích yêu cầu'), findsOneWidget);
-    expect(find.text('8 / 10'), findsOneWidget);
+    expect(find.text('8 / 10 điểm'), findsOneWidget);
     expect(find.text('Bài tập chưa chấm'), findsOneWidget);
-    expect(find.text('Chưa chấm'), findsOneWidget);
+    expect(find.text('Chưa có điểm'), findsOneWidget);
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+    expect(find.textContaining('Trung bình'), findsNothing);
 
     final courseNameFinder = find.text('Phát triển ứng dụng di động');
     final courseName = tester.widget<Text>(courseNameFinder);
@@ -55,9 +57,9 @@ void main() {
     await tester.pumpWidget(_gradesApp(repository));
     await tester.pumpAndSettle();
 
-    expect(find.text('Chưa có mục điểm'), findsOneWidget);
+    expect(find.text('Chưa có kết quả'), findsOneWidget);
     expect(
-      find.text('Các mục điểm được phép hiển thị sẽ xuất hiện tại đây.'),
+      find.text('Điểm được công bố sẽ xuất hiện tại đây.'),
       findsOneWidget,
     );
   });
@@ -82,7 +84,39 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(repository.requestCount, 2);
-    expect(find.text('Chưa có mục điểm'), findsOneWidget);
+    expect(find.text('Chưa có kết quả'), findsOneWidget);
+  });
+
+  testWidgets('grades screen never displays hidden entries', (tester) async {
+    final repository = _MemoryGradeRepository(
+      onGetGrades: (_) async => const <GradeEntry>[
+        GradeEntry(
+          id: 'visible-grade',
+          courseId: 'course-1',
+          itemName: 'Bài thực hành giao diện',
+          minimum: 0,
+          maximum: 10,
+          hidden: false,
+          finalGrade: 9,
+        ),
+        GradeEntry(
+          id: 'hidden-grade',
+          courseId: 'course-1',
+          itemName: 'Kết quả chưa công bố',
+          minimum: 0,
+          maximum: 10,
+          hidden: true,
+          finalGrade: 7,
+        ),
+      ],
+    );
+
+    await tester.pumpWidget(_gradesApp(repository));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Bài thực hành giao diện'), findsOneWidget);
+    expect(find.text('Kết quả chưa công bố'), findsNothing);
+    expect(find.text('1/1 kết quả đã công bố'), findsOneWidget);
   });
 }
 

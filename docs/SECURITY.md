@@ -1,6 +1,6 @@
 # Security Baseline
 
-**Status:** Phase 3B hardening + synthetic-data controls implemented; live authentication remains blocked by DLU service/auth configuration.
+**Status:** Phase 3B hardening + synthetic-data and product-presentation disclosure controls implemented; live authentication remains blocked by DLU service/auth configuration.
 
 **Scope:** Flutter client, Moodle REST boundary, local data, build/release process.
 
@@ -12,6 +12,17 @@
 - Validator kiểm tra PK uniqueness, declared/local fixture links, mandatory values, state coverage và privacy markers trước khi asset được chấp nhận.
 - `schema.sql`/`seed.sql` là local `PROJECT_SUBSET_SCHEMA`, không phải deployment migration và không tạo đường Flutter → MySQL.
 - File rows chỉ có synthetic metadata. `contenthash` không được coi là download URL; repository không chứa file bytes hoặc `moodledata`.
+
+## Product UI disclosure controls — 2026-08-16
+
+- Production Login fail closed bằng một thông báo thân thiện và không render username/password field, raw blocker code, endpoint hoặc hướng dẫn kỹ thuật cho người dùng cuối.
+- Development entrypoint vẫn inject canonical `SYNTHETIC_DATA` ở composition root nhưng presentation không hiển thị nhãn `DEV`/`FIXTURE`/`MOCK`, schema/repository metadata hoặc infrastructure state.
+- `userMessageFor` map failure theo loại sang thông báo hành động bằng tiếng Việt; raw transport exception, diagnostic message và backend detail không được dùng làm UI copy.
+- Profile đã bỏ internal ID, endpoint, token/secure-storage status và các chi tiết không cần cho tác vụ sinh viên; chỉ giữ identity tối thiểu, theme local và logout.
+- Dashboard đã bỏ notification affordance không có nguồn dữ liệu thật. Grades đã bỏ average/chart suy diễn để tránh trình bày thông tin học vụ chưa được Moodle xác nhận.
+- Calendar map event type sang category thân thiện và không render raw type/ID. Resource sheet chỉ hiển thị metadata synthetic an toàn, không biến `contenthash` thành URL.
+- Bộ screenshot product-polish ở `docs/screenshots/production-polish/` chỉ dùng identity/course content hư cấu và domain `example.test`; không chứa token, cookie, password, production DLU payload hoặc dữ liệu tài khoản đang đăng nhập trên browser.
+- Regression tests kiểm tra production credential surface và quét presentation text để ngăn backend terminology/raw blocker code quay lại UI.
 
 ## 1. Security invariants
 

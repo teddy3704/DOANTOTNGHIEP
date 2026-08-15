@@ -1,10 +1,10 @@
 # Project Status
 
-**Cập nhật:** 2026-08-15 (Asia/Saigon)
+**Cập nhật:** 2026-08-16 (Asia/Saigon)
 
-**Milestone:** Moodle Schema Analysis & Synthetic Data + Student DEV Core
+**Milestone:** Production UX Polish + Moodle Schema/Synthetic Student Core
 
-**Trạng thái milestone:** `PASS` — teacher schema analysis, `MOODLE_SUBSET_V1`, deterministic synthetic dataset, Student DEV flow, tests/build/emulator đều PASS
+**Trạng thái milestone:** `PASS` — product UI cleanup, final student navigation, deterministic synthetic-data presentation, 50 automated tests và Android emulator walkthrough đều PASS
 
 **Trạng thái production live:** `PARTIAL / BLOCKED_EXTERNAL` — DLU Web Services vẫn disabled; live API/auth integration chưa được phép triển khai
 
@@ -12,11 +12,11 @@
 
 Repository greenfield đã được scaffold thành Android-only Flutter project, application ID tạm thời `vn.edu.dlu.lmsmobile`. Phase 2 foundation và UI demo flow đã chạy qua format/analyze/test/debug build, Android 15 emulator smoke test và runtime log review.
 
-Production entrypoint không phụ thuộc mock; do DLU authentication/Web Services chưa được xác nhận, production repository fail closed và hiển thị blocker phù hợp. Development entrypoint riêng inject dữ liệu synthetic có nhãn `DEV FIXTURE` để kiểm thử/demo UI.
+Production entrypoint không phụ thuộc mock; do DLU authentication/Web Services chưa được xác nhận, production repository fail closed và hiển thị thông báo thân thiện, không lộ blocker code hay trường credential. Development entrypoint riêng inject dữ liệu synthetic có nhãn nội bộ để kiểm thử/demo nhưng không đưa các nhãn `DEV`/`FIXTURE`/`MOCK` hoặc chi tiết kỹ thuật ra giao diện sinh viên.
 
 Theo chỉ đạo mới nhất của GVHD, phase database không cần database/dump/data thật của DLU. Nhóm đã phân tích trực tiếp teacher-provided SchemaSpy Moodle LMS 3.9/MySQL 5.7.31, chốt `MOODLE_SUBSET_V1` gồm 20 bảng, tạo `PROJECT_SUBSET_SCHEMA`, seed/JSON deterministic với seed `202608`, validator integrity/privacy và tài liệu feature→table/join/ERD/CRUD. Nguồn này được gắn `TEACHER_SCHEMA_REFERENCE`, không bị gọi là production schema DLU.
 
-DEV app đã bỏ hard-code fixture rời rạc và dùng một canonical JSON qua `SyntheticFixtureDataSource`. Student flow hiện render nhất quán Dashboard/Courses/sections/resources/Assignment/submission status/Grades/calendar summary/Profile. Production composition root không inject các adapter này và đã được re-verify fail closed trên emulator.
+DEV app đã bỏ hard-code fixture rời rạc và dùng một canonical JSON qua `SyntheticFixtureDataSource`. Student flow hiện render nhất quán Trang chủ/Khóa học/chi tiết học phần/tài nguyên/Bài tập/Điểm/Lịch/Hồ sơ. Product-polish milestone đã thay nội dung thiên về kỹ thuật bằng ngôn ngữ sinh viên, chuẩn hóa hierarchy/tokens/loading state và chốt navigation responsive `Trang chủ` / `Khóa học` / `Lịch` / `Hồ sơ`. Production composition root không inject các adapter này và tiếp tục fail closed.
 
 Phase 3B đã dùng chính browser session hiện có để xác minh read-only Dashboard, My Courses, một course đại diện, Profile, Calendar, own-grades navigation, notifications/messages navigation và course activity/resource metadata. Không lưu tên user/course, ID, grade, message, cookie/token hoặc `sesskey`.
 
@@ -31,7 +31,7 @@ Hai token/mobile site-check request không credential trả `errorcode=enablewsd
 | `README.md` | Không tồn tại trước audit; đã tạo entry point Phase 0 | DONE |
 | `pubspec.yaml` | Flutter/Riverpod/go_router/Dio/secure storage | DONE |
 | `lib/` | Feature-first foundation + demo milestone UI | DONE (Phase 2 scope) |
-| `test/` | 32 unit/widget tests | DONE |
+| `test/` | 50 unit/widget tests | DONE |
 | `android/` | Android-only scaffold, `vn.edu.dlu.lmsmobile`, security baseline | DONE (debug) |
 | `docs/` | Không tồn tại trước audit; baseline được tạo ở Phase 0 | DONE |
 | `.gitignore` | Không tồn tại trước audit; baseline bảo mật được tạo | DONE |
@@ -100,6 +100,14 @@ Toolchain được cài user-local, không dùng Android Studio. Hướng dẫn/
 - Visual emulator QA đã sửa tương phản Assignment/Grades/Profile và thêm regression assertions cho `onPrimaryContainer`; screenshots tương ứng đã được chụp lại.
 - Quality gate: format 56 files/0 changed, analyze 0 issues, validator PASS, 32 tests PASS, DEV + production debug APK PASS.
 - Android 15/API 35 emulator PASS cho Dashboard → Courses → Course Detail/Resources → Assignment/Submission → Grades → Profile; PID log scan 0 lỗi runtime. Production emulator re-check có 0 credential field/DEV fixture và blocker đúng.
+- Hoàn tất pre-edit inventory tại `docs/PRODUCT_UI_AUDIT.md`; mọi quyết định KEEP/REMOVE/REWRITE/REDESIGN được đối chiếu với UI đang chạy trước khi sửa.
+- Chốt product navigation thành `Trang chủ` / `Khóa học` / `Lịch` / `Hồ sơ`; phone dùng `NavigationBar`, màn hình rộng dùng `NavigationRail`, còn Course Detail/Assignment/Grades là route theo ngữ cảnh.
+- Redesign Login, Dashboard, Courses, Course Detail, Assignment, Grades, Calendar và Profile theo Material 3, central spacing/radius/layout tokens và shared contextual skeleton/section components.
+- Loại chi tiết backend, blocker code, token/endpoint/repository/schema, fake notification và điểm trung bình/biểu đồ suy diễn khỏi UI; error mapper chỉ trả thông báo tác vụ thân thiện.
+- Profile chỉ hiển thị identity tối thiểu đã có trong domain data, cho đổi giao diện local `Hệ thống`/`Sáng`/`Tối` và đăng xuất; không hiển thị internal ID hoặc hạ tầng.
+- DEV repository chặn đọc Course Detail/Assignment/Grades ngoài các course đã enroll; progress chỉ tính nội dung thực sự được hiển thị.
+- Product-polish automated gate PASS: `flutter analyze` 0 issues và `flutter test` 50/50.
+- Android emulator walkthrough PASS cho Login → Trang chủ → Khóa học → Course Detail → Assignment → Grades → Lịch → Hồ sơ; bộ 8 ảnh sạch nằm tại `docs/screenshots/production-polish/`.
 
 ### Latest emulator re-verification — 2026-08-12 22:47 ICT
 
@@ -112,11 +120,24 @@ Toolchain được cài user-local, không dùng Android Studio. Hướng dẫn/
 - Build lại DEV fixture và production-entrypoint debug APK trên D; cả hai giữ package `vn.edu.dlu.lmsmobile`, minSdk 24, targetSdk 36.
 - Khi bàn giao: C còn `20.85 GB`, D còn `74.98 GB`; storage gate C ≥ 15 GB PASS.
 
+### Production UI polish verification — 2026-08-16
+
+- Chạy app qua development composition root với canonical synthetic dataset; dữ liệu vẫn là `SYNTHETIC_DATA` ở data/test layer nhưng UI không hiển thị nhãn phát triển hoặc lời giải thích implementation.
+- Flow trực tiếp PASS: Login → Trang chủ → Khóa học → Course Detail → Assignment → Grades → Lịch → Hồ sơ.
+- Dashboard ưu tiên việc cần làm, học phần hiện tại và lịch sắp tới; Courses hỗ trợ search/filter; Calendar group theo ngày và không hiển thị raw event type/ID.
+- Course Detail/resource sheet xử lý layout cuộn an toàn và assignment không còn force-unwrap deadline nullable.
+- Grades chỉ hiển thị điểm Moodle đã phát hành, không dựng aggregate khi chưa xác minh weighting.
+- Screenshots mới: `docs/screenshots/production-polish/01-login.png` đến `08-profile.png`.
+- `dart format .`: PASS — 66 files, 0 changed. `flutter analyze`: PASS — 0 issues. `flutter test`: PASS — 50/50.
+- Build product-polish DEV và production-entrypoint debug APK trên D: PASS — mỗi file 193,806,149 bytes. Production APK smoke PASS với 0 credential field và 0 technical/dev copy match.
+- Tắt Android native default focus highlight trên Flutter view tree; recapture ảnh `02`–`08` trực tiếp từ emulator, không hậu kỳ và không còn viền focus xanh.
+- Storage sau final rebuild: C `57.52 GB`, D `71.44 GB`; `build/` inactive ngoài OneDrive synced root.
+
 ## IN PROGRESS
 
-- Schema/synthetic/Student DEV milestone đã hoàn tất và quality-gated.
+- Product UI polish + schema/synthetic Student DEV milestone đã hoàn tất và quality-gated ở code/test/emulator.
 - Live Flutter authentication/current-user/courses integration vẫn cố ý chưa triển khai cho đến khi DLU bật/phê duyệt application-layer service/auth flow.
-- Supabase chưa được wire trong milestone này; nếu bổ sung sau, nó phải là app-owned backend/Edge Function với RLS và không thay Moodle hoặc nhận service-role key ở client.
+- Supabase chưa được wire trong product-polish milestone này; foundation app-owned/RLS vẫn là công việc kế tiếp và cần project connection riêng, không thay Moodle hoặc nhận service-role key ở client.
 
 ## BLOCKED
 

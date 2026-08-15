@@ -85,6 +85,7 @@ class DevCourseContentRepository implements CourseContentRepository {
   Future<List<CourseSection>> getSections(String courseId) async {
     final snapshot = await _dataSource.load();
     final numericCourseId = int.parse(courseId);
+    _requireEnrolledCourse(snapshot, numericCourseId);
     final moduleTypes = {
       for (final row in snapshot.table('modules'))
         fixtureInt(row, 'id'): fixtureString(row, 'name'),
@@ -201,18 +202,21 @@ class DevAssignmentRepository implements AssignmentRepository {
   Future<AssignmentDetail> getAssignment(String assignmentId) async {
     final snapshot = await _dataSource.load();
     final row = _rowById(snapshot.table('assign'), int.parse(assignmentId));
+    _requireEnrolledCourse(snapshot, fixtureInt(row, 'course'));
     return _assignmentFrom(snapshot, row, _fixtureStudentId);
   }
 
   @override
   Future<List<AssignmentDetail>> getAssignments({String? courseId}) async {
     final snapshot = await _dataSource.load();
+    final enrolledCourseIds = _enrolledCourseIds(snapshot, _fixtureStudentId);
     final rows = snapshot
         .table('assign')
         .where(
           (row) =>
-              courseId == null ||
-              fixtureInt(row, 'course') == int.parse(courseId),
+              enrolledCourseIds.contains(fixtureInt(row, 'course')) &&
+              (courseId == null ||
+                  fixtureInt(row, 'course') == int.parse(courseId)),
         );
     final assignments =
         rows
@@ -232,6 +236,7 @@ class DevGradeRepository implements GradeRepository {
   @override
   Future<List<GradeEntry>> getGrades(String courseId) async {
     final snapshot = await _dataSource.load();
+    _requireEnrolledCourse(snapshot, int.parse(courseId));
     final gradeRows = {
       for (final row
           in snapshot
@@ -317,7 +322,8 @@ class DevUserRepository implements UserRepository {
       displayName: _displayName(user),
       email: fixtureString(user, 'email'),
       idNumber: fixtureString(user, 'idnumber'),
-      roleLabel: 'Sinh viên mẫu · SYNTHETIC DATA',
+      roleLabel: 'Sinh viên',
+      faculty: fixtureString(user, 'department'),
     );
   }
 }
@@ -343,7 +349,11 @@ List<Course> _coursesForStudent(SyntheticFixtureSnapshot snapshot, int userId) {
           .map((row) {
             final courseId = fixtureInt(row, 'id');
             final courseModules = modules
-                .where((module) => fixtureInt(module, 'course') == courseId)
+                .where(
+                  (module) =>
+                      fixtureInt(module, 'course') == courseId &&
+                      fixtureBool(module, 'visible'),
+                )
                 .toList(growable: false);
             final courseModuleIds = courseModules
                 .map((module) => fixtureInt(module, 'id'))
@@ -380,7 +390,7 @@ List<Course> _coursesForStudent(SyntheticFixtureSnapshot snapshot, int userId) {
               shortName: fixtureString(row, 'shortname'),
               fullName: fixtureString(row, 'fullname'),
               category:
-                  categories[fixtureInt(row, 'category')] ?? 'Danh mục mẫu',
+                  categories[fixtureInt(row, 'category')] ?? 'Chưa phân loại',
               accentIndex: courseId % 4,
               summary: fixtureNullableString(row, 'summary'),
               progress: courseModules.isEmpty
@@ -415,6 +425,12 @@ Set<int> _enrolledCourseIds(SyntheticFixtureSnapshot snapshot, int userId) {
       )
       .map((row) => fixtureInt(row, 'courseid'))
       .toSet();
+}
+
+void _requireEnrolledCourse(SyntheticFixtureSnapshot snapshot, int courseId) {
+  if (!_enrolledCourseIds(snapshot, _fixtureStudentId).contains(courseId)) {
+    throw StateError('Course is outside the fixture enrollment scope.');
+  }
 }
 
 AssignmentDetail _assignmentFrom(

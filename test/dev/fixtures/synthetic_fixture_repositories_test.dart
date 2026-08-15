@@ -91,6 +91,68 @@ void main() {
       expect(hasGradedItem, isTrue);
     });
 
+    test(
+      'keeps presentation data natural while preserving fixture safety',
+      () async {
+        final user = await DevUserRepository(source).getCurrentUser();
+        expect(user.displayName, 'Nguyễn Minh Anh');
+        expect(user.email, 'nguyen.minh.anh@example.test');
+        expect(user.roleLabel, 'Sinh viên');
+        expect(user.faculty, 'Khoa Công nghệ Thông tin');
+        _expectCleanDisplayCopy(<String?>[
+          user.displayName,
+          user.roleLabel,
+          user.faculty,
+        ]);
+
+        final courses = await DevCourseRepository(source).getMyCourses();
+        for (final course in courses) {
+          _expectCleanDisplayCopy(<String?>[
+            course.shortName,
+            course.fullName,
+            course.category,
+            course.summary,
+            course.nextActivity,
+          ]);
+          final sections = await DevCourseContentRepository(
+            source,
+          ).getSections(course.id);
+          for (final section in sections) {
+            _expectCleanDisplayCopy(<String?>[section.name, section.summary]);
+            for (final activity in section.activities) {
+              _expectCleanDisplayCopy(<String?>[
+                activity.name,
+                activity.description,
+                activity.fileName,
+                activity.statusLabel,
+              ]);
+            }
+          }
+
+          final grades = await DevGradeRepository(source).getGrades(course.id);
+          for (final grade in grades) {
+            _expectCleanDisplayCopy(<String?>[grade.itemName, grade.feedback]);
+          }
+        }
+
+        final assignments = await DevAssignmentRepository(
+          source,
+        ).getAssignments();
+        for (final assignment in assignments) {
+          _expectCleanDisplayCopy(<String?>[
+            assignment.name,
+            assignment.description,
+            assignment.feedback,
+          ]);
+        }
+
+        final events = await DevCalendarRepository(source).getUpcomingEvents();
+        for (final event in events) {
+          _expectCleanDisplayCopy(<String?>[event.name]);
+        }
+      },
+    );
+
     test('rejects a fixture without the SYNTHETIC_DATA marker', () async {
       final invalid = SyntheticFixtureDataSource(
         loadAsset: (_) async =>
@@ -100,4 +162,16 @@ void main() {
       await expectLater(invalid.load(), throwsFormatException);
     });
   });
+}
+
+void _expectCleanDisplayCopy(Iterable<String?> values) {
+  final technicalMarker = RegExp(
+    r'(^|[^a-z])(dev|fixture|mock|synthetic|debug|demo)([^a-z]|$)',
+    caseSensitive: false,
+  );
+  for (final value in values.whereType<String>()) {
+    expect(technicalMarker.hasMatch(value), isFalse, reason: value);
+    expect(value.toLowerCase().contains('mẫu'), isFalse, reason: value);
+    expect(value.toLowerCase().contains('kiểm thử'), isFalse, reason: value);
+  }
 }

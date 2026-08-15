@@ -549,3 +549,79 @@ Splash → Login DEV → Dashboard → Assignment/Submission Status
 ### Current external blocker
 
 Live Moodle integration vẫn chờ `MOODLE_WEB_SERVICES_NOT_ENABLED` và `AUTHENTICATION_METHOD_UNCONFIRMED`. Đây không làm giảm trạng thái PASS của schema/synthetic DEV milestone. Supabase chưa được nối ở milestone này; nếu làm phase kế tiếp phải là app-owned/RLS/Edge Function boundary, không thay Moodle hoặc cho Flutter kết nối database Moodle trực tiếp.
+
+## 2026-08-16 — Production Product UI Polish
+
+### Scope and evidence boundary
+
+- Hoàn tất pre-edit inventory tại `docs/PRODUCT_UI_AUDIT.md` trước khi sửa presentation.
+- Giữ nguyên production fail-closed, repository contracts, Moodle boundary và canonical synthetic fixture; milestone này không tuyên bố live Moodle/API authentication đã hoạt động.
+- Synthetic metadata/IDs vẫn tồn tại trong data/test layer để đảm bảo integrity nhưng không còn xuất hiện như nhãn phát triển hoặc lời giải thích kỹ thuật trong UI sinh viên.
+- Không thêm fake notification, fake aggregate grade, fake API response hoặc production-data fallback.
+
+### Product cleanup and final navigation
+
+- Chốt primary navigation responsive: `Trang chủ` / `Khóa học` / `Lịch` / `Hồ sơ`. Phone dùng Material 3 `NavigationBar`; màn hình rộng dùng `NavigationRail`.
+- Login hiển thị copy tự nhiên và nhắc không lưu mật khẩu; development form trông như product UI bình thường. Production Login không có credential field và chỉ báo dịch vụ chưa sẵn sàng bằng ngôn ngữ người dùng.
+- Dashboard được sắp lại thành lời chào → việc ưu tiên → học phần hiện tại → lịch sắp tới; bỏ technical status hero và notification affordance không có nguồn thật.
+- Courses chuyển sang card gọn, searchable/filterable và dễ quét. Course Detail tổ chức overview/content/resources/assignments/grades, sửa nullable deadline và resource bottom sheet thành scroll-safe.
+- Assignment chỉ giữ deadline/submission/feedback hữu ích. Grades chỉ hiển thị grade item đã phát hành, không tính trung bình hoặc biểu đồ khi Moodle weighting chưa xác minh.
+- Calendar là màn hình thật dựa trên repository hiện có, group theo ngày, có course context và không hiện raw event type/ID.
+- Profile chỉ giữ avatar, tên/email/role/faculty, lựa chọn giao diện local và logout; bỏ internal ID, endpoint/token/storage/repository detail.
+- Thêm central `AppTokens`, contextual skeleton, shared section header, responsive content widths, semantic labels và system-bar contrast.
+
+### Fixture display and integrity
+
+- Presentation-facing synthetic names/course content được đổi thành tiếng Việt tự nhiên, vẫn hoàn toàn hư cấu và dùng `example.test`.
+- Generator/validator từ chối thuật ngữ development/sample/test trong các field được render; internal `SYNTHETIC_DATA`, seed `202608` và fake identifiers vẫn giữ nguyên.
+- Generated presentation dataset sau polish vẫn deterministic: JSON SHA-256 `4F6FF5992E45B6ACAEE1C28180F0D50166D62CA3B419BD29E0188416EC673C37`; SQL SHA-256 `5A3EFA1500F2B626A1BEAFB96D6FC172D941DF6D7FE63FAD8080DE7CBD022DC5`.
+- DEV repositories chặn course content, assignment detail/list và grades ngoài enrolment; Dashboard progress chỉ tính module được hiển thị.
+- Production composition root không import/inject fixture và không silently fallback khi live API unavailable.
+
+### Tests and emulator QA
+
+| Check | Result |
+|---|---|
+| `dart format .` | PASS — 66 files, 0 changed |
+| `flutter analyze` | PASS — 0 issues |
+| `flutter test` | PASS — 50/50 |
+| DEV debug APK | PASS — 193,806,149 bytes; SHA-256 `5301E09123DC5C072B1B0C29B14883B82C01ABEF494DA740123DB5F726DD224F` |
+| Production debug APK | PASS — 193,806,149 bytes; SHA-256 `0AA35F8CE1CB9A98E5949D978135E6A861E0894678F414C24D890228E95046B4` |
+| Android 15/API 35 direct walkthrough | PASS |
+| Production APK fail-closed smoke | PASS — 0 credential field, 0 technical/dev copy match |
+
+Direct flow đã chạy:
+
+```text
+Login → Trang chủ → Khóa học → Course Detail
+→ Assignment → Grades → Lịch → Hồ sơ
+```
+
+Không quan sát crash, navigation failure hoặc layout overflow trong walkthrough. Bộ evidence mới nằm tại:
+
+- `docs/screenshots/production-polish/01-login.png`
+- `docs/screenshots/production-polish/02-dashboard.png`
+- `docs/screenshots/production-polish/03-courses.png`
+- `docs/screenshots/production-polish/04-course-detail.png`
+- `docs/screenshots/production-polish/05-assignments.png`
+- `docs/screenshots/production-polish/06-grades.png`
+- `docs/screenshots/production-polish/07-calendar.png`
+- `docs/screenshots/production-polish/08-profile.png`
+
+Review ảnh phát hiện Android native default focus highlight tạo viền xanh quanh Flutter view sau keyboard input. Platform highlight này đã được tắt trên native view tree, trong khi Flutter semantics/focus behavior vẫn giữ nguyên; ảnh `02`–`08` được recapture trực tiếp từ emulator, không hậu kỳ.
+
+APK artifacts nằm ngoài repository tại:
+
+- `D:\DLU-LMS\Artifacts\dlu-lms-mobile-production-polish-dev-debug.apk`
+- `D:\DLU-LMS\Artifacts\dlu-lms-mobile-production-polish-production-debug.apk`
+
+### Security and storage
+
+- User-facing error mapping không render raw failure message/code, endpoint, token, repository/schema hoặc network payload.
+- Screenshots chỉ chứa synthetic identity/course data; không chứa credential/token/cookie hoặc dữ liệu DLU thật.
+- Android SDK/AVD, Gradle/Pub cache, generated build output và APK artifacts tiếp tục ưu tiên ổ D; không cài lại Android Studio/toolchain trong milestone UI.
+- Sau final rebuild: C còn `57.52 GB`, D còn `71.44 GB`; storage gate C ≥ 15 GB và D ≥ 25 GB PASS. Wrapper đã trả `build/` về trạng thái inactive.
+
+### Current external blocker
+
+Live Moodle vẫn chờ `MOODLE_WEB_SERVICES_NOT_ENABLED`, `AUTHENTICATION_METHOD_UNCONFIRMED`, approved test identity và least-privilege service/function access. Supabase chưa được triển khai trong commit product-polish; nếu thực hiện tiếp phải giữ app-owned boundary, RLS và project connection riêng, không thay Moodle làm nguồn course/assignment/grade.

@@ -12,7 +12,7 @@ class AsyncStateView<T> extends StatelessWidget {
     required this.onRetry,
     this.isEmpty,
     this.emptyTitle = 'Chưa có dữ liệu',
-    this.emptyMessage = 'Dữ liệu sẽ xuất hiện tại đây khi Moodle cung cấp.',
+    this.emptyMessage = 'Nội dung mới sẽ xuất hiện tại đây.',
     super.key,
   });
 

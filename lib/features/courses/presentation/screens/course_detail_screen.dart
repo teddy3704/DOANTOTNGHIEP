@@ -6,7 +6,6 @@ import '../../../../app/router/app_routes.dart';
 import '../../../../core/errors/failure_message.dart';
 import '../../../../core/widgets/empty_state.dart';
 import '../../../../core/widgets/error_state.dart';
-import '../../../../core/widgets/loading_state.dart';
 import '../../domain/course.dart';
 import '../../domain/course_content.dart';
 import '../../domain/course_content_repository.dart';
@@ -23,7 +22,7 @@ class CourseDetailScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Chi tiết khóa học')),
       body: detail.when(
-        loading: () => const LoadingState(label: 'Đang tải khóa học…'),
+        loading: () => const _CourseDetailLoading(),
         error: (error, _) => ErrorState(
           message: userMessageFor(error),
           onRetry: () => ref.invalidate(courseDetailProvider(courseId)),
@@ -50,6 +49,7 @@ class _CourseDetailContent extends ConsumerWidget {
         await ref.read(courseSectionsProvider(course.id).future);
       },
       child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
         children: [
           Center(
@@ -58,84 +58,122 @@ class _CourseDetailContent extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [colors.primary, colors.tertiary],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(26),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  course.shortName,
-                                  style: TextStyle(
-                                    color: colors.onPrimary.withValues(
-                                      alpha: 0.8,
-                                    ),
-                                    fontWeight: FontWeight.w900,
-                                    letterSpacing: 0.8,
-                                  ),
-                                ),
-                                const SizedBox(height: 10),
-                                Text(
-                                  course.fullName,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .headlineSmall
-                                      ?.copyWith(
-                                        color: colors.onPrimary,
-                                        fontWeight: FontWeight.w900,
-                                        height: 1.25,
-                                      ),
-                                ),
-                                const SizedBox(height: 10),
-                                Text(
-                                  course.category,
-                                  style: TextStyle(
-                                    color: colors.onPrimary.withValues(
-                                      alpha: 0.82,
-                                    ),
-                                  ),
-                                ),
-                                if (course.summary case final summary?) ...[
-                                  const SizedBox(height: 14),
-                                  Text(
-                                    summary,
-                                    style: TextStyle(
-                                      color: colors.onPrimary.withValues(
-                                        alpha: 0.88,
-                                      ),
-                                      height: 1.45,
-                                    ),
-                                  ),
-                                ],
-                              ],
+                  Semantics(
+                    header: true,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            colors.primaryContainer,
+                            Color.alphaBlend(
+                              colors.primary.withValues(alpha: 0.08),
+                              colors.primaryContainer,
                             ),
-                          ),
-                          Icon(
-                            Icons.auto_stories_rounded,
-                            size: 62,
-                            color: colors.onPrimary.withValues(alpha: 0.2),
-                          ),
-                        ],
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    course.shortName,
+                                    style: TextStyle(
+                                      color: colors.onPrimaryContainer
+                                          .withValues(alpha: 0.8),
+                                      fontWeight: FontWeight.w900,
+                                      letterSpacing: 0.8,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 10),
+                                  Text(
+                                    course.fullName,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .headlineSmall
+                                        ?.copyWith(
+                                          color: colors.onPrimaryContainer,
+                                          fontWeight: FontWeight.w900,
+                                          height: 1.25,
+                                        ),
+                                  ),
+                                  const SizedBox(height: 10),
+                                  Text(
+                                    course.category,
+                                    style: TextStyle(
+                                      color: colors.onPrimaryContainer
+                                          .withValues(alpha: 0.82),
+                                    ),
+                                  ),
+                                  if (course.summary case final summary?) ...[
+                                    const SizedBox(height: 14),
+                                    Text(
+                                      summary,
+                                      style: TextStyle(
+                                        color: colors.onPrimaryContainer
+                                            .withValues(alpha: 0.88),
+                                        height: 1.45,
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Icon(
+                              Icons.auto_stories_rounded,
+                              size: 54,
+                              color: colors.onPrimaryContainer.withValues(
+                                alpha: 0.2,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
                   const SizedBox(height: 18),
-                  OutlinedButton.icon(
-                    onPressed: () => context.push(AppRoutes.grades(course.id)),
-                    icon: const Icon(Icons.insights_rounded),
-                    label: const Text('Xem điểm khóa học'),
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(18),
+                      child: Row(
+                        children: [
+                          CircleAvatar(
+                            backgroundColor: colors.secondaryContainer,
+                            foregroundColor: colors.onSecondaryContainer,
+                            child: const Icon(Icons.insights_rounded),
+                          ),
+                          const SizedBox(width: 14),
+                          const Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Kết quả học tập',
+                                  style: TextStyle(fontWeight: FontWeight.w900),
+                                ),
+                                SizedBox(height: 3),
+                                Text('Xem các điểm đã được công bố'),
+                              ],
+                            ),
+                          ),
+                          IconButton.filledTonal(
+                            tooltip: 'Xem điểm khóa học',
+                            onPressed: () =>
+                                context.push(AppRoutes.grades(course.id)),
+                            icon: const Icon(Icons.arrow_forward_rounded),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 28),
                   Text(
@@ -146,15 +184,12 @@ class _CourseDetailContent extends ConsumerWidget {
                   ),
                   const SizedBox(height: 5),
                   Text(
-                    'Sections và activities dưới đây dùng canonical SYNTHETIC DATA trong DEV.',
+                    'Tài liệu và bài tập được sắp xếp theo từng chủ đề.',
                     style: TextStyle(color: colors.onSurfaceVariant),
                   ),
                   const SizedBox(height: 14),
                   sections.when(
-                    loading: () => const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 36),
-                      child: LoadingState(label: 'Đang tải nội dung…'),
-                    ),
+                    loading: () => const _ContentLoadingSkeleton(),
                     error: (error, _) => ErrorState(
                       message: userMessageFor(error),
                       onRetry: () =>
@@ -163,8 +198,7 @@ class _CourseDetailContent extends ConsumerWidget {
                     data: (items) => items.isEmpty
                         ? const EmptyState(
                             title: 'Chưa có nội dung',
-                            message:
-                                'Khóa học mẫu chưa có section hoặc activity.',
+                            message: 'Nội dung môn học sẽ xuất hiện tại đây.',
                             icon: Icons.folder_open_outlined,
                           )
                         : Column(
@@ -211,7 +245,7 @@ class _SectionCard extends StatelessWidget {
         section.name,
         style: const TextStyle(fontWeight: FontWeight.w900),
       ),
-      subtitle: Text('${section.activities.length} hoạt động'),
+      subtitle: Text(_contentCountLabel(section.activities.length)),
       children: [
         if (section.summary case final summary?)
           Padding(
@@ -223,7 +257,7 @@ class _SectionCard extends StatelessWidget {
             padding: EdgeInsets.fromLTRB(20, 0, 20, 20),
             child: Align(
               alignment: Alignment.centerLeft,
-              child: Text('Section này chưa có hoạt động.'),
+              child: Text('Chủ đề này chưa có nội dung.'),
             ),
           )
         else
@@ -243,31 +277,43 @@ class _ActivityTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final assignment = activity.kind == CourseActivityKind.assignment;
-    return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
-      leading: CircleAvatar(
-        backgroundColor: assignment
-            ? Theme.of(context).colorScheme.secondaryContainer
-            : Theme.of(context).colorScheme.tertiaryContainer,
-        child: Icon(
-          assignment ? Icons.assignment_outlined : Icons.description_outlined,
+    final subtitle = <String>[assignment ? 'Bài tập' : 'Tài liệu'];
+    final status = activity.statusLabel;
+    if (status != null) subtitle.add(status);
+    final dueAt = activity.dueAt;
+    if (assignment && dueAt != null) {
+      subtitle.add('Hạn ${_formatDate(dueAt)}');
+    }
+    final fileName = activity.fileName;
+    if (!assignment && fileName != null) subtitle.add(fileName);
+    return Semantics(
+      button: true,
+      label: '${assignment ? 'Mở bài tập' : 'Xem tài liệu'} ${activity.name}',
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+        leading: CircleAvatar(
+          backgroundColor: assignment
+              ? Theme.of(context).colorScheme.secondaryContainer
+              : Theme.of(context).colorScheme.tertiaryContainer,
+          foregroundColor: assignment
+              ? Theme.of(context).colorScheme.onSecondaryContainer
+              : Theme.of(context).colorScheme.onTertiaryContainer,
+          child: Icon(
+            assignment ? Icons.assignment_outlined : Icons.description_outlined,
+          ),
         ),
+        title: Text(
+          activity.name,
+          style: const TextStyle(fontWeight: FontWeight.w800),
+        ),
+        subtitle: Text(subtitle.join(' · ')),
+        trailing: const Icon(Icons.chevron_right_rounded),
+        onTap: assignment
+            ? () => context.push(
+                AppRoutes.assignment(courseId, activity.instanceId),
+              )
+            : () => _showResource(context, activity),
       ),
-      title: Text(
-        activity.name,
-        style: const TextStyle(fontWeight: FontWeight.w800),
-      ),
-      subtitle: activity.statusLabel == null
-          ? Text(activity.fileName ?? 'Tài nguyên học tập')
-          : Text(
-              '${activity.statusLabel} · Hạn ${_formatDate(activity.dueAt!)}',
-            ),
-      trailing: const Icon(Icons.chevron_right_rounded),
-      onTap: assignment
-          ? () => context.push(
-              AppRoutes.assignment(courseId, activity.instanceId),
-            )
-          : () => _showResource(context, activity),
     );
   }
 
@@ -276,50 +322,77 @@ class _ActivityTile extends StatelessWidget {
       context: context,
       showDragHandle: true,
       isScrollControlled: true,
-      builder: (context) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 8, 24, 28),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Icon(Icons.description_rounded, size: 40),
-              const SizedBox(height: 14),
-              Text(
-                activity.name,
-                style: Theme.of(
-                  context,
-                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
+      builder: (context) {
+        final screenHeight = MediaQuery.sizeOf(context).height;
+        return SafeArea(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxHeight: screenHeight * 0.78),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(24, 8, 24, 28),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      CircleAvatar(
+                        backgroundColor: Theme.of(
+                          context,
+                        ).colorScheme.tertiaryContainer,
+                        foregroundColor: Theme.of(
+                          context,
+                        ).colorScheme.onTertiaryContainer,
+                        child: const Icon(Icons.description_rounded),
+                      ),
+                      const Spacer(),
+                      IconButton(
+                        tooltip: 'Đóng',
+                        onPressed: () => Navigator.of(context).pop(),
+                        icon: const Icon(Icons.close_rounded),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  Text(
+                    activity.name,
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  if (activity.description case final description?) ...[
+                    const SizedBox(height: 8),
+                    Text(description),
+                  ],
+                  if (activity.fileName != null ||
+                      activity.mimeType != null ||
+                      activity.fileSize != null) ...[
+                    const SizedBox(height: 22),
+                    Text(
+                      'Thông tin tài liệu',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    if (activity.fileName case final fileName?)
+                      _ResourceMeta(label: 'Tên tệp', value: fileName),
+                    if (activity.mimeType case final mimeType?)
+                      _ResourceMeta(
+                        label: 'Định dạng',
+                        value: _friendlyFileType(mimeType),
+                      ),
+                    if (activity.fileSize case final fileSize?)
+                      _ResourceMeta(
+                        label: 'Dung lượng',
+                        value: _formatBytes(fileSize),
+                      ),
+                  ],
+                ],
               ),
-              if (activity.description case final description?) ...[
-                const SizedBox(height: 8),
-                Text(description),
-              ],
-              const SizedBox(height: 18),
-              _ResourceMeta(
-                label: 'Tệp mẫu',
-                value: activity.fileName ?? 'Không có metadata tệp',
-              ),
-              _ResourceMeta(
-                label: 'Định dạng',
-                value: activity.mimeType ?? 'Không xác định',
-              ),
-              _ResourceMeta(
-                label: 'Kích thước',
-                value: _formatBytes(activity.fileSize),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'DEV fixture chỉ hiển thị metadata synthetic; không tải tệp DLU thật.',
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  fontSize: 12,
-                ),
-              ),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
@@ -332,11 +405,12 @@ class _ResourceMeta extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 5),
+    padding: const EdgeInsets.symmetric(vertical: 6),
     child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SizedBox(
-          width: 96,
+          width: 92,
           child: Text(
             label,
             style: TextStyle(
@@ -355,11 +429,92 @@ class _ResourceMeta extends StatelessWidget {
   );
 }
 
+class _CourseDetailLoading extends StatelessWidget {
+  const _CourseDetailLoading();
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    liveRegion: true,
+    label: 'Đang tải khóa học…',
+    child: ListView(
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+      children: [
+        Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 900),
+            child: const Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _LoadingBlock(height: 190),
+                SizedBox(height: 16),
+                Text('Đang tải khóa học…'),
+                SizedBox(height: 16),
+                _LoadingBlock(height: 86),
+                SizedBox(height: 24),
+                _LoadingBlock(height: 132),
+              ],
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+class _ContentLoadingSkeleton extends StatelessWidget {
+  const _ContentLoadingSkeleton();
+
+  @override
+  Widget build(BuildContext context) => const Column(
+    children: [
+      _LoadingBlock(height: 122),
+      SizedBox(height: 12),
+      _LoadingBlock(height: 122),
+    ],
+  );
+}
+
+class _LoadingBlock extends StatelessWidget {
+  const _LoadingBlock({required this.height});
+
+  final double height;
+
+  @override
+  Widget build(BuildContext context) => DecoratedBox(
+    decoration: BoxDecoration(
+      color: Theme.of(context).colorScheme.surfaceContainerHigh,
+      borderRadius: BorderRadius.circular(20),
+    ),
+    child: SizedBox(height: height),
+  );
+}
+
+String _contentCountLabel(int count) => switch (count) {
+  0 => 'Chưa có nội dung',
+  1 => '1 nội dung',
+  _ => '$count nội dung',
+};
+
+String _friendlyFileType(String mimeType) {
+  final normalized = mimeType.toLowerCase();
+  if (normalized.contains('pdf')) return 'PDF';
+  if (normalized.contains('word') || normalized.contains('document')) {
+    return 'Tài liệu Word';
+  }
+  if (normalized.contains('presentation') ||
+      normalized.contains('powerpoint')) {
+    return 'Bài trình chiếu';
+  }
+  if (normalized.startsWith('image/')) return 'Hình ảnh';
+  if (normalized.startsWith('video/')) return 'Video';
+  if (normalized.startsWith('audio/')) return 'Âm thanh';
+  return 'Tệp tài liệu';
+}
+
 String _formatDate(DateTime value) =>
     '${value.day.toString().padLeft(2, '0')}/${value.month.toString().padLeft(2, '0')}/${value.year}';
 
-String _formatBytes(int? bytes) {
-  if (bytes == null) return 'Không xác định';
+String _formatBytes(int bytes) {
   if (bytes < 1024) return '$bytes B';
   if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
   return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';

@@ -15,7 +15,8 @@ class AppShell extends StatelessWidget {
 
   int get _selectedIndex {
     if (currentLocation.startsWith(AppRoutes.courses)) return 1;
-    if (currentLocation.startsWith(AppRoutes.profile)) return 2;
+    if (currentLocation.startsWith(AppRoutes.calendar)) return 2;
+    if (currentLocation.startsWith(AppRoutes.profile)) return 3;
     return 0;
   }
 
@@ -26,6 +27,8 @@ class AppShell extends StatelessWidget {
       case 1:
         context.go(AppRoutes.courses);
       case 2:
+        context.go(AppRoutes.calendar);
+      case 3:
         context.go(AppRoutes.profile);
     }
   }
@@ -56,7 +59,7 @@ class AppShell extends StatelessWidget {
                     NavigationRailDestination(
                       icon: Icon(Icons.space_dashboard_outlined),
                       selectedIcon: Icon(Icons.space_dashboard_rounded),
-                      label: Text('Tổng quan'),
+                      label: Text('Trang chủ'),
                     ),
                     NavigationRailDestination(
                       icon: Icon(Icons.menu_book_outlined),
@@ -64,9 +67,14 @@ class AppShell extends StatelessWidget {
                       label: Text('Khóa học'),
                     ),
                     NavigationRailDestination(
+                      icon: Icon(Icons.calendar_today_outlined),
+                      selectedIcon: Icon(Icons.calendar_month_rounded),
+                      label: Text('Lịch'),
+                    ),
+                    NavigationRailDestination(
                       icon: Icon(Icons.person_outline_rounded),
                       selectedIcon: Icon(Icons.person_rounded),
-                      label: Text('Cá nhân'),
+                      label: Text('Hồ sơ'),
                     ),
                   ],
                 ),
@@ -87,7 +95,7 @@ class AppShell extends StatelessWidget {
             NavigationDestination(
               icon: Icon(Icons.space_dashboard_outlined),
               selectedIcon: Icon(Icons.space_dashboard_rounded),
-              label: 'Tổng quan',
+              label: 'Trang chủ',
             ),
             NavigationDestination(
               icon: Icon(Icons.menu_book_outlined),
@@ -95,9 +103,14 @@ class AppShell extends StatelessWidget {
               label: 'Khóa học',
             ),
             NavigationDestination(
+              icon: Icon(Icons.calendar_today_outlined),
+              selectedIcon: Icon(Icons.calendar_month_rounded),
+              label: 'Lịch',
+            ),
+            NavigationDestination(
               icon: Icon(Icons.person_outline_rounded),
               selectedIcon: Icon(Icons.person_rounded),
-              label: 'Cá nhân',
+              label: 'Hồ sơ',
             ),
           ],
         ),

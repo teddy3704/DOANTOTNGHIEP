@@ -3,452 +3,551 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/app_routes.dart';
-import '../../../../core/config/app_config.dart';
+import '../../../../app/theme/app_tokens.dart';
 import '../../../../core/errors/failure_message.dart';
+import '../../../../core/widgets/content_skeleton.dart';
+import '../../../../core/widgets/section_header.dart';
 import '../../../assignments/domain/assignment.dart';
 import '../../../assignments/domain/assignment_repository.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../../../calendar/domain/calendar_repository.dart';
 import '../../../calendar/domain/learning_event.dart';
+import '../../../courses/domain/course.dart';
 import '../../../courses/domain/course_repository.dart';
 import '../../../courses/presentation/widgets/course_card.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
 
+  Future<void> _refresh(WidgetRef ref) async {
+    ref.invalidate(myCoursesProvider);
+    ref.invalidate(upcomingAssignmentsProvider);
+    ref.invalidate(upcomingEventsProvider);
+    await Future.wait<void>([
+      ref.read(myCoursesProvider.future).then((_) {}),
+      ref.read(upcomingAssignmentsProvider.future).then((_) {}),
+      ref.read(upcomingEventsProvider.future).then((_) {}),
+    ]);
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final config = ref.watch(appConfigProvider);
     final auth = ref.watch(authControllerProvider);
     final courses = ref.watch(myCoursesProvider);
     final assignments = ref.watch(upcomingAssignmentsProvider);
     final events = ref.watch(upcomingEventsProvider);
-    final name = auth.session?.displayName ?? 'bạn';
+    final courseById = <String, Course>{
+      for (final course in courses.asData?.value ?? const <Course>[])
+        course.id: course,
+    };
+    final displayName = auth.session?.displayName.trim();
+    final firstName = displayName == null || displayName.isEmpty
+        ? 'bạn'
+        : displayName.split(RegExp(r'\s+')).last;
 
-    return CustomScrollView(
-      slivers: [
-        SliverPadding(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-          sliver: SliverToBoxAdapter(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 1180),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Xin chào, $name',
-                          style: Theme.of(context).textTheme.headlineSmall
-                              ?.copyWith(
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: -0.6,
-                              ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Cùng tiếp tục hành trình học tập hôm nay.',
-                          style: TextStyle(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  IconButton.filledTonal(
-                    tooltip: 'Thông báo',
-                    onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                          'Thông báo sẽ được bật sau khi API Moodle được xác nhận.',
-                        ),
-                      ),
-                    ),
-                    icon: const Icon(Icons.notifications_none_rounded),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-        SliverPadding(
-          padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
-          sliver: SliverToBoxAdapter(child: _StatusHero(config: config)),
-        ),
-        if (config.enableDevFixtures)
+    return RefreshIndicator(
+      onRefresh: () => _refresh(ref),
+      child: CustomScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        slivers: [
           SliverPadding(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.lg,
+              AppSpacing.md,
+              AppSpacing.lg,
+              0,
+            ),
             sliver: SliverToBoxAdapter(
-              child: _LearningOverview(
-                assignments: assignments,
-                events: events,
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(
+                    maxWidth: AppLayout.maxContentWidth,
+                  ),
+                  child: _Greeting(firstName: firstName),
+                ),
               ),
             ),
           ),
-        SliverPadding(
-          padding: const EdgeInsets.fromLTRB(20, 28, 20, 16),
-          sliver: SliverToBoxAdapter(
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    'Khóa học gần đây',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w900,
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.lg,
+              AppSpacing.xl,
+              AppSpacing.lg,
+              0,
+            ),
+            sliver: SliverToBoxAdapter(
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(
+                    maxWidth: AppLayout.maxContentWidth,
+                  ),
+                  child: SectionHeader(
+                    title: 'Việc cần ưu tiên',
+                    subtitle: 'Theo dõi các bài tập gần hạn nộp.',
+                  ),
+                ),
+              ),
+            ),
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.lg,
+              AppSpacing.md,
+              AppSpacing.lg,
+              0,
+            ),
+            sliver: SliverToBoxAdapter(
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(
+                    maxWidth: AppLayout.maxContentWidth,
+                  ),
+                  child: _PriorityAssignments(
+                    assignments: assignments,
+                    courseById: courseById,
+                    onRetry: () => ref.invalidate(upcomingAssignmentsProvider),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.lg,
+              AppSpacing.section,
+              AppSpacing.lg,
+              AppSpacing.md,
+            ),
+            sliver: SliverToBoxAdapter(
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(
+                    maxWidth: AppLayout.maxContentWidth,
+                  ),
+                  child: SectionHeader(
+                    title: 'Khóa học hiện tại',
+                    subtitle: 'Tiếp tục từ nội dung bạn đang học.',
+                    action: TextButton(
+                      onPressed: () => context.go(AppRoutes.courses),
+                      child: const Text('Xem tất cả'),
                     ),
                   ),
                 ),
-                TextButton(
-                  onPressed: () => context.go(AppRoutes.courses),
-                  child: const Text('Xem tất cả'),
-                ),
-              ],
+              ),
             ),
           ),
-        ),
-        courses.when(
-          loading: () => const SliverToBoxAdapter(
-            child: Padding(
-              padding: EdgeInsets.all(32),
-              child: Center(child: CircularProgressIndicator()),
-            ),
-          ),
-          error: (error, _) => SliverToBoxAdapter(
-            child: _DashboardApiNotice(
-              message: userMessageFor(error),
-              onRetry: () => ref.invalidate(myCoursesProvider),
-            ),
-          ),
-          data: (items) => items.isEmpty
-              ? const SliverToBoxAdapter(
-                  child: _DashboardApiNotice(
-                    message: 'Chưa có khóa học nào được Moodle trả về.',
+          courses.when(
+            loading: () => SliverToBoxAdapter(
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(
+                    maxWidth: AppLayout.maxContentWidth,
                   ),
-                )
-              : SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
-                  sliver: SliverLayoutBuilder(
-                    builder: (context, constraints) {
-                      final columns = constraints.crossAxisExtent >= 1050
-                          ? 3
-                          : constraints.crossAxisExtent >= 680
-                          ? 2
-                          : 1;
-                      return SliverGrid.builder(
-                        itemCount: items.take(3).length,
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: columns,
-                          crossAxisSpacing: 16,
-                          mainAxisSpacing: 16,
-                          mainAxisExtent: 238,
-                        ),
-                        itemBuilder: (context, index) {
-                          final course = items[index];
-                          return CourseCard(
-                            course: course,
-                            onTap: () =>
-                                context.push(AppRoutes.course(course.id)),
-                          );
-                        },
-                      );
-                    },
+                  child: const ContentSkeleton(rows: 2, rowHeight: 164),
+                ),
+              ),
+            ),
+            error: (error, _) => SliverToBoxAdapter(
+              child: _DashboardNotice(
+                message: userMessageFor(error),
+                onRetry: () => ref.invalidate(myCoursesProvider),
+              ),
+            ),
+            data: (items) => items.isEmpty
+                ? const SliverToBoxAdapter(
+                    child: _DashboardNotice(
+                      message: 'Bạn chưa có khóa học nào trong học kỳ này.',
+                    ),
+                  )
+                : SliverPadding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.lg,
+                    ),
+                    sliver: SliverLayoutBuilder(
+                      builder: (context, constraints) {
+                        final columns = constraints.crossAxisExtent >= 1050
+                            ? 3
+                            : constraints.crossAxisExtent >= 680
+                            ? 2
+                            : 1;
+                        return SliverGrid.builder(
+                          itemCount: items.take(3).length,
+                          gridDelegate:
+                              SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: columns,
+                                crossAxisSpacing: AppSpacing.md,
+                                mainAxisSpacing: AppSpacing.md,
+                                mainAxisExtent: 220,
+                              ),
+                          itemBuilder: (context, index) {
+                            final course = items[index];
+                            return CourseCard(
+                              course: course,
+                              onTap: () =>
+                                  context.push(AppRoutes.course(course.id)),
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  ),
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.lg,
+              AppSpacing.section,
+              AppSpacing.lg,
+              AppSpacing.md,
+            ),
+            sliver: SliverToBoxAdapter(
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(
+                    maxWidth: AppLayout.maxContentWidth,
+                  ),
+                  child: SectionHeader(
+                    title: 'Lịch sắp tới',
+                    subtitle: 'Những mốc học tập trong thời gian gần nhất.',
                   ),
                 ),
-        ),
-      ],
+              ),
+            ),
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.lg,
+              0,
+              AppSpacing.lg,
+              AppSpacing.xxl,
+            ),
+            sliver: SliverToBoxAdapter(
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(
+                    maxWidth: AppLayout.maxContentWidth,
+                  ),
+                  child: _UpcomingEvents(
+                    events: events,
+                    courseById: courseById,
+                    onRetry: () => ref.invalidate(upcomingEventsProvider),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
 
-class _LearningOverview extends StatelessWidget {
-  const _LearningOverview({required this.assignments, required this.events});
+class _Greeting extends StatelessWidget {
+  const _Greeting({required this.firstName});
 
-  final AsyncValue<List<AssignmentDetail>> assignments;
-  final AsyncValue<List<LearningEvent>> events;
+  final String firstName;
 
   @override
-  Widget build(BuildContext context) => ConstrainedBox(
-    constraints: const BoxConstraints(maxWidth: 1180),
-    child: LayoutBuilder(
-      builder: (context, constraints) {
-        final children = <Widget>[
-          _OverviewCard(
-            title: 'Bài tập cần chú ý',
-            icon: Icons.assignment_outlined,
-            child: assignments.when(
-              loading: () => const _MiniLoading(),
-              error: (_, _) => const Text('Chưa thể tải bài tập.'),
-              data: (items) {
-                final visible = items
-                    .where(
-                      (item) => item.submissionState != SubmissionState.graded,
-                    )
-                    .take(3)
-                    .toList();
-                if (visible.isEmpty) {
-                  return const Text('Không có bài tập đang chờ.');
-                }
-                return Column(
-                  children: [
-                    for (final item in visible)
-                      ListTile(
-                        dense: true,
-                        contentPadding: EdgeInsets.zero,
-                        title: Text(
-                          item.name,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        subtitle: Text(
-                          '${item.timing.label} · ${item.submissionState.label}',
-                        ),
-                        trailing: const Icon(Icons.chevron_right_rounded),
-                        onTap: () => context.push(
-                          AppRoutes.assignment(item.courseId, item.id),
-                        ),
-                      ),
-                  ],
-                );
-              },
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: colors.primaryContainer,
+        borderRadius: BorderRadius.circular(AppRadius.large),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.xl),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Xin chào, $firstName',
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      color: colors.onPrimaryContainer,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(
+                    'Sẵn sàng cho một ngày học hiệu quả?',
+                    style: TextStyle(
+                      color: colors.onPrimaryContainer.withValues(alpha: 0.8),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          _OverviewCard(
-            title: 'Lịch sắp tới',
-            icon: Icons.event_outlined,
-            child: events.when(
-              loading: () => const _MiniLoading(),
-              error: (_, _) => const Text('Chưa thể tải lịch.'),
-              data: (items) {
-                final visible = items.take(3).toList();
-                if (visible.isEmpty) {
-                  return const Text('Không có sự kiện sắp tới.');
-                }
-                return Column(
-                  children: [
-                    for (final item in visible)
-                      ListTile(
-                        dense: true,
-                        contentPadding: EdgeInsets.zero,
-                        leading: CircleAvatar(
-                          radius: 18,
-                          child: Text(
-                            item.startsAt.day.toString().padLeft(2, '0'),
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w900,
-                            ),
-                          ),
-                        ),
-                        title: Text(
-                          item.name,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        subtitle: Text(_dashboardDate(item.startsAt)),
-                      ),
-                  ],
-                );
-              },
+            const SizedBox(width: AppSpacing.md),
+            Icon(
+              Icons.school_rounded,
+              size: 48,
+              color: colors.onPrimaryContainer.withValues(alpha: 0.65),
             ),
-          ),
-        ];
-        if (constraints.maxWidth >= 760) {
-          return Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(child: children[0]),
-              const SizedBox(width: 16),
-              Expanded(child: children[1]),
-            ],
-          );
-        }
-        return Column(
-          children: [children[0], const SizedBox(height: 12), children[1]],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PriorityAssignments extends StatelessWidget {
+  const _PriorityAssignments({
+    required this.assignments,
+    required this.courseById,
+    required this.onRetry,
+  });
+
+  final AsyncValue<List<AssignmentDetail>> assignments;
+  final Map<String, Course> courseById;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) => assignments.when(
+    loading: () =>
+        const ContentSkeleton(rows: 2, rowHeight: 92, padding: EdgeInsets.zero),
+    error: (error, _) =>
+        _InlineNotice(message: userMessageFor(error), onRetry: onRetry),
+    data: (items) {
+      final visible = items
+          .where((item) => item.submissionState != SubmissionState.graded)
+          .take(3)
+          .toList();
+      if (visible.isEmpty) {
+        return const _InlineNotice(
+          message: 'Bạn không có bài tập nào cần xử lý ngay.',
+          icon: Icons.task_alt_rounded,
         );
-      },
-    ),
+      }
+      return Card(
+        child: Column(
+          children: [
+            for (var index = 0; index < visible.length; index++) ...[
+              _AssignmentRow(
+                assignment: visible[index],
+                courseName: courseById[visible[index].courseId]?.shortName,
+              ),
+              if (index < visible.length - 1) const Divider(indent: 68),
+            ],
+          ],
+        ),
+      );
+    },
   );
 }
 
-class _OverviewCard extends StatelessWidget {
-  const _OverviewCard({
-    required this.title,
-    required this.icon,
-    required this.child,
+class _AssignmentRow extends StatelessWidget {
+  const _AssignmentRow({required this.assignment, this.courseName});
+
+  final AssignmentDetail assignment;
+  final String? courseName;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final isOverdue = assignment.timing == AssignmentTiming.overdue;
+    return Semantics(
+      button: true,
+      label:
+          '${assignment.name}, ${courseName ?? 'Khóa học'}, ${_deadlineLabel(assignment.dueAt)}',
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.xs,
+        ),
+        leading: CircleAvatar(
+          backgroundColor: isOverdue
+              ? colors.errorContainer
+              : colors.secondaryContainer,
+          foregroundColor: isOverdue
+              ? colors.onErrorContainer
+              : colors.onSecondaryContainer,
+          child: Icon(
+            isOverdue ? Icons.priority_high_rounded : Icons.assignment_outlined,
+          ),
+        ),
+        title: Text(
+          assignment.name,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(fontWeight: FontWeight.w700),
+        ),
+        subtitle: Text(
+          [
+            ?courseName,
+            _deadlineLabel(assignment.dueAt),
+            assignment.submissionState.label,
+          ].join(' · '),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
+        trailing: const Icon(Icons.chevron_right_rounded),
+        onTap: () => context.push(
+          AppRoutes.assignment(assignment.courseId, assignment.id),
+        ),
+      ),
+    );
+  }
+}
+
+class _UpcomingEvents extends StatelessWidget {
+  const _UpcomingEvents({
+    required this.events,
+    required this.courseById,
+    required this.onRetry,
   });
 
-  final String title;
-  final IconData icon;
-  final Widget child;
+  final AsyncValue<List<LearningEvent>> events;
+  final Map<String, Course> courseById;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) => events.when(
+    loading: () =>
+        const ContentSkeleton(rows: 2, rowHeight: 84, padding: EdgeInsets.zero),
+    error: (error, _) =>
+        _InlineNotice(message: userMessageFor(error), onRetry: onRetry),
+    data: (items) {
+      final visible = items.take(3).toList();
+      if (visible.isEmpty) {
+        return const _InlineNotice(
+          message: 'Chưa có lịch học sắp tới.',
+          icon: Icons.event_available_rounded,
+        );
+      }
+      return Card(
+        child: Column(
+          children: [
+            for (var index = 0; index < visible.length; index++) ...[
+              ListTile(
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.md,
+                  vertical: AppSpacing.xs,
+                ),
+                leading: _DateBadge(date: visible[index].startsAt),
+                title: Text(
+                  visible[index].name,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                ),
+                subtitle: Text(
+                  [
+                    ?courseById[visible[index].courseId]?.shortName,
+                    _dateTimeLabel(visible[index].startsAt),
+                  ].join(' · '),
+                ),
+              ),
+              if (index < visible.length - 1) const Divider(indent: 76),
+            ],
+          ],
+        ),
+      );
+    },
+  );
+}
+
+class _DateBadge extends StatelessWidget {
+  const _DateBadge({required this.date});
+
+  final DateTime date;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      width: 46,
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+      decoration: BoxDecoration(
+        color: colors.primaryContainer,
+        borderRadius: BorderRadius.circular(AppRadius.small),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            date.day.toString().padLeft(2, '0'),
+            style: TextStyle(
+              color: colors.onPrimaryContainer,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          Text(
+            'TH${date.month}',
+            style: TextStyle(
+              color: colors.onPrimaryContainer,
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _InlineNotice extends StatelessWidget {
+  const _InlineNotice({required this.message, this.onRetry, this.icon});
+
+  final String message;
+  final VoidCallback? onRetry;
+  final IconData? icon;
 
   @override
   Widget build(BuildContext context) => Card(
     child: Padding(
-      padding: const EdgeInsets.all(18),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      padding: const EdgeInsets.all(AppSpacing.md),
+      child: Row(
         children: [
-          Row(
-            children: [
-              Icon(icon, color: Theme.of(context).colorScheme.primary),
-              const SizedBox(width: 10),
-              Text(title, style: const TextStyle(fontWeight: FontWeight.w900)),
-            ],
-          ),
-          const SizedBox(height: 10),
-          child,
+          Icon(icon ?? Icons.info_outline_rounded),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(child: Text(message)),
+          if (onRetry != null)
+            IconButton(
+              tooltip: 'Thử lại',
+              onPressed: onRetry,
+              icon: const Icon(Icons.refresh_rounded),
+            ),
         ],
       ),
     ),
   );
 }
 
-class _MiniLoading extends StatelessWidget {
-  const _MiniLoading();
-
-  @override
-  Widget build(BuildContext context) => const Padding(
-    padding: EdgeInsets.all(14),
-    child: Center(child: CircularProgressIndicator()),
-  );
-}
-
-String _dashboardDate(DateTime value) =>
-    '${value.day.toString().padLeft(2, '0')}/${value.month.toString().padLeft(2, '0')}/${value.year}';
-
-class _StatusHero extends StatelessWidget {
-  const _StatusHero({required this.config});
-
-  final AppConfig config;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 1180),
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(24),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [colors.primary, colors.primary.withValues(alpha: 0.78)],
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: colors.primary.withValues(alpha: 0.22),
-              blurRadius: 28,
-              offset: const Offset(0, 12),
-            ),
-          ],
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: LayoutBuilder(
-            builder: (context, constraints) => Flex(
-              direction: constraints.maxWidth >= 620
-                  ? Axis.horizontal
-                  : Axis.vertical,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  flex: constraints.maxWidth >= 620 ? 1 : 0,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      DecoratedBox(
-                        decoration: BoxDecoration(
-                          color: colors.onPrimary.withValues(alpha: 0.14),
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 7,
-                          ),
-                          child: Text(
-                            config.enableDevFixtures
-                                ? 'DEV FIXTURE · KHÔNG PHẢI DỮ LIỆU DLU'
-                                : 'SẴN SÀNG KẾT NỐI MOODLE',
-                            style: TextStyle(
-                              color: colors.onPrimary,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 0.7,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 18),
-                      Text(
-                        config.enableDevFixtures
-                            ? 'Giao diện demo đã sẵn sàng.'
-                            : 'Kiến trúc đã sẵn sàng tích hợp.',
-                        style: Theme.of(context).textTheme.headlineSmall
-                            ?.copyWith(
-                              color: colors.onPrimary,
-                              fontWeight: FontWeight.w900,
-                            ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        config.enableDevFixtures
-                            ? 'Dữ liệu trên màn hình này hoàn toàn synthetic và chỉ được inject qua development entrypoint.'
-                            : 'Đang chờ DLU xác nhận cơ chế xác thực và danh sách Moodle Web Services được phép.',
-                        style: TextStyle(
-                          color: colors.onPrimary.withValues(alpha: 0.86),
-                          height: 1.5,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                if (constraints.maxWidth >= 620) const SizedBox(width: 24),
-                if (constraints.maxWidth < 620) const SizedBox(height: 24),
-                Icon(
-                  Icons.auto_stories_rounded,
-                  size: 86,
-                  color: colors.onPrimary.withValues(alpha: 0.22),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _DashboardApiNotice extends StatelessWidget {
-  const _DashboardApiNotice({required this.message, this.onRetry});
+class _DashboardNotice extends StatelessWidget {
+  const _DashboardNotice({required this.message, this.onRetry});
 
   final String message;
   final VoidCallback? onRetry;
 
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
-    child: Card(
+  Widget build(BuildContext context) => Center(
+    child: ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: AppLayout.maxContentWidth),
       child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Icon(Icons.info_outline_rounded),
-            const SizedBox(width: 12),
-            Expanded(child: Text(message)),
-            if (onRetry != null)
-              IconButton(
-                tooltip: 'Thử lại',
-                onPressed: onRetry,
-                icon: const Icon(Icons.refresh_rounded),
-              ),
-          ],
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+        child: _InlineNotice(message: message, onRetry: onRetry),
       ),
     ),
   );
 }
+
+String _deadlineLabel(DateTime dueAt) {
+  final now = DateTime.now();
+  final today = DateTime(now.year, now.month, now.day);
+  final dueDay = DateTime(dueAt.year, dueAt.month, dueAt.day);
+  final days = dueDay.difference(today).inDays;
+  if (days < -1) return 'Quá hạn ${-days} ngày';
+  if (days == -1) return 'Quá hạn 1 ngày';
+  if (days == 0) return 'Hạn hôm nay';
+  if (days == 1) return 'Hạn ngày mai';
+  if (days <= 7) return 'Còn $days ngày';
+  return 'Hạn ${_shortDate(dueAt)}';
+}
+
+String _dateTimeLabel(DateTime value) =>
+    '${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}, ${_shortDate(value)}';
+
+String _shortDate(DateTime value) =>
+    '${value.day.toString().padLeft(2, '0')}/${value.month.toString().padLeft(2, '0')}';

@@ -90,12 +90,28 @@ Map<String, Object?> _buildDataset() {
       tables[name]! as List<Map<String, Object?>>;
 
   final users = table('user');
-  const teacherDepartments = <String>[
-    'Khoa Mẫu Công nghệ',
-    'Khoa Mẫu Kinh tế',
-    'Khoa Mẫu Ngoại ngữ',
+  const teacherProfiles = <Map<String, String>>[
+    <String, String>{
+      'firstname': 'Minh Quang',
+      'lastname': 'Nguyễn',
+      'email': 'nguyen.minh.quang@example.test',
+      'department': 'Khoa Công nghệ Thông tin',
+    },
+    <String, String>{
+      'firstname': 'Thu Hà',
+      'lastname': 'Lê',
+      'email': 'le.thu.ha@example.test',
+      'department': 'Khoa Kinh tế và Quản trị Kinh doanh',
+    },
+    <String, String>{
+      'firstname': 'Quốc Bảo',
+      'lastname': 'Trần',
+      'email': 'tran.quoc.bao@example.test',
+      'department': 'Khoa Ngoại ngữ',
+    },
   ];
   for (var index = 1; index <= 3; index++) {
+    final profile = teacherProfiles[index - 1];
     users.add(<String, Object?>{
       'id': 100 + index,
       'auth': 'manual',
@@ -104,12 +120,12 @@ Map<String, Object?> _buildDataset() {
       'suspended': 0,
       'username': 'gvtest${index.toString().padLeft(3, '0')}',
       'idnumber': 'GVTEST${index.toString().padLeft(3, '0')}',
-      'firstname': 'Giảng viên Mẫu $index',
-      'lastname': 'Kiểm thử',
-      'email': 'gvtest${index.toString().padLeft(3, '0')}@example.test',
-      'institution': 'Trường Đại học Mẫu',
-      'department': teacherDepartments[index - 1],
-      'city': 'Thành phố Mẫu',
+      'firstname': profile['firstname'],
+      'lastname': profile['lastname'],
+      'email': profile['email'],
+      'institution': 'Trường Đại học Đà Lạt',
+      'department': profile['department'],
+      'city': 'Đà Lạt',
       'country': 'VN',
       'lang': 'vi',
       'timezone': 'Asia/Ho_Chi_Minh',
@@ -118,7 +134,116 @@ Map<String, Object?> _buildDataset() {
       'timemodified': referenceTime - index * day,
     });
   }
-  for (var index = 1; index <= 20; index++) {
+  const studentProfiles = <Map<String, String>>[
+    <String, String>{
+      'firstname': 'Minh Anh',
+      'lastname': 'Nguyễn',
+      'email': 'nguyen.minh.anh@example.test',
+    },
+    <String, String>{
+      'firstname': 'Gia Hân',
+      'lastname': 'Trần',
+      'email': 'tran.gia.han@example.test',
+    },
+    <String, String>{
+      'firstname': 'Hoàng Nam',
+      'lastname': 'Lê',
+      'email': 'le.hoang.nam@example.test',
+    },
+    <String, String>{
+      'firstname': 'Khánh Linh',
+      'lastname': 'Phạm',
+      'email': 'pham.khanh.linh@example.test',
+    },
+    <String, String>{
+      'firstname': 'Đức Anh',
+      'lastname': 'Võ',
+      'email': 'vo.duc.anh@example.test',
+    },
+    <String, String>{
+      'firstname': 'Thanh Trúc',
+      'lastname': 'Bùi',
+      'email': 'bui.thanh.truc@example.test',
+    },
+    <String, String>{
+      'firstname': 'Nhật Minh',
+      'lastname': 'Đặng',
+      'email': 'dang.nhat.minh@example.test',
+    },
+    <String, String>{
+      'firstname': 'Ngọc Mai',
+      'lastname': 'Hồ',
+      'email': 'ho.ngoc.mai@example.test',
+    },
+    <String, String>{
+      'firstname': 'Quang Huy',
+      'lastname': 'Đỗ',
+      'email': 'do.quang.huy@example.test',
+    },
+    <String, String>{
+      'firstname': 'Thảo Vy',
+      'lastname': 'Phan',
+      'email': 'phan.thao.vy@example.test',
+    },
+    <String, String>{
+      'firstname': 'Tuấn Kiệt',
+      'lastname': 'Vũ',
+      'email': 'vu.tuan.kiet@example.test',
+    },
+    <String, String>{
+      'firstname': 'Hải Yến',
+      'lastname': 'Nguyễn',
+      'email': 'nguyen.hai.yen@example.test',
+    },
+    <String, String>{
+      'firstname': 'Minh Khoa',
+      'lastname': 'Trương',
+      'email': 'truong.minh.khoa@example.test',
+    },
+    <String, String>{
+      'firstname': 'Bảo Ngọc',
+      'lastname': 'Lý',
+      'email': 'ly.bao.ngoc@example.test',
+    },
+    <String, String>{
+      'firstname': 'Quốc Khánh',
+      'lastname': 'Mai',
+      'email': 'mai.quoc.khanh@example.test',
+    },
+    <String, String>{
+      'firstname': 'Thùy Dương',
+      'lastname': 'Cao',
+      'email': 'cao.thuy.duong@example.test',
+    },
+    <String, String>{
+      'firstname': 'Thành Đạt',
+      'lastname': 'Dương',
+      'email': 'duong.thanh.dat@example.test',
+    },
+    <String, String>{
+      'firstname': 'Ngọc Ánh',
+      'lastname': 'Tạ',
+      'email': 'ta.ngoc.anh@example.test',
+    },
+    <String, String>{
+      'firstname': 'Anh Tú',
+      'lastname': 'Lâm',
+      'email': 'lam.anh.tu@example.test',
+    },
+    <String, String>{
+      'firstname': 'Gia Bảo',
+      'lastname': 'Huỳnh',
+      'email': 'huynh.gia.bao@example.test',
+    },
+  ];
+  const studentDepartments = <String>[
+    'Khoa Công nghệ Thông tin',
+    'Khoa Kinh tế và Quản trị Kinh doanh',
+    'Khoa Ngoại ngữ',
+    'Khoa Khoa học Xã hội',
+  ];
+  for (var index = 1; index <= studentProfiles.length; index++) {
+    final profile = studentProfiles[index - 1];
     users.add(<String, Object?>{
       'id': 1000 + index,
       'auth': 'manual',
@@ -127,12 +252,12 @@ Map<String, Object?> _buildDataset() {
       'suspended': 0,
       'username': 'svtest${index.toString().padLeft(3, '0')}',
       'idnumber': 'SVTEST${index.toString().padLeft(3, '0')}',
-      'firstname': 'Sinh viên Mẫu ${index.toString().padLeft(2, '0')}',
-      'lastname': 'Kiểm thử',
-      'email': 'svtest${index.toString().padLeft(3, '0')}@example.test',
-      'institution': 'Trường Đại học Mẫu',
-      'department': 'Lớp Dữ liệu Tổng hợp ${(index - 1) ~/ 5 + 1}',
-      'city': 'Thành phố Mẫu',
+      'firstname': profile['firstname'],
+      'lastname': profile['lastname'],
+      'email': profile['email'],
+      'institution': 'Trường Đại học Đà Lạt',
+      'department': studentDepartments[(index - 1) ~/ 5],
+      'city': 'Đà Lạt',
       'country': 'VN',
       'lang': 'vi',
       'timezone': 'Asia/Ho_Chi_Minh',
@@ -145,10 +270,10 @@ Map<String, Object?> _buildDataset() {
   final categories = <Map<String, Object?>>[
     <String, Object?>{
       'id': 11,
-      'name': 'Khối Công nghệ Mẫu',
+      'name': 'Công nghệ thông tin',
       'idnumber': 'CATTEST001',
       'description':
-          'Danh mục tổng hợp phục vụ kiểm thử, không phải dữ liệu DLU.',
+          'Các học phần nền tảng và chuyên ngành về công nghệ thông tin.',
       'sortorder': 10000,
       'coursecount': 2,
       'visible': 1,
@@ -157,10 +282,9 @@ Map<String, Object?> _buildDataset() {
     },
     <String, Object?>{
       'id': 12,
-      'name': 'Khối Kinh tế Mẫu',
+      'name': 'Kinh tế và Quản trị',
       'idnumber': 'CATTEST002',
-      'description':
-          'Danh mục tổng hợp phục vụ kiểm thử, không phải dữ liệu DLU.',
+      'description': 'Các học phần về kinh tế, quản trị và kỹ năng tổ chức.',
       'sortorder': 20000,
       'coursecount': 2,
       'visible': 1,
@@ -169,10 +293,10 @@ Map<String, Object?> _buildDataset() {
     },
     <String, Object?>{
       'id': 13,
-      'name': 'Khối Ngoại ngữ Mẫu',
+      'name': 'Ngoại ngữ',
       'idnumber': 'CATTEST003',
       'description':
-          'Danh mục tổng hợp phục vụ kiểm thử, không phải dữ liệu DLU.',
+          'Các học phần phát triển năng lực ngoại ngữ trong môi trường học thuật.',
       'sortorder': 30000,
       'coursecount': 1,
       'visible': 1,
@@ -181,10 +305,10 @@ Map<String, Object?> _buildDataset() {
     },
     <String, Object?>{
       'id': 14,
-      'name': 'Khối Kỹ năng Mẫu',
+      'name': 'Kỹ năng học thuật',
       'idnumber': 'CATTEST004',
       'description':
-          'Danh mục tổng hợp phục vụ kiểm thử, không phải dữ liệu DLU.',
+          'Các học phần hỗ trợ nghiên cứu, giao tiếp và học tập bậc đại học.',
       'sortorder': 40000,
       'coursecount': 1,
       'visible': 1,
@@ -197,33 +321,204 @@ Map<String, Object?> _buildDataset() {
   const courseBlueprints = <Map<String, Object>>[
     <String, Object>{
       'category': 11,
-      'shortname': 'DEV-MOB101',
-      'fullname': 'Phát triển ứng dụng di động — Mẫu',
+      'shortname': 'CNTT2401',
+      'fullname': 'Phát triển ứng dụng di động',
+      'summary':
+          'Xây dựng ứng dụng đa nền tảng với giao diện thích ứng, điều hướng rõ ràng và kiến trúc dễ bảo trì.',
+      'sections': <String>[
+        'Thông tin học phần',
+        'Nền tảng giao diện Flutter',
+        'Điều hướng và quản lý trạng thái',
+        'Hoàn thiện ứng dụng',
+      ],
+      'resources': <String>[
+        'Đề cương học phần',
+        'Hướng dẫn thiết lập môi trường Flutter',
+      ],
+      'assignments': <Map<String, String>>[
+        <String, String>{
+          'name': 'Thiết kế giao diện thích ứng',
+          'description':
+              'Thiết kế một màn hình học tập hoạt động tốt trên nhiều kích thước thiết bị.',
+        },
+        <String, String>{
+          'name': 'Xây dựng luồng điều hướng',
+          'description':
+              'Tổ chức các tuyến màn hình và xử lý trạng thái điều hướng cho ứng dụng.',
+        },
+        <String, String>{
+          'name': 'Hoàn thiện ứng dụng học kỳ',
+          'description':
+              'Hoàn thiện sản phẩm, kiểm tra chất lượng và trình bày các quyết định kỹ thuật chính.',
+        },
+      ],
     },
     <String, Object>{
       'category': 11,
-      'shortname': 'DEV-DAT201',
-      'fullname': 'Cơ sở dữ liệu ứng dụng — Mẫu',
+      'shortname': 'CNTT2402',
+      'fullname': 'Cơ sở dữ liệu nâng cao',
+      'summary':
+          'Vận dụng mô hình dữ liệu, chuẩn hóa, truy vấn và chỉ mục để xây dựng hệ thống dữ liệu tin cậy.',
+      'sections': <String>[
+        'Thông tin học phần',
+        'Mô hình dữ liệu quan hệ',
+        'Chuẩn hóa dữ liệu',
+        'Truy vấn và chỉ mục',
+        'Giao dịch và bảo mật',
+      ],
+      'resources': <String>['Đề cương học phần', 'Tài liệu chuẩn hóa dữ liệu'],
+      'assignments': <Map<String, String>>[
+        <String, String>{
+          'name': 'Thiết kế lược đồ quan hệ',
+          'description':
+              'Phân tích yêu cầu và xây dựng lược đồ quan hệ cho một hệ thống quản lý.',
+        },
+        <String, String>{
+          'name': 'Tối ưu truy vấn dữ liệu',
+          'description':
+              'Đánh giá kế hoạch thực thi và đề xuất chỉ mục phù hợp cho các truy vấn đã cho.',
+        },
+        <String, String>{
+          'name': 'Xây dựng báo cáo dữ liệu',
+          'description':
+              'Tổng hợp dữ liệu bằng truy vấn có cấu trúc và trình bày kết quả ngắn gọn.',
+        },
+      ],
     },
     <String, Object>{
       'category': 12,
-      'shortname': 'DEV-MGT110',
-      'fullname': 'Quản trị dự án số — Mẫu',
+      'shortname': 'QTKD2401',
+      'fullname': 'Quản lý dự án',
+      'summary':
+          'Lập kế hoạch, phân bổ nguồn lực, theo dõi tiến độ và kiểm soát rủi ro trong dự án.',
+      'sections': <String>[
+        'Thông tin học phần',
+        'Khởi tạo dự án',
+        'Phạm vi và tiến độ',
+        'Nguồn lực dự án',
+        'Quản trị rủi ro',
+        'Tổng kết dự án',
+      ],
+      'resources': <String>['Đề cương học phần', 'Khung kế hoạch dự án'],
+      'assignments': <Map<String, String>>[
+        <String, String>{
+          'name': 'Lập kế hoạch dự án',
+          'description':
+              'Xác định phạm vi, mốc công việc và nguồn lực cho một dự án theo nhóm.',
+        },
+        <String, String>{
+          'name': 'Phân tích rủi ro',
+          'description':
+              'Lập danh mục rủi ro và đề xuất biện pháp ứng phó có thứ tự ưu tiên.',
+        },
+        <String, String>{
+          'name': 'Báo cáo tổng kết dự án',
+          'description':
+              'Đánh giá kết quả, bài học kinh nghiệm và khả năng cải tiến quy trình dự án.',
+        },
+      ],
     },
     <String, Object>{
       'category': 12,
-      'shortname': 'DEV-ECO120',
-      'fullname': 'Kinh tế học nền tảng — Mẫu',
+      'shortname': 'KTE2401',
+      'fullname': 'Kinh tế vi mô',
+      'summary':
+          'Phân tích lựa chọn của người tiêu dùng, doanh nghiệp và sự vận hành của các dạng thị trường.',
+      'sections': <String>[
+        'Thông tin học phần',
+        'Cung cầu và thị trường',
+        'Hành vi người tiêu dùng',
+      ],
+      'resources': <String>['Đề cương học phần', 'Bộ câu hỏi ôn tập'],
+      'assignments': <Map<String, String>>[
+        <String, String>{
+          'name': 'Phân tích cung và cầu',
+          'description':
+              'Phân tích sự thay đổi cân bằng thị trường trong một tình huống kinh tế cụ thể.',
+        },
+        <String, String>{
+          'name': 'Bài toán hành vi người tiêu dùng',
+          'description':
+              'Vận dụng đường ngân sách và sở thích để giải thích lựa chọn tiêu dùng.',
+        },
+        <String, String>{
+          'name': 'Tiểu luận cấu trúc thị trường',
+          'description':
+              'So sánh đặc điểm và hành vi doanh nghiệp trong các cấu trúc thị trường khác nhau.',
+        },
+      ],
     },
     <String, Object>{
       'category': 13,
-      'shortname': 'DEV-ENG210',
-      'fullname': 'Tiếng Anh học thuật — Mẫu',
+      'shortname': 'NNA2401',
+      'fullname': 'Tiếng Anh học thuật',
+      'summary':
+          'Phát triển kỹ năng đọc, viết và trình bày bằng tiếng Anh trong bối cảnh học thuật.',
+      'sections': <String>[
+        'Thông tin học phần',
+        'Kỹ năng đọc học thuật',
+        'Từ vựng theo ngữ cảnh',
+        'Cấu trúc đoạn văn',
+        'Viết bài lập luận',
+        'Thuyết trình học thuật',
+        'Ôn tập cuối kỳ',
+      ],
+      'resources': <String>['Đề cương học phần', 'Hướng dẫn viết học thuật'],
+      'assignments': <Map<String, String>>[
+        <String, String>{
+          'name': 'Tóm tắt bài đọc học thuật',
+          'description':
+              'Đọc một bài viết ngắn và trình bày lại luận điểm chính bằng ngôn ngữ của người học.',
+        },
+        <String, String>{
+          'name': 'Thuyết trình theo nhóm',
+          'description':
+              'Chuẩn bị bài thuyết trình có cấu trúc rõ ràng và phân chia thời lượng hợp lý.',
+        },
+        <String, String>{
+          'name': 'Bài viết lập luận',
+          'description':
+              'Viết bài lập luận ngắn, sử dụng dẫn chứng phù hợp và trích dẫn nhất quán.',
+        },
+      ],
     },
     <String, Object>{
       'category': 14,
-      'shortname': 'DEV-SKL310',
-      'fullname': 'Kỹ năng nghiên cứu — Mẫu',
+      'shortname': 'KHNC2401',
+      'fullname': 'Phương pháp nghiên cứu khoa học',
+      'summary':
+          'Hình thành câu hỏi nghiên cứu, lựa chọn phương pháp và trình bày kết quả theo chuẩn học thuật.',
+      'sections': <String>[
+        'Thông tin học phần',
+        'Xác định vấn đề nghiên cứu',
+        'Tổng quan tài liệu',
+        'Câu hỏi và giả thuyết',
+        'Thiết kế phương pháp',
+        'Thu thập dữ liệu',
+        'Phân tích kết quả',
+        'Viết báo cáo nghiên cứu',
+      ],
+      'resources': <String>[
+        'Đề cương học phần',
+        'Hướng dẫn xây dựng đề cương nghiên cứu',
+      ],
+      'assignments': <Map<String, String>>[
+        <String, String>{
+          'name': 'Xác định vấn đề nghiên cứu',
+          'description':
+              'Trình bày bối cảnh, khoảng trống và mục tiêu của một vấn đề nghiên cứu phù hợp.',
+        },
+        <String, String>{
+          'name': 'Xây dựng đề cương nghiên cứu',
+          'description':
+              'Hoàn thiện câu hỏi, phương pháp và kế hoạch thu thập dữ liệu cho đề tài đã chọn.',
+        },
+        <String, String>{
+          'name': 'Hoàn thiện báo cáo nghiên cứu',
+          'description':
+              'Trình bày kết quả, thảo luận giới hạn và đề xuất hướng phát triển tiếp theo.',
+        },
+      ],
     },
   ];
   for (var index = 0; index < courseBlueprints.length; index++) {
@@ -235,9 +530,7 @@ Map<String, Object?> _buildDataset() {
       'fullname': blueprint['fullname'],
       'shortname': blueprint['shortname'],
       'idnumber': 'COURSETEST${(index + 1).toString().padLeft(3, '0')}',
-      'summary':
-          'Học phần dùng dữ liệu tổng hợp cho môi trường phát triển; '
-          'không phản ánh lớp học hoặc người học thật.',
+      'summary': blueprint['summary'],
       'summaryformat': 1,
       'format': 'topics',
       'startdate': referenceTime - (80 - index * 4) * day,
@@ -270,17 +563,18 @@ Map<String, Object?> _buildDataset() {
   table('role').addAll(<Map<String, Object?>>[
     <String, Object?>{
       'id': 1,
-      'name': 'Giảng viên Mẫu',
+      'name': 'Giảng viên',
       'shortname': 'editingteacher',
-      'description': 'Vai trò giảng viên trong bộ dữ liệu tổng hợp.',
+      'description':
+          'Phụ trách nội dung, hoạt động và đánh giá trong học phần.',
       'sortorder': 1,
       'archetype': 'editingteacher',
     },
     <String, Object?>{
       'id': 2,
-      'name': 'Sinh viên Mẫu',
+      'name': 'Sinh viên',
       'shortname': 'student',
-      'description': 'Vai trò sinh viên trong bộ dữ liệu tổng hợp.',
+      'description': 'Tham gia học tập và theo dõi kết quả trong học phần.',
       'sortorder': 2,
       'archetype': 'student',
     },
@@ -307,8 +601,14 @@ Map<String, Object?> _buildDataset() {
     courseIndex < courseBlueprints.length;
     courseIndex++
   ) {
+    final blueprint = courseBlueprints[courseIndex];
     final courseId = 201 + courseIndex;
-    final categoryId = courseBlueprints[courseIndex]['category']! as int;
+    final categoryId = blueprint['category']! as int;
+    final sectionNames = blueprint['sections']! as List<String>;
+    final resourceNames = blueprint['resources']! as List<String>;
+    final assignmentBlueprints =
+        blueprint['assignments']! as List<Map<String, String>>;
+    final shortName = blueprint['shortname']! as String;
     final teacherId = 101 + courseIndex % 3;
     final enrolId = 501 + courseIndex;
     final courseContextId = 6001 + courseIndex;
@@ -327,7 +627,7 @@ Map<String, Object?> _buildDataset() {
       'status': 0,
       'courseid': courseId,
       'sortorder': 0,
-      'name': 'Ghi danh thủ công — dữ liệu tổng hợp',
+      'name': 'Ghi danh theo danh sách lớp',
       'timecreated': referenceTime - 90 * day,
       'timemodified': referenceTime - day,
     });
@@ -373,12 +673,10 @@ Map<String, Object?> _buildDataset() {
         'id': sectionId++,
         'course': courseId,
         'section': sectionNumber,
-        'name': sectionNumber == 0
-            ? 'Tổng quan học phần — Mẫu'
-            : 'Chủ đề mẫu $sectionNumber',
+        'name': sectionNames[sectionNumber],
         'summary': sectionNumber == 0
-            ? 'Thông tin tổng hợp dành riêng cho kiểm thử giao diện.'
-            : 'Nội dung tổng hợp của chủ đề $sectionNumber.',
+            ? 'Mục tiêu, kế hoạch học tập và các yêu cầu chính của học phần.'
+            : 'Kiến thức trọng tâm và hoạt động học tập về ${sectionNames[sectionNumber].toLowerCase()}.',
         'summaryformat': 1,
         'sequence': '',
         'visible': 1,
@@ -403,9 +701,10 @@ Map<String, Object?> _buildDataset() {
       table('resource').add(<String, Object?>{
         'id': currentResourceId,
         'course': courseId,
-        'name': 'Tài liệu mẫu ${resourceIndex + 1}',
-        'intro':
-            'Tệp mô phỏng để kiểm thử metadata tài nguyên; không chứa tài liệu thật.',
+        'name': resourceNames[resourceIndex],
+        'intro': resourceIndex == 0
+            ? 'Thông tin về mục tiêu, nội dung, cách đánh giá và kế hoạch học tập của học phần.'
+            : 'Tài liệu hướng dẫn hỗ trợ người học chuẩn bị cho các hoạt động trong học phần.',
         'introformat': 1,
         'display': 0,
         'displayoptions': null,
@@ -445,7 +744,9 @@ Map<String, Object?> _buildDataset() {
         'filearea': 'content',
         'itemid': currentResourceId,
         'filepath': '/',
-        'filename': 'tai_lieu_mau_${courseIndex + 1}_${resourceIndex + 1}.pdf',
+        'filename': resourceIndex == 0
+            ? 'de_cuong_${shortName.toLowerCase()}.pdf'
+            : 'huong_dan_${shortName.toLowerCase()}.pdf',
         'userid': teacherId,
         'filesize': 240000 + courseIndex * 10000 + resourceIndex * 2500,
         'mimetype': 'application/pdf',
@@ -476,6 +777,8 @@ Map<String, Object?> _buildDataset() {
     }
 
     for (var assignmentIndex = 0; assignmentIndex < 3; assignmentIndex++) {
+      final assignmentBlueprint = assignmentBlueprints[assignmentIndex];
+      final assignmentName = assignmentBlueprint['name']!;
       final currentAssignmentId = assignmentId++;
       final currentCourseModuleId = courseModuleId++;
       final sectionIndex = <int>[
@@ -496,9 +799,8 @@ Map<String, Object?> _buildDataset() {
       table('assign').add(<String, Object?>{
         'id': currentAssignmentId,
         'course': courseId,
-        'name': 'Bài tập mẫu ${assignmentIndex + 1}',
-        'intro':
-            'Yêu cầu tổng hợp phục vụ kiểm thử trạng thái nộp và chấm điểm.',
+        'name': assignmentName,
+        'intro': assignmentBlueprint['description'],
         'introformat': 1,
         'alwaysshowdescription': 1,
         'submissiondrafts': 1,
@@ -537,7 +839,7 @@ Map<String, Object?> _buildDataset() {
       table('grade_items').add(<String, Object?>{
         'id': currentGradeItemId,
         'courseid': courseId,
-        'itemname': 'Bài tập mẫu ${assignmentIndex + 1}',
+        'itemname': assignmentName,
         'itemtype': 'mod',
         'itemmodule': 'assign',
         'iteminstance': currentAssignmentId,
@@ -556,8 +858,8 @@ Map<String, Object?> _buildDataset() {
       });
       table('event').add(<String, Object?>{
         'id': eventId++,
-        'name': 'Hạn Bài tập mẫu ${assignmentIndex + 1}',
-        'description': 'Sự kiện tổng hợp phục vụ kiểm thử lịch học.',
+        'name': 'Hạn nộp: $assignmentName',
+        'description': 'Thời hạn hoàn thành và nộp bài trên hệ thống.',
         'format': 1,
         'categoryid': categoryId,
         'courseid': courseId,
@@ -655,9 +957,7 @@ Map<String, Object?> _buildDataset() {
           'finalgrade': score,
           'hidden': 0,
           'locked': 0,
-          'feedback': score == null
-              ? null
-              : 'Phản hồi tổng hợp dành cho dữ liệu kiểm thử.',
+          'feedback': score == null ? null : _feedbackForScore(score),
           'feedbackformat': 1,
           'timecreated': score == null ? null : dueDate + day,
           'timemodified': score == null ? null : dueDate + day,
@@ -681,6 +981,16 @@ Map<String, Object?> _buildDataset() {
     },
     'tables': tables,
   };
+}
+
+String _feedbackForScore(double score) {
+  if (score < 50) {
+    return 'Bài làm đã nêu được ý chính. Cần bổ sung dẫn chứng và trình bày rõ phương pháp.';
+  }
+  if (score < 85) {
+    return 'Bài làm đáp ứng yêu cầu. Nên làm rõ phần phân tích và chuẩn hóa cách trình bày.';
+  }
+  return 'Bài làm có cấu trúc tốt, lập luận rõ ràng và vận dụng kiến thức phù hợp.';
 }
 
 String _toSql(Map<String, Object?> dataset) {

@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/errors/failure_message.dart';
+import '../../../../core/widgets/empty_state.dart';
 import '../../../../core/widgets/error_state.dart';
-import '../../../../core/widgets/loading_state.dart';
 import '../../domain/assignment.dart';
 import '../../domain/assignment_repository.dart';
 
@@ -23,12 +23,18 @@ class AssignmentScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Bài tập')),
       body: assignment.when(
-        loading: () => const LoadingState(label: 'Đang tải bài tập…'),
+        loading: () => const _AssignmentLoading(),
         error: (error, _) => ErrorState(
           message: userMessageFor(error),
           onRetry: () => ref.invalidate(assignmentDetailProvider(assignmentId)),
         ),
-        data: (item) => _AssignmentContent(assignment: item),
+        data: (item) => item.courseId == courseId
+            ? _AssignmentContent(assignment: item)
+            : const EmptyState(
+                title: 'Không thể mở bài tập',
+                message: 'Bài tập này không thuộc khóa học hiện tại.',
+                icon: Icons.assignment_late_outlined,
+              ),
       ),
     );
   }
@@ -82,24 +88,81 @@ class _AssignmentContent extends StatelessWidget {
                               ?.copyWith(
                                 color: colors.onPrimaryContainer,
                                 fontWeight: FontWeight.w900,
+                                height: 1.25,
                               ),
                         ),
                         const SizedBox(height: 10),
                         Text(
                           assignment.description,
-                          style: TextStyle(color: colors.onPrimaryContainer),
+                          style: TextStyle(
+                            color: colors.onPrimaryContainer,
+                            height: 1.45,
+                          ),
+                        ),
+                        const SizedBox(height: 18),
+                        Semantics(
+                          label: 'Hạn nộp ${_formatDateTime(assignment.dueAt)}',
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              color: colors.onPrimaryContainer.withValues(
+                                alpha: 0.08,
+                              ),
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(14),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.event_available_rounded,
+                                    color: colors.onPrimaryContainer,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Hạn nộp',
+                                          style: TextStyle(
+                                            color: colors.onPrimaryContainer,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          _formatDateTime(assignment.dueAt),
+                                          style: TextStyle(
+                                            color: colors.onPrimaryContainer,
+                                            fontWeight: FontWeight.w900,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
                         ),
                       ],
                     ),
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 20),
+                Text(
+                  'Mốc thời gian',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 10),
                 Card(
                   child: Column(
                     children: [
                       _InfoTile(
                         icon: Icons.play_circle_outline_rounded,
-                        label: 'Mở nộp bài',
+                        label: 'Bắt đầu nhận bài',
                         value: _formatDateTime(
                           assignment.allowsSubmissionsFrom,
                         ),
@@ -113,41 +176,29 @@ class _AssignmentContent extends StatelessWidget {
                       const Divider(height: 1),
                       _InfoTile(
                         icon: Icons.lock_clock_outlined,
-                        label: 'Đóng nhận bài',
+                        label: 'Kết thúc nhận bài',
                         value: _formatDateTime(assignment.cutoffAt),
                       ),
                       if (assignment.submittedAt case final submittedAt?) ...[
                         const Divider(height: 1),
                         _InfoTile(
                           icon: Icons.cloud_done_outlined,
-                          label: 'Nộp gần nhất',
+                          label: 'Đã nộp lúc',
                           value: _formatDateTime(submittedAt),
                         ),
                       ],
                     ],
                   ),
                 ),
-                const SizedBox(height: 16),
-                _GradeCard(assignment: assignment),
-                const SizedBox(height: 16),
-                Card(
-                  color: colors.surfaceContainerHighest,
-                  child: const Padding(
-                    padding: EdgeInsets.all(18),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Icon(Icons.science_outlined),
-                        SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            'Màn hình này chỉ đọc canonical SYNTHETIC DATA. Nộp bài là chức năng write và chỉ được bật qua Moodle API/capability đã xác nhận.',
-                          ),
-                        ),
-                      ],
-                    ),
+                const SizedBox(height: 20),
+                Text(
+                  'Kết quả',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w900,
                   ),
                 ),
+                const SizedBox(height: 10),
+                _GradeCard(assignment: assignment),
               ],
             ),
           ),
@@ -182,10 +233,33 @@ class _InfoTile extends StatelessWidget {
   final String value;
 
   @override
-  Widget build(BuildContext context) => ListTile(
-    leading: Icon(icon),
-    title: Text(label),
-    trailing: Text(value, style: const TextStyle(fontWeight: FontWeight.w800)),
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(top: 2),
+          child: Icon(icon, size: 22),
+        ),
+        const SizedBox(width: 14),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 3),
+              Text(value, style: const TextStyle(fontWeight: FontWeight.w800)),
+            ],
+          ),
+        ),
+      ],
+    ),
   );
 }
 
@@ -214,19 +288,18 @@ class _GradeCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Kết quả',
-                    style: TextStyle(fontWeight: FontWeight.w900),
+                  Text(
+                    grade == null ? 'Chưa có điểm' : 'Điểm đã công bố',
+                    style: const TextStyle(fontWeight: FontWeight.w900),
                   ),
                   const SizedBox(height: 5),
-                  Text(
-                    grade == null
-                        ? 'Chưa có điểm'
-                        : '${_formatNumber(grade)} / ${_formatNumber(maximum ?? 100)}',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w900,
+                  if (grade != null)
+                    Text(
+                      '${_formatNumber(grade)} / ${_formatNumber(maximum ?? 100)}',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w900,
+                      ),
                     ),
-                  ),
                   if (assignment.feedback case final feedback?) ...[
                     const SizedBox(height: 8),
                     Text(feedback),
@@ -241,8 +314,58 @@ class _GradeCard extends StatelessWidget {
   }
 }
 
+class _AssignmentLoading extends StatelessWidget {
+  const _AssignmentLoading();
+
+  @override
+  Widget build(BuildContext context) {
+    final skeletonColor = Theme.of(context).colorScheme.surfaceContainerHigh;
+    return Semantics(
+      liveRegion: true,
+      label: 'Đang tải bài tập…',
+      child: ListView(
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+        children: [
+          Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 820),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Container(
+                    height: 260,
+                    decoration: BoxDecoration(
+                      color: skeletonColor,
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Đang tải bài tập…',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    height: 210,
+                    decoration: BoxDecoration(
+                      color: skeletonColor,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 String _formatDateTime(DateTime value) =>
-    '${value.day.toString().padLeft(2, '0')}/${value.month.toString().padLeft(2, '0')}/${value.year} · ${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}';
+    '${value.day.toString().padLeft(2, '0')}/${value.month.toString().padLeft(2, '0')}/${value.year} lúc ${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}';
 
 String _formatNumber(double value) => value == value.roundToDouble()
     ? value.toStringAsFixed(0)

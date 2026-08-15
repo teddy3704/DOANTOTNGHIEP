@@ -1,8 +1,31 @@
 # Test Plan
 
-**Status:** Schema/synthetic Student DEV milestone executable; live API contract tests blocked externally.
+**Status:** Production-polished synthetic Student DEV milestone executable; live API contract tests blocked externally.
 
-**Current executable test result:** `PASS — validator, analyze 0 issues, 32 tests, production/DEV debug APK builds, Android 15 production + expanded Student DEV emulator smoke`.
+**Current executable test result:** `PASS — validator, dart format 66 files/0 changed, analyze 0 issues, 50 tests, production/DEV debug APK builds and Android 15 product-polish walkthrough`.
+
+## Product UI polish gate — 2026-08-16
+
+1. Automated demo flow bao phủ Login → Trang chủ → Khóa học → Course Detail → Assignment → Grades → Lịch → Hồ sơ và kiểm tra logout.
+2. App shell test khóa đúng bốn destination `Trang chủ`/`Khóa học`/`Lịch`/`Hồ sơ` cùng hành vi phone/large layout.
+3. Dashboard, Courses, Course Detail, Assignment, Grades, Calendar và Profile có widget tests cho các state quan trọng; retry được test ở màn hình có data request.
+4. Presentation-copy regression quét widget tree để ngăn các từ kỹ thuật hoặc nhãn phát triển bị render; production Login tiếp tục không có credential fields và không lộ raw blocker code.
+5. Fixture repository tests từ chối Course Detail/Assignment/Grades không thuộc enrolment và khóa cách tính progress theo visible modules.
+6. Calendar test khóa thứ tự/group ngày và friendly event labels; Course Detail test khóa nullable deadline và resource sheet behavior; Profile test khóa theme setting/logout và identity tối thiểu.
+7. Emulator evidence gồm 8 ảnh tại `docs/screenshots/production-polish/`, theo thứ tự `01-login.png` đến `08-profile.png`.
+
+Kết quả đã chạy cho code product-polish:
+
+| Check | Result |
+|---|---|
+| `dart format .` | PASS — 66 files, 0 changed |
+| `flutter analyze` | PASS — 0 issues |
+| `flutter test` | PASS — 50/50 |
+| DEV + production-entrypoint debug APK | PASS — both built on D |
+| Android 15/API 35 direct walkthrough | PASS — full student presentation flow |
+| Production APK fail-closed smoke | PASS — 0 credential fields, 0 technical/dev copy match |
+
+Default tests vẫn chạy offline, không gọi DLU, không dùng account/token thật và không coi synthetic fixture là live integration.
 
 ## Moodle subset and canonical fixture gate — 2026-08-15
 
@@ -74,7 +97,7 @@ Mỗi critical screen phải kiểm thử:
 | Retry | Retry đúng request; tránh duplicate WRITE |
 | Success | Data formatting, navigation và capability-aware actions đúng |
 
-Critical flow backlog: Splash, Login, Dashboard, Courses, Course Detail, Assignment Detail, Grades, Calendar, Profile và teacher-only screens khi được triển khai.
+Critical student presentation flow hiện đã được tự động hóa: Splash, Login, Dashboard, Courses, Course Detail, Assignment Detail, Grades, Calendar và Profile. Teacher-only screens vẫn là backlog và chỉ được test sau capability/environment approval.
 
 ## 5. API contract verification
 

@@ -3,6 +3,7 @@ abstract final class AppRoutes {
   static const login = '/login';
   static const dashboard = '/dashboard';
   static const courses = '/courses';
+  static const calendar = '/calendar';
   static const courseDetail = '/courses/:courseId';
   static const assignmentDetail =
       '/courses/:courseId/assignments/:assignmentId';

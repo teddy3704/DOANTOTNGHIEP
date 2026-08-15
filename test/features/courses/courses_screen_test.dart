@@ -4,6 +4,7 @@ import 'package:dlu_lms_mobile/core/errors/app_failure.dart';
 import 'package:dlu_lms_mobile/features/courses/domain/course.dart';
 import 'package:dlu_lms_mobile/features/courses/domain/course_repository.dart';
 import 'package:dlu_lms_mobile/features/courses/presentation/screens/courses_screen.dart';
+import 'package:dlu_lms_mobile/features/courses/presentation/widgets/course_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -42,6 +43,76 @@ void main() {
     expect(repository.requestCount, 2);
     expect(find.text('Chưa có khóa học'), findsOneWidget);
   });
+
+  testWidgets('courses screen filters by course name and code', (tester) async {
+    const courses = <Course>[
+      Course(
+        id: 'course-1',
+        shortName: 'MOB301',
+        fullName: 'Phát triển ứng dụng di động',
+        category: 'Công nghệ thông tin',
+        accentIndex: 0,
+        progress: 0.65,
+      ),
+      Course(
+        id: 'course-2',
+        shortName: 'WEB204',
+        fullName: 'Thiết kế trải nghiệm web',
+        category: 'Công nghệ thông tin',
+        accentIndex: 1,
+        progress: 0.4,
+      ),
+    ];
+
+    await tester.pumpWidget(
+      _coursesApp(const _MemoryCourseRepository(courses)),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byType(CourseCard), findsNWidgets(2));
+    expect(find.text('Tiến độ 65%'), findsOneWidget);
+
+    await tester.enterText(find.byType(TextField), 'web204');
+    await tester.pumpAndSettle();
+
+    expect(find.text('Thiết kế trải nghiệm web'), findsOneWidget);
+    expect(find.text('Phát triển ứng dụng di động'), findsNothing);
+
+    await tester.enterText(find.byType(TextField), 'không tồn tại');
+    await tester.pumpAndSettle();
+
+    expect(find.text('Không tìm thấy khóa học'), findsOneWidget);
+    expect(find.text('Thử một tên hoặc mã khóa học khác.'), findsOneWidget);
+  });
+
+  testWidgets('course cards remain layout-safe on a compact phone', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(320, 568);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      _coursesApp(
+        const _MemoryCourseRepository(<Course>[
+          Course(
+            id: 'course-compact',
+            shortName: 'MOB301',
+            fullName: 'Phát triển ứng dụng di động đa nền tảng',
+            category: 'Khoa Công nghệ thông tin',
+            accentIndex: 2,
+            progress: 0.82,
+            nextActivity: 'Bài tập thiết kế giao diện · 20/09',
+          ),
+        ]),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byType(CourseCard), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 }
 
 Widget _coursesApp(CourseRepository repository) => ProviderScope(
@@ -75,4 +146,17 @@ class _RetryCourseRepository implements CourseRepository {
 
   @override
   Future<Course> getCourse(String courseId) => throw UnimplementedError();
+}
+
+class _MemoryCourseRepository implements CourseRepository {
+  const _MemoryCourseRepository(this.courses);
+
+  final List<Course> courses;
+
+  @override
+  Future<Course> getCourse(String courseId) async =>
+      courses.firstWhere((course) => course.id == courseId);
+
+  @override
+  Future<List<Course>> getMyCourses() async => courses;
 }

@@ -409,6 +409,7 @@ class _FixtureValidator {
     _validateDeclaredReferences();
     _validateUniqueKeys();
     _validateDatasetCardinality();
+    _validateDisplayCopy();
     _validateLocalConventions();
     _validateLearningStateCoverage(metadataValue);
   }
@@ -576,6 +577,53 @@ class _FixtureValidator {
         error(
           'course.$courseId needs both resource and assignment activities.',
         );
+      }
+    }
+  }
+
+  void _validateDisplayCopy() {
+    const displayColumns = <String, List<String>>{
+      'user': <String>[
+        'firstname',
+        'lastname',
+        'institution',
+        'department',
+        'city',
+      ],
+      'course_categories': <String>['name', 'description'],
+      'course': <String>['shortname', 'fullname', 'summary'],
+      'enrol': <String>['name'],
+      'course_sections': <String>['name', 'summary'],
+      'resource': <String>['name', 'intro'],
+      'assign': <String>['name', 'intro'],
+      'grade_items': <String>['itemname'],
+      'grade_grades': <String>['feedback'],
+      'files': <String>['filename'],
+      'role': <String>['name', 'description'],
+      'event': <String>['name', 'description', 'location'],
+    };
+    final technicalMarker = RegExp(
+      r'(^|[^a-z])(dev|fixture|mock|synthetic|debug|demo)([^a-z]|$)',
+      caseSensitive: false,
+    );
+
+    for (final tableEntry in displayColumns.entries) {
+      for (final row in tables[tableEntry.key]!) {
+        for (final column in tableEntry.value) {
+          final value = row[column];
+          if (value is! String) {
+            continue;
+          }
+          final normalized = value.toLowerCase();
+          if (technicalMarker.hasMatch(value) ||
+              normalized.contains('mẫu') ||
+              normalized.contains('kiểm thử')) {
+            error(
+              '${tableEntry.key}.${row['id']}.$column contains '
+              'presentation-facing technical copy: "$value".',
+            );
+          }
+        }
       }
     }
   }

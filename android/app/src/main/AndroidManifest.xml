@@ -6,6 +6,7 @@
         android:fullBackupContent="false"
         android:label="DLU LMS Mobile"
         android:name="${applicationName}"
+        android:enableOnBackInvokedCallback="true"
         android:icon="@mipmap/ic_launcher"
         android:usesCleartextTraffic="false">
         <activity

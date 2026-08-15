@@ -106,12 +106,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                                 .textTheme
                                                 .headlineSmall
                                                 ?.copyWith(
-                                                  fontWeight: FontWeight.w900,
+                                                  fontWeight: FontWeight.w800,
                                                 ),
                                           ),
                                           const SizedBox(height: 8),
                                           Text(
-                                            'Sử dụng tài khoản theo cơ chế được DLU LMS cho phép.',
+                                            'Sử dụng tài khoản học tập của bạn để tiếp tục.',
                                             style: TextStyle(
                                               color: colors.onSurfaceVariant,
                                               height: 1.45,
@@ -217,23 +217,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                               const SizedBox(width: 8),
                                               Expanded(
                                                 child: Text(
-                                                  'Ứng dụng không lưu mật khẩu Moodle.',
+                                                  'Ứng dụng không lưu mật khẩu của bạn.',
                                                   style: Theme.of(
                                                     context,
                                                   ).textTheme.bodySmall,
                                                 ),
                                               ),
                                             ],
-                                          ),
-                                          const SizedBox(height: 14),
-                                          Text(
-                                            'DEV FIXTURE: nhập giá trị bất kỳ để xem giao diện demo.',
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .labelMedium
-                                                ?.copyWith(
-                                                  color: colors.tertiary,
-                                                ),
                                           ),
                                         ],
                                       ),
@@ -275,13 +265,13 @@ class _WelcomePanel extends StatelessWidget {
           textAlign: isWide ? TextAlign.left : TextAlign.center,
           style: Theme.of(context).textTheme.displaySmall?.copyWith(
             height: 1.12,
-            fontWeight: FontWeight.w900,
+            fontWeight: FontWeight.w800,
             letterSpacing: -1.4,
           ),
         ),
         const SizedBox(height: 18),
         Text(
-          'Theo dõi khóa học, nội dung và tiến độ học tập trong một trải nghiệm nhất quán với nền tảng LMS.',
+          'Theo dõi khóa học, bài tập và tiến độ trong một không gian học tập thống nhất.',
           textAlign: isWide ? TextAlign.left : TextAlign.center,
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(height: 1.55),
         ),
@@ -310,7 +300,7 @@ class _AuthenticationBlocker extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.all(14),
               child: Icon(
-                Icons.admin_panel_settings_outlined,
+                Icons.schedule_rounded,
                 color: colors.onSecondaryContainer,
                 size: 30,
               ),
@@ -319,62 +309,18 @@ class _AuthenticationBlocker extends StatelessWidget {
         ),
         const SizedBox(height: 22),
         Text(
-          'Đăng nhập ứng dụng chưa được bật',
+          'Dịch vụ đăng nhập đang được chuẩn bị',
           style: Theme.of(
             context,
-          ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900),
+          ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
         ),
         const SizedBox(height: 10),
         Text(
-          'DLU chưa bật Web Services và chưa xác nhận phương thức xác thực '
-          'dành cho ứng dụng di động. '
-          'Để bảo vệ tài khoản, phiên bản production không yêu cầu hoặc thu '
-          'thập tên đăng nhập và mật khẩu Moodle.',
+          'Bạn chưa thể đăng nhập vào lúc này. Chúng tôi đang hoàn thiện kết nối '
+          'an toàn cho ứng dụng; vui lòng quay lại sau.',
           style: TextStyle(color: colors.onSurfaceVariant, height: 1.5),
         ),
         const SizedBox(height: 20),
-        DecoratedBox(
-          decoration: BoxDecoration(
-            color: colors.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: colors.outlineVariant),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(14),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Trạng thái tích hợp',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w800),
-                ),
-                const SizedBox(height: 6),
-                const FittedBox(
-                  fit: BoxFit.scaleDown,
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    'AUTHENTICATION_METHOD_UNCONFIRMED',
-                    maxLines: 1,
-                    style: TextStyle(fontFamily: 'monospace'),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                const FittedBox(
-                  fit: BoxFit.scaleDown,
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    'MOODLE_WEB_SERVICES_NOT_ENABLED',
-                    maxLines: 1,
-                    style: TextStyle(fontFamily: 'monospace'),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: 18),
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -382,8 +328,7 @@ class _AuthenticationBlocker extends StatelessWidget {
             const SizedBox(width: 10),
             const Expanded(
               child: Text(
-                'Tiếp tục sử dụng cổng LMS chính thức trong khi DLU xác nhận '
-                'luồng đăng nhập an toàn cho ứng dụng.',
+                'Trong thời gian này, bạn vẫn có thể học tập trên cổng DLU LMS chính thức.',
                 style: TextStyle(height: 1.45),
               ),
             ),

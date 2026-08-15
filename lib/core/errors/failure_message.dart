@@ -1,17 +1,17 @@
 import 'app_failure.dart';
 
 String userMessageFor(Object error) => switch (error) {
-  AuthenticationFailure() => error.message,
-  PermissionFailure() =>
-    'Bạn chưa được Moodle cấp quyền thực hiện thao tác này.',
+  AuthenticationFailure() =>
+    'Không thể đăng nhập. Vui lòng kiểm tra thông tin và thử lại.',
+  PermissionFailure() => 'Bạn không có quyền thực hiện thao tác này.',
   TimeoutFailure() =>
     'Kết nối mất quá nhiều thời gian. Vui lòng kiểm tra mạng và thử lại.',
-  NetworkFailure() =>
-    'Không thể kết nối tới hệ thống LMS. Vui lòng kiểm tra mạng.',
-  ConfigurationFailure() => error.message,
-  ServerFailure() => 'Hệ thống LMS đang gặp sự cố. Vui lòng thử lại sau.',
+  NetworkFailure() => 'Không thể kết nối. Vui lòng kiểm tra mạng và thử lại.',
+  ConfigurationFailure() =>
+    'Dịch vụ này hiện chưa sẵn sàng. Vui lòng thử lại sau.',
+  ServerFailure() => 'Dịch vụ đang gặp sự cố. Vui lòng thử lại sau.',
   ParsingFailure() =>
-    'Ứng dụng chưa thể đọc phản hồi từ LMS. Vui lòng báo cho nhóm phát triển.',
-  MoodleApiFailure() => error.message,
+    'Dữ liệu tạm thời chưa thể hiển thị. Vui lòng thử lại sau.',
+  MoodleApiFailure() => 'Yêu cầu chưa thể hoàn tất. Vui lòng thử lại sau.',
   _ => 'Đã xảy ra lỗi không mong muốn. Vui lòng thử lại.',
 };

@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../features/auth/presentation/controllers/auth_controller.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/assignments/presentation/screens/assignment_screen.dart';
+import '../../features/calendar/presentation/screens/calendar_screen.dart';
 import '../../features/courses/presentation/screens/course_detail_screen.dart';
 import '../../features/courses/presentation/screens/courses_screen.dart';
 import '../../features/dashboard/presentation/screens/dashboard_screen.dart';
@@ -73,6 +74,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: AppRoutes.courses,
             pageBuilder: (context, state) =>
                 const NoTransitionPage(child: CoursesScreen()),
+          ),
+          GoRoute(
+            path: AppRoutes.calendar,
+            pageBuilder: (context, state) =>
+                const NoTransitionPage(child: CalendarScreen()),
           ),
           GoRoute(
             path: AppRoutes.profile,

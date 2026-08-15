@@ -24,6 +24,9 @@ currently checks:
   low-grade, medium-grade, and high-grade coverage;
 - `example.test` email domains, `GVTEST`/`SVTEST` identifiers, and absence of
   credential-bearing JSON keys;
+- natural presentation copy for identities, courses, sections, resources,
+  assignments, feedback and events, with development markers rejected from
+  display-facing columns;
 - 40-character lowercase hexadecimal file hashes and metadata-only resource
   file relationships.
 
@@ -77,8 +80,8 @@ generated outputs must remain byte-for-byte identical. The checked hashes are
 recorded below after the final verification run:
 
 ```text
-dlu_lms_fixture.json: 29DF789B51C16D311F4622C74BF2488482E2F11665BA29FDA312C5BBA3E7104C
-seed.sql:             09C6E1680DF8AA4279CB5C375A119FD005CE399A040DA253733D513D66404DA1
+dlu_lms_fixture.json: 4F6FF5992E45B6ACAEE1C28180F0D50166D62CA3B419BD29E0188416EC673C37
+seed.sql:             5A3EFA1500F2B626A1BEAFB96D6FC172D941DF6D7FE63FAD8080DE7CBD022DC5
 ```
 
 ## MySQL execution scope

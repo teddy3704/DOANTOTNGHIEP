@@ -6,7 +6,6 @@ import '../../../../app/router/app_routes.dart';
 import '../../../../core/errors/failure_message.dart';
 import '../../../../core/widgets/empty_state.dart';
 import '../../../../core/widgets/error_state.dart';
-import '../../../../core/widgets/loading_state.dart';
 import '../../domain/course.dart';
 import '../../domain/course_repository.dart';
 import '../widgets/course_card.dart';
@@ -50,15 +49,16 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen> {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    'Truy cập nhanh nội dung và hoạt động học tập.',
+                    'Theo dõi tiến độ và tiếp tục môn học đang tham gia.',
                     style: TextStyle(
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ),
-                  const SizedBox(height: 22),
+                  const SizedBox(height: 18),
                   TextField(
                     controller: _searchController,
                     onChanged: (value) => setState(() => _query = value),
+                    textInputAction: TextInputAction.search,
                     decoration: InputDecoration(
                       hintText: 'Tìm theo tên hoặc mã khóa học',
                       prefixIcon: const Icon(Icons.search_rounded),
@@ -80,9 +80,9 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen> {
           ),
         ),
         courses.when(
-          loading: () => const SliverFillRemaining(
-            hasScrollBody: false,
-            child: LoadingState(label: 'Đang tải khóa học…'),
+          loading: () => const SliverPadding(
+            padding: EdgeInsets.fromLTRB(20, 4, 20, 28),
+            sliver: _CourseLoadingSkeleton(),
           ),
           error: (error, _) => SliverFillRemaining(
             hasScrollBody: false,
@@ -101,7 +101,7 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen> {
                       ? 'Chưa có khóa học'
                       : 'Không tìm thấy khóa học',
                   message: _query.trim().isEmpty
-                      ? 'Các khóa học được Moodle cho phép sẽ xuất hiện tại đây.'
+                      ? 'Khóa học bạn được ghi danh sẽ xuất hiện tại đây.'
                       : 'Thử một tên hoặc mã khóa học khác.',
                   icon: Icons.menu_book_outlined,
                 ),
@@ -122,7 +122,7 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen> {
                       crossAxisCount: columns,
                       crossAxisSpacing: 16,
                       mainAxisSpacing: 16,
-                      mainAxisExtent: 238,
+                      mainAxisExtent: 218,
                     ),
                     itemBuilder: (context, index) {
                       final course = filtered[index];
@@ -148,8 +148,70 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen> {
         .where(
           (course) =>
               course.fullName.toLowerCase().contains(normalized) ||
-              course.shortName.toLowerCase().contains(normalized),
+              course.shortName.toLowerCase().contains(normalized) ||
+              course.category.toLowerCase().contains(normalized),
         )
         .toList(growable: false);
   }
+}
+
+class _CourseLoadingSkeleton extends StatelessWidget {
+  const _CourseLoadingSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return SliverList.builder(
+      itemCount: 3,
+      itemBuilder: (context, index) => Semantics(
+        liveRegion: index == 0,
+        label: index == 0 ? 'Đang tải khóa học…' : null,
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Card(
+            child: Padding(
+              padding: const EdgeInsets.all(18),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (index == 0) ...[
+                    Text(
+                      'Đang tải khóa học…',
+                      style: TextStyle(color: colors.onSurfaceVariant),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                  _SkeletonLine(width: 84, color: colors.surfaceContainerHigh),
+                  const SizedBox(height: 14),
+                  _SkeletonLine(
+                    width: double.infinity,
+                    color: colors.surfaceContainerHigh,
+                  ),
+                  const SizedBox(height: 9),
+                  _SkeletonLine(width: 180, color: colors.surfaceContainerHigh),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SkeletonLine extends StatelessWidget {
+  const _SkeletonLine({required this.width, required this.color});
+
+  final double width;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    width: width,
+    height: 12,
+    decoration: BoxDecoration(
+      color: color,
+      borderRadius: BorderRadius.circular(8),
+    ),
+  );
 }

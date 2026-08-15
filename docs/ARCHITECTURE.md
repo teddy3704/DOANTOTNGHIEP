@@ -4,7 +4,7 @@
 
 **Implementation status:** Phase 2 foundation đã được triển khai. Các module Moodle live và phần được gắn `BLOCKED`/`PROPOSED` vẫn chưa phải chức năng production hoàn chỉnh.
 
-**Cập nhật:** 2026-08-15
+**Cập nhật:** 2026-08-16
 
 ## 1. Architecture goals
 
@@ -77,6 +77,26 @@ test/
 
 Hiện đã triển khai `auth`, `dashboard`, `courses`, `assignments`, `grades`, `calendar`, `profile`, `splash`, core config/errors/network/storage/widgets và dev fixture boundary. Student data screens dùng một canonical generated fixture; production adapters tương ứng vẫn fail closed.
 
+### Product presentation and navigation
+
+Primary navigation đã chốt thành bốn destination ổn định:
+
+```text
+Splash → Login → App shell
+                   ├── Trang chủ
+                   ├── Khóa học → Course Detail → Assignment / Grades
+                   ├── Lịch
+                   └── Hồ sơ → Giao diện / Đăng xuất
+```
+
+- `AppShell` dùng Material 3 `NavigationBar` trên phone và chuyển sang `NavigationRail` từ breakpoint 720 px; rail mở rộng từ 980 px.
+- Course Detail, Assignment và Grades là route theo context, không chiếm primary destination. Route Assignment kiểm tra `courseId` khớp assignment trước khi hiển thị.
+- `AppTokens` tập trung spacing, radius, content width và breakpoint; `SectionHeader`/`ContentSkeleton` là primitive dùng chung để giữ hierarchy/loading state đồng nhất.
+- `appThemeModeProvider` quản lý lựa chọn `Hệ thống`/`Sáng`/`Tối` cục bộ trong vòng đời app. Chưa đồng bộ setting này lên backend và không giả vờ đã persistence cross-device.
+- Error state presentation đi qua `userMessageFor`; raw blocker code, endpoint, token, repository, schema, response body và exception không được render cho người dùng.
+- Mọi data screen giữ loading/empty/error/retry contract phù hợp. Skeleton mô phỏng đúng cấu trúc nội dung thay vì một spinner toàn trang chung.
+- Presentation không hiển thị nhãn fixture. Việc app chạy `main_development.dart` được quyết định ở composition root, không phải bằng banner/copy trong UI.
+
 ### Teacher schema and synthetic-data boundary
 
 ```mermaid
@@ -88,7 +108,7 @@ flowchart LR
     JSON --> FixtureSource["SyntheticFixtureDataSource\nDEV/test only"]
     FixtureSource --> DevRepos["DEV repositories"]
     DevRepos --> Providers["Riverpod providers"]
-    Providers --> StudentUI["Dashboard / Courses / Resources /\nAssignments / Grades / Profile"]
+    Providers --> StudentUI["Dashboard / Courses / Resources /\nAssignments / Grades / Calendar / Profile"]
     MainProd["main.dart"] -. "never wires fixture" .-> Closed["Unconfigured production repositories"]
 ```
 
@@ -129,6 +149,8 @@ flowchart TD
 Dependency injection được thực hiện qua Riverpod provider. Không dùng global mutable singleton cho session/token.
 
 DEV có repository contract riêng cho course content, assignments, grades và calendar. Các provider dữ liệu theo session đều `autoDispose`; thay DEV adapter bằng live adapter chỉ được làm sau khi có `VERIFIED_API` contract.
+
+DEV repository chỉ trả Course Detail/Assignment/Grades cho học phần mà synthetic user đang enroll. Đây là integrity guard của fixture adapter, không thay thế Moodle capability checks trong production. Dashboard progress chỉ dùng các module có thể hiển thị; Grades không suy diễn điểm tổng hoặc trọng số khi contract Moodle chưa được xác minh.
 
 ### Supabase boundary
 

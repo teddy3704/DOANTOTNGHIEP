@@ -17,7 +17,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  testWidgets('production login fails closed without exposing DEV fixtures', (
+  testWidgets('production login fails closed with student-friendly copy', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -39,16 +39,15 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
     await tester.pumpAndSettle();
 
-    expect(find.text('Đăng nhập ứng dụng chưa được bật'), findsOneWidget);
-    expect(find.text('AUTHENTICATION_METHOD_UNCONFIRMED'), findsOneWidget);
-    expect(find.text('MOODLE_WEB_SERVICES_NOT_ENABLED'), findsOneWidget);
-    expect(find.textContaining('DEV FIXTURE'), findsNothing);
+    expect(find.text('Dịch vụ đăng nhập đang được chuẩn bị'), findsOneWidget);
+    expect(find.textContaining('vui lòng quay lại sau'), findsOneWidget);
     expect(find.byType(TextFormField), findsNothing);
     expect(find.widgetWithText(FilledButton, 'Tiếp tục'), findsNothing);
     expect(find.textContaining('Xin chào'), findsNothing);
+    _expectNoTechnicalCopy(tester);
   });
 
-  testWidgets('DEV demo reaches assignment, courses, grades and profile', (
+  testWidgets('student flow reaches all available learning screens', (
     tester,
   ) async {
     tester.view.physicalSize = const Size(390, 844);
@@ -91,7 +90,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Đăng nhập'), findsOneWidget);
-    expect(find.textContaining('DEV FIXTURE'), findsOneWidget);
+    _expectNoTechnicalCopy(tester);
 
     await tester.enterText(
       find.widgetWithText(TextFormField, 'Tên đăng nhập'),
@@ -116,8 +115,8 @@ void main() {
       findsOneWidget,
       reason: 'Visible text after DEV sign-in: $visibleText',
     );
-    expect(find.text('Bài tập cần chú ý'), findsOneWidget);
-    expect(find.text('Lịch sắp tới'), findsOneWidget);
+    expect(find.text('Việc cần ưu tiên'), findsOneWidget);
+    _expectNoTechnicalCopy(tester);
 
     await tester.ensureVisible(find.byType(ListTile).first);
     await tester.pumpAndSettle();
@@ -125,6 +124,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Bài tập'), findsOneWidget);
     expect(find.text('Kết quả'), findsOneWidget);
+    _expectNoTechnicalCopy(tester);
     await tester.pageBack();
     await tester.pumpAndSettle();
 
@@ -132,32 +132,54 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Khóa học của tôi'), findsOneWidget);
     expect(find.byType(CourseCard), findsWidgets);
+    _expectNoTechnicalCopy(tester);
 
     await tester.tap(find.byType(CourseCard).first);
     await tester.pumpAndSettle();
     expect(find.text('Chi tiết khóa học'), findsOneWidget);
     expect(find.text('Nội dung khóa học'), findsOneWidget);
     expect(find.byType(ExpansionTile), findsWidgets);
+    _expectNoTechnicalCopy(tester);
 
-    await tester.tap(find.widgetWithText(OutlinedButton, 'Xem điểm khóa học'));
+    await tester.tap(find.byTooltip('Xem điểm khóa học'));
     await tester.pumpAndSettle();
     expect(find.text('Kết quả học tập'), findsOneWidget);
-    expect(find.text('Chưa có điểm tổng hợp'), findsOneWidget);
-    expect(find.text('Chưa chấm'), findsWidgets);
+    expect(find.text('Các mục đánh giá'), findsOneWidget);
+    _expectNoTechnicalCopy(tester);
 
     await tester.pageBack();
     await tester.pumpAndSettle();
     await tester.pageBack();
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Cá nhân').last);
+    await tester.tap(find.text('Lịch').last);
     await tester.pumpAndSettle();
-    expect(find.text('Thông tin cá nhân'), findsOneWidget);
-    expect(find.text('Sinh viên mẫu · SYNTHETIC DATA'), findsOneWidget);
-    final initialsFinder = find.text('K0');
+    expect(find.text('Lịch học tập'), findsOneWidget);
+    _expectNoTechnicalCopy(tester);
+
+    await tester.tap(find.text('Hồ sơ').last);
+    await tester.pumpAndSettle();
+    expect(find.text('Hồ sơ').first, findsOneWidget);
+    expect(find.text('Sinh viên'), findsOneWidget);
+    expect(find.text('Tùy chọn ứng dụng'), findsOneWidget);
+    final initialsFinder = find.text('NA');
     final initials = tester.widget<Text>(initialsFinder);
     expect(
       initials.style?.color,
       Theme.of(tester.element(initialsFinder)).colorScheme.onPrimaryContainer,
     );
+    _expectNoTechnicalCopy(tester);
   });
+}
+
+void _expectNoTechnicalCopy(WidgetTester tester) {
+  final visibleText = tester
+      .widgetList<Text>(find.byType(Text))
+      .map((widget) => widget.data)
+      .whereType<String>()
+      .join(' | ');
+  final forbidden = RegExp(
+    r'(^|[^a-z])(dev|fixture|mock|synthetic|debug|api|token|endpoint|repository|schema|metadata|placeholder|production)([^a-z]|$)|mẫu|kiểm thử|demo',
+    caseSensitive: false,
+  );
+  expect(forbidden.hasMatch(visibleText), isFalse, reason: visibleText);
 }
