@@ -152,3 +152,16 @@ Current `.gitignore` blocks common env, credential, key and database dump patter
 - Course/course-detail/profile Riverpod providers dùng `autoDispose`; test xác minh state được giải phóng và tải lại thay vì tái sử dụng cache phiên trước.
 - Authenticated DLU discovery chỉ lưu URL pattern/evidence đã khử định danh; không lưu user/course/grade/message values.
 - Web Services probe không gửi credential/cookie/token và nhận `enablewsdescription`; không thực hiện token/API brute force hoặc fallback sang HTML scraping.
+
+## 12. Supabase foundation controls
+
+- Chỉ `public.mobile_preferences` là app-owned; không có bảng clone Moodle hoặc credential/session column.
+- Migration revoke mặc định rồi chỉ grant `authenticated` quyền `SELECT`, `INSERT(owner_id, theme_mode)` và `UPDATE(theme_mode)`; không grant `anon`, `DELETE` hoặc app-table privilege cho `service_role` trong baseline.
+- Flutter không dùng table upsert có thể đòi UPDATE `owner_id`; write đi qua RPC hẹp `SECURITY INVOKER`, server derive `auth.uid()` và `ON CONFLICT` chỉ SET `theme_mode`. Chỉ `authenticated` có EXECUTE.
+- RLS được enable + force với ba policy riêng; mọi policy ràng buộc `(select auth.uid()) = owner_id` và từ chối JWT `is_anonymous=true`.
+- `owner_id` là UUID primary key và client-immutable; timestamps do database quản lý. Không thêm FK `auth.users` trước khi lifecycle identity DLU được duyệt.
+- Flutter chỉ chấp nhận HTTPS project origin cùng `sb_publishable_*` hoặc legacy JWT role `anon`; mọi opaque/user/secret/service-role key class khác bị từ chối trước khi tạo client.
+- Access token đi qua injected one-login identity session; thiếu/mismatch/anonymous identity fail closed và không fallback sang anonymous auth hay fixture.
+- Supabase/PostgREST raw message không được giữ trong `AppFailure`; auth, RLS, timeout, unavailable, rate-limit và malformed response được map sang stable sanitized code.
+- Edge Function hiện contract-only: không generic proxy, không arbitrary upstream/function/method và chưa có server secret/deployment.
+- Remote migration/RLS verification chưa được tuyên bố PASS; cần project non-production được chọn và identity mapping DLU → stable UUID `sub` được xác minh.

@@ -154,9 +154,11 @@ DEV repository chỉ trả Course Detail/Assignment/Grades cho học phần mà 
 
 ### Supabase boundary
 
-Supabase chưa được nối vào runtime của milestone này và không thay Moodle làm nguồn dữ liệu LMS. Nếu được phê duyệt ở phase sau, Supabase chỉ có thể đảm nhiệm dữ liệu do ứng dụng sở hữu hoặc Edge Function/backend mediation; client chỉ dùng publishable key, mọi bảng exposed phải bật RLS, còn service-role key chỉ được giữ server-side. Moodle course/assignment/grade vẫn phải đi qua Moodle application/API được DLU cho phép. `MOODLE_SUBSET_V1` là MySQL reference subset và không được đổi sang PostgreSQL rồi gọi là schema Moodle/DLU chính xác.
+Supabase foundation hiện đã có migration/RLS và typed Flutter boundary cho đúng một dữ liệu do ứng dụng sở hữu: `mobile_preferences`. Presentation không query Supabase trực tiếp; dependency direction là `Provider → Repository → Remote Data Source → SupabaseClient`. Read thêm owner filter ở client; write gọi RPC tên cố định `save_mobile_theme_preference`, chỉ gửi theme và để server derive `auth.uid()` trong một atomic upsert. Client chỉ nhận credential-free HTTPS project origin, allowlisted publishable/legacy anon key và access-token callback của identity session đã được inject. Không có global initialization, network call hoặc Supabase signup mặc định khi app khởi động; thiếu project/identity thì fail closed.
 
-## 6. Proposed packages (not installed)
+Supabase không thay Moodle làm nguồn dữ liệu LMS. Moodle identity attributes, course, assignment, submission và grade vẫn phải đi qua Moodle application/API được DLU cho phép. Migration không có bảng clone Moodle, không lưu Moodle credential và không có generic Edge Function proxy. Chi tiết ownership, RLS, API và deployment gate nằm tại [Supabase App-Owned Data](supabase/APP_OWNED_DATA.md), [Supabase Architecture](supabase/ARCHITECTURE.md) và [Supabase API Contract](supabase/API_CONTRACT.md). Remote apply vẫn bị khóa bởi `SUPABASE_PROJECT_CONNECTION_REQUIRED` và identity mapping một-login chưa được xác minh.
+
+## 6. Package decisions
 
 | Package | Lý do | Quyết định |
 |---|---|---|
@@ -164,6 +166,7 @@ Supabase chưa được nối vào runtime của milestone này và không thay 
 | `go_router` | Declarative navigation, auth redirect | IMPLEMENTED — 17.5.0 |
 | `dio` | Timeout, request boundary và typed error mapping | IMPLEMENTED — 5.11.0 |
 | `flutter_secure_storage` | Lưu token/session secret bằng platform-backed storage | IMPLEMENTED abstraction — 10.3.1; live auth chưa dùng |
+| `supabase_flutter` | Typed Data API client cho dữ liệu app-owned sau project/identity gate | IMPLEMENTED foundation — pinned 2.17.2; chưa remote-enable |
 | `json_annotation` + `json_serializable` | Typed DTO và predictable parsing | PROPOSED khi API contract đầu tiên rõ |
 | `intl` | Date/time/localization formatting | DEFERRED — chưa có use case cần package |
 | `mocktail` | Test doubles cho repository/client boundary | DEFERRED — current tests dùng fakes nhỏ |
@@ -175,11 +178,13 @@ Version chỉ được chọn khi Flutter SDK đã được cài và compatibili
 Compile-time/runtime configuration tối thiểu dự kiến:
 
 - `MOODLE_BASE_URL` — mặc định development có thể trỏ DLU URL, nhưng phải validate HTTPS ở production.
+- `SUPABASE_URL` — chỉ origin HTTPS của project được duyệt; không path/query/userinfo.
+- `SUPABASE_PUBLISHABLE_KEY` — allowlist đúng `sb_publishable_*` hoặc legacy JWT role `anon`; opaque, user JWT, `sb_secret_*` và legacy `service_role` đều bị từ chối.
 - authentication strategy identifier — chỉ sau khi DLU xác nhận.
 - non-secret network timeout values.
 - build flavor/environment label để ngăn nhầm staging/production.
 
-Token, username và password không nằm trong `.env` committed hoặc compile-time Dart define. `AppConfig` đọc `MOODLE_BASE_URL` qua Dart define, chỉ chấp nhận credential-free HTTPS origin (không path/query/fragment/userinfo), normalize origin và cấm DEV fixtures trong production. Token sẽ được nhận runtime và lưu qua `SecureTokenStorage` sau khi auth contract được xác nhận.
+Token, username và password không nằm trong `.env` committed hoặc compile-time Dart define. `AppConfig` đọc `MOODLE_BASE_URL` qua Dart define, chỉ chấp nhận credential-free HTTPS origin (không path/query/fragment/userinfo), normalize origin và cấm DEV fixtures trong production. `SupabaseConfig` đọc hai giá trị public nêu trên qua Dart define nhưng không chứa user JWT; JWT chỉ được lấy runtime từ `SupabaseIdentitySession`. Moodle/Supabase identity bridge vẫn unconfigured cho đến khi DLU phê duyệt một-login mapping.
 
 ## 8. Authentication architecture
 
@@ -334,3 +339,5 @@ Release signing/CI/CD chưa được thiết kế chi tiết vì application ide
 | ADR-008 | Temporary application ID `vn.edu.dlu.lmsmobile`; release signing/branding ownership | PARTIAL/BLOCKED |
 | ADR-009 | Production entrypoint cannot use fixture; DEV fixture has separate entrypoint | ACCEPTED/TESTED |
 | ADR-010 | Android compile SDK 36; pin secure storage 10.3.1 pending stable API 37 tooling | ACCEPTED |
+| ADR-011 | Supabase chỉ lưu app-owned `mobile_preferences`; Moodle tiếp tục là LMS source of truth | ACCEPTED/IMPLEMENTED LOCALLY |
+| ADR-012 | Supabase authenticated session phải dùng verified one-login UUID `sub`; anonymous/second login bị cấm | BLOCKED — project + identity mapping |

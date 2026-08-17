@@ -1,8 +1,8 @@
 # Test Plan
 
-**Status:** Production-polished synthetic Student DEV milestone executable; live API contract tests blocked externally.
+**Status:** Production-polished synthetic Student DEV milestone and secure local Supabase foundation executable; live Moodle/Supabase connected tests blocked externally.
 
-**Current executable test result:** `PASS — validator, dart format 66 files/0 changed, analyze 0 issues, 50 tests, production/DEV debug APK builds and Android 15 product-polish walkthrough`.
+**Current executable test result:** `PASS — Moodle fixture validator, Supabase foundation validator, dart format 80 files/0 changed, analyze 0 issues, 73 tests, final production/DEV debug APK builds and Android 15 smoke tests`.
 
 ## Product UI polish gate — 2026-08-16
 
@@ -205,3 +205,13 @@ Không gọi phase `PASS` nếu bất kỳ required gate nào fail.
 - Production emulator smoke: blocker semantics present, 0 editable credential fields, visual review PASS and PID log scan found 0 crash/widget exception/overflow.
 - DEV emulator smoke: synthetic Login → Dashboard → Courses → Course Detail → Profile → Logout PASS; PID log scan found 0 matching runtime error.
 - Live DLU API tests remain uncreated by design because Web Services currently return `enablewsdescription`; default tests never call production DLU.
+
+## 12. Supabase foundation verification — 2026-08-16
+
+- Offline validator yêu cầu đúng một `mobile_preferences` migration, UUID PK, theme allowlist, RLS enable + force, ba own-row policy, column-scoped grants và không clone Moodle/anon/DELETE/`using(true)`.
+- Flutter unit tests cover HTTPS/key allowlist, opaque/user/secret/service-role rejection, missing-config fail-closed, injected JWT callback, anonymous/missing identity, owner filter, ownership mismatch, typed DTO/repository và malformed response.
+- Error tests cover sanitized PostgREST auth (`PGRST301/302/303`), RLS (`42501`), timeout (`PGRST003`), unavailable (`PGRST000/001/002`), defensive `429` rate-limit và unknown client/backend failures.
+- `supabase/tests/database/mobile_preferences_rls.test.sql` có 28 pgTAP assertions cho policy/grant, fixed invoker RPC, cross-owner INSERT và owner A/owner B/anonymous/anon contexts. File này chỉ chạy trên local/dev Postgres đã apply migration; chưa chạy vì không cài Docker và repository chưa link project remote.
+- Final offline gate: format 80 files/0 changes, analyze 0 issues, Flutter tests 73/73, static Supabase validator PASS.
+- Production + development debug APK build PASS sau dependency update; emulator production fail-closed và DEV Dashboard smoke đều có 0 runtime error match/0 user-visible technical string.
+- Remote gate còn BLOCKED: apply migration trên non-production project, pgTAP connected run, Security/Performance Advisors và one-login identity isolation tests.

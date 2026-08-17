@@ -625,3 +625,54 @@ APK artifacts nằm ngoài repository tại:
 ### Current external blocker
 
 Live Moodle vẫn chờ `MOODLE_WEB_SERVICES_NOT_ENABLED`, `AUTHENTICATION_METHOD_UNCONFIRMED`, approved test identity và least-privilege service/function access. Supabase chưa được triển khai trong commit product-polish; nếu thực hiện tiếp phải giữ app-owned boundary, RLS và project connection riêng, không thay Moodle làm nguồn course/assignment/grade.
+
+## 2026-08-16 — Secure Supabase Backend Foundation
+
+### Ownership and architecture
+
+- Lập inventory app-owned trước migration tại `docs/supabase/APP_OWNED_DATA.md`; chỉ theme preference có lý do lưu Supabase ở phase này.
+- Giữ Moodle là source of truth cho identity attributes, courses, content, assignments, submissions, grades, roles và capabilities. Không tạo bảng clone hoặc đưa Moodle token/password/session vào Supabase.
+- Chốt một-login boundary: Flutter không tự tạo Supabase account/anonymous session; identity bridge phải cung cấp stable UUID `sub` cho cùng principal DLU sau khi được xác minh.
+- Edge Function chỉ có negative/allowlist contract, chưa code generic proxy hoặc endpoint Moodle giả.
+
+### Database and RLS
+
+- Dùng Supabase CLI 2.114.0 qua npm cache trên D để init local config và tạo migration `20260815172943_create_mobile_preferences.sql`.
+- Tạo đúng `public.mobile_preferences(owner_id, theme_mode, created_at, updated_at)`; `owner_id` là UUID PK, theme chỉ `system/light/dark`, timestamps client-immutable.
+- Revoke default table/function privileges; chỉ `authenticated` có SELECT, INSERT hai cột cần thiết và UPDATE `theme_mode`. Không có anon, DELETE hoặc service-role app-table grant.
+- Enable + force RLS; ba policy riêng đều buộc `auth.uid() = owner_id` và reject anonymous JWT.
+- Thêm RPC `save_mobile_theme_preference` security-invoker: server derive `auth.uid()`, atomic insert-or-update và chỉ SET theme; Flutter không cần quyền UPDATE owner ID.
+- Thêm 28-assertion pgTAP contract cho policy/grant/RPC/cross-owner INSERT và owner A/owner B/anonymous/anon; remote/local database execution chưa chạy vì không cài Docker và chưa link project.
+
+### Typed Flutter layer
+
+- Pin `supabase_flutter` 2.17.2; tạo HTTPS-only `SupabaseConfig`, allowlist đúng modern publishable/legacy anon key và fail closed khi thiếu project.
+- Tạo injected `SupabaseIdentitySession`, direct client factory, typed model/DTO/repository/data source và Riverpod provider theo `UI → Provider → Repository → Data Source`.
+- Query luôn filter owner UUID; write dùng fixed RPC chỉ nhận theme; mọi response được kiểm tra ownership, không global initialize/network call hoặc nối trực tiếp widget.
+- Map auth, RLS, timeout, service unavailable, rate-limit, invalid response và unknown SDK errors sang failure đã sanitize; không giữ raw PostgREST message.
+
+### Verification and build recovery
+
+| Check | Result |
+|---|---|
+| `dart format .` | PASS — 80 files, 0 changed |
+| Supabase offline validator | PASS — 1 table, 3 policies, 28 pgTAP assertions |
+| `flutter analyze` | PASS — 0 issues |
+| `flutter test` | PASS — 73/73 |
+| Production debug APK | PASS — 193,844,724 bytes; SHA-256 `40683400C5E2C370BB9F4A958A9583100F866FB5F6A23FA5F3CA57DB72FE73C7` |
+| DEV debug APK | PASS — 193,844,724 bytes; SHA-256 `6ED3127E7665B820C97F5403A70AE08EC3E0FE35626F3957AFF155AB74A8E28E` |
+| Production emulator smoke | PASS — 0 credential field, 0 technical string, 0 runtime error match |
+| DEV emulator smoke | PASS — Login → Dashboard, four final nav labels, 0 technical string/runtime error match |
+
+Build đầu tiên lỗi Kotlin incremental cache vì plugin source/Pub cache ở D còn repository ở C. Đã thêm `kotlin.incremental=false`, clean generated output và retry; cả hai APK PASS trong khi vẫn giữ cache/build trên D.
+
+Artifacts nằm ngoài Git:
+
+- `D:\DLU-LMS\Artifacts\dlu-lms-mobile-supabase-foundation-production-debug.apk`
+- `D:\DLU-LMS\Artifacts\dlu-lms-mobile-supabase-foundation-dev-debug.apk`
+
+Storage sau final rebuild: C `57.41 GB`, D `70.01 GB` — gate C ≥ 15 GB và D ≥ 25 GB PASS.
+
+### External blocker
+
+`ACTION_REQUIRED: SUPABASE_PROJECT_CONNECTION_REQUIRED` — connector có nhiều project cũ inactive nhưng không project nào được xác nhận là DLU LMS Mobile. Không tự chọn/restore. Cần owner chọn hoặc tạo project non-production và chốt identity mapping trước khi apply migration, chạy pgTAP/advisors hay bật preferences sync.

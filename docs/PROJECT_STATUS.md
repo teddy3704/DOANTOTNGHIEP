@@ -2,9 +2,9 @@
 
 **Cập nhật:** 2026-08-16 (Asia/Saigon)
 
-**Milestone:** Production UX Polish + Moodle Schema/Synthetic Student Core
+**Milestone:** Production UX Polish + Moodle Schema/Synthetic Student Core + Secure Supabase Foundation
 
-**Trạng thái milestone:** `PASS` — product UI cleanup, final student navigation, deterministic synthetic-data presentation, 50 automated tests và Android emulator walkthrough đều PASS
+**Trạng thái milestone:** `PASS_LOCAL / BLOCKED_EXTERNAL` — product UI, deterministic synthetic data, 73 automated tests, Android emulator và local Supabase migration/RLS/client contract đều PASS; remote services còn gated
 
 **Trạng thái production live:** `PARTIAL / BLOCKED_EXTERNAL` — DLU Web Services vẫn disabled; live API/auth integration chưa được phép triển khai
 
@@ -29,9 +29,9 @@ Hai token/mobile site-check request không credential trả `errorcode=enablewsd
 | Git repository | `.git` tồn tại; `main`; Phase 2 baseline commit `67953f8` | DONE |
 | Uncommitted work | Không có file tracked/untracked tại thời điểm audit ban đầu | DONE |
 | `README.md` | Không tồn tại trước audit; đã tạo entry point Phase 0 | DONE |
-| `pubspec.yaml` | Flutter/Riverpod/go_router/Dio/secure storage | DONE |
+| `pubspec.yaml` | Flutter/Riverpod/go_router/Dio/secure storage/Supabase typed client | DONE |
 | `lib/` | Feature-first foundation + demo milestone UI | DONE (Phase 2 scope) |
-| `test/` | 50 unit/widget tests | DONE |
+| `test/` | 73 unit/widget tests | DONE |
 | `android/` | Android-only scaffold, `vn.edu.dlu.lmsmobile`, security baseline | DONE (debug) |
 | `docs/` | Không tồn tại trước audit; baseline được tạo ở Phase 0 | DONE |
 | `.gitignore` | Không tồn tại trước audit; baseline bảo mật được tạo | DONE |
@@ -133,11 +133,22 @@ Toolchain được cài user-local, không dùng Android Studio. Hướng dẫn/
 - Tắt Android native default focus highlight trên Flutter view tree; recapture ảnh `02`–`08` trực tiếp từ emulator, không hậu kỳ và không còn viền focus xanh.
 - Storage sau final rebuild: C `57.52 GB`, D `71.44 GB`; `build/` inactive ngoài OneDrive synced root.
 
+### Secure Supabase backend foundation — 2026-08-16
+
+- Hoàn thành `docs/supabase/APP_OWNED_DATA.md` trước schema decision; chỉ `mobile_preferences` được chọn, còn bookmark/notification metadata tiếp tục deferred và mọi Moodle academic table bị cấm clone.
+- Supabase CLI 2.114.0 tạo local config + migration `20260815172943_create_mobile_preferences.sql`; không `link`, restore, push, deploy hoặc chạy Docker.
+- Migration tạo đúng 1 table, UUID owner PK, theme allowlist, database timestamps; revoke mặc định, RLS enable + force và 3 policy own-row/non-anonymous cho select/insert/update; không `anon`/DELETE/service grant. RPC hẹp invoker derive `auth.uid()` và chỉ cập nhật theme atomic.
+- Flutter có `supabase_flutter` 2.17.2, HTTPS + exact publishable-key allowlist, injected one-login identity/JWT boundary, typed DTO/repository/data source và sanitized error mapping. Không widget query, Supabase login thứ hai, global init hoặc default network call.
+- Offline validator PASS: 1 app-owned table, 3 RLS policies, 28 pgTAP assertions. `dart format .` PASS 80 files/0 changed, analyze 0 issues, tests 73/73.
+- Build sau dependency update PASS cho production + DEV debug APK (193,844,724 bytes/file). Production emulator có 0 credential field/0 technical string; DEV login → Dashboard + 4 nav labels PASS; cả hai runtime scan 0 lỗi.
+- Project/account connector có nhiều project cũ không được định danh là DLU LMS Mobile; không tự chọn/khôi phục project. Remote apply và connected RLS test vẫn `BLOCKED_EXTERNAL`.
+- Storage sau final rebuild: C `57.41 GB`, D `70.01 GB`; npm/Flutter/Pub/Gradle/build/APK đều ưu tiên D.
+
 ## IN PROGRESS
 
 - Product UI polish + schema/synthetic Student DEV milestone đã hoàn tất và quality-gated ở code/test/emulator.
 - Live Flutter authentication/current-user/courses integration vẫn cố ý chưa triển khai cho đến khi DLU bật/phê duyệt application-layer service/auth flow.
-- Supabase chưa được wire trong product-polish milestone này; foundation app-owned/RLS vẫn là công việc kế tiếp và cần project connection riêng, không thay Moodle hoặc nhận service-role key ở client.
+- Supabase local foundation đã code/test nhưng chưa được remote-enable hoặc nối UI; project selection và one-login identity mapping vẫn là external gate.
 
 ## BLOCKED
 
@@ -149,6 +160,8 @@ Toolchain được cài user-local, không dùng Android Studio. Hướng dẫn/
 | `MOODLE_API_TOKEN_REQUIRED` | Sau enablement, chưa có credential/token scope được phê duyệt | Approved short-lived test token/interactive auth; không gửi qua Git/docs/chat | DLU LMS administrator |
 | `MOODLE_VERSION_REQUIRED_FOR_PLUGIN` | Không thể đánh giá/code custom plugin | Moodle, PHP và DB versions; plugin policy | DLU LMS administrator |
 | `PACKAGE_IDENTITY_OWNERSHIP_UNCONFIRMED` | Package tạm đã dùng nhưng chưa có ownership/branding approval | DLU xác nhận application ID/branding/release ownership | DLU/GVHD/người dùng |
+| `SUPABASE_PROJECT_CONNECTION_REQUIRED` | Không thể apply migration/chạy pgTAP/advisors hoặc bật app-owned sync trên project thật | Chọn/tạo project Supabase non-production dành riêng cho DLU LMS Mobile và xác nhận identity bridge có stable UUID `sub` | Project owner + DLU identity/backend owner |
+| `SUPABASE_IDENTITY_MAPPING_REQUIRED` | Không thể cấp authenticated Supabase session bằng trải nghiệm một lần đăng nhập | Contract backend/issuer đã xác minh để cùng principal DLU nhận stable UUID `sub`, refresh/revoke/logout rõ ràng | DLU identity/backend owner + project owner |
 
 `REAL_DLU_DATABASE: NOT_REQUIRED_FOR_CURRENT_PHASE` — GVHD đã yêu cầu dùng teacher-provided schema + AI-generated synthetic data. DLU physical schema/version/prefix vẫn `UNKNOWN` nhưng không chặn development/reporting phase hiện tại.
 
@@ -163,6 +176,7 @@ Không yêu cầu production admin password và không cần production database
 5. `flutter_secure_storage` được pin 10.3.1 vì 11.0.0 yêu cầu compile SDK 37 trong khi current stable project/toolchain dùng SDK 36; cần review lại khi API 37 tooling ổn định.
 6. Emulator Android 15/API 35 đã PASS; chưa có smoke test trên thiết bị Android vật lý.
 7. Hai generated/staging directories đã xác minh là không cần (`1.90 GB` build backup và `1.06 GB` interrupted SDK staging) vẫn còn trên D vì local delete policy chặn lệnh trước khi thực thi; không ảnh hưởng gate C ≥ 15 GB.
+8. Supabase account connector thấy nhiều project cũ đều inactive nhưng không có project nào được phê duyệt/linked cho repository; không được tự khôi phục hoặc chọn theo tên phỏng đoán.
 
 ## TODO / backlog Phase 0 → Phase 9
 
@@ -176,13 +190,13 @@ Không yêu cầu production admin password và không cần production database
 | 5 | Course content | Course detail/content/file access thật, safe authenticated download | BLOCKED — Phase 4 + file policy |
 | 6 | Student features | Assignment/grade/calendar/notification/profile theo API thật | PARTIAL — synthetic DEV core PASS; live API blocked |
 | 7 | Teacher features | Read flows trước; write flows chỉ ở test environment được duyệt | BLOCKED — teacher account + explicit write permission |
-| 8 | Security/reliability | Threat controls, test coverage, error states, performance, privacy review | TODO |
+| 8 | Security/reliability | Threat controls, test coverage, error states, performance, privacy review | PARTIAL — redaction + Supabase RLS foundation PASS; live auth/release review pending |
 | 9 | Release candidate | APK, release config, docs/demo/checklist, known limitations | TODO |
 
 ## NEXT STEP
 
 1. Dùng bộ tài liệu `docs/database/` và `docs/FEATURE_DATA_TRACEABILITY.md` cho chương Database Analysis/bảo vệ; không xin database thật trong phase này.
-2. Nếu thực hiện yêu cầu Supabase kế tiếp, chốt app-owned use case/project/config/RLS/Edge Function boundary riêng; không chuyển `MOODLE_SUBSET_V1` sang PostgreSQL rồi coi là Moodle schema.
+2. Chọn/tạo project Supabase non-production dành riêng cho app, xác minh DLU → Supabase stable UUID identity mapping; sau đó apply migration, chạy 28 pgTAP assertions và Security/Performance Advisors.
 3. DLU LMS administrator phê duyệt mobile integration và bật Web Services + selected REST/mobile/external service, ưu tiên staging/test.
 4. Khi gate live mở, chạy POC đúng thứ tự: auth → current user/site info → own courses → one course content; chỉ sau sanitized successful contracts mới tạo DTO/repository live.
 5. Xác nhận ownership của `vn.edu.dlu.lmsmobile`, branding chính thức và release signing trước Phase 9.

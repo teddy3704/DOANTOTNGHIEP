@@ -2,7 +2,7 @@
 
 Đồ án tốt nghiệp: **Xây dựng ứng dụng di động và hỗ trợ học tập trên nền tảng LMS** cho Trường Đại học Đà Lạt.
 
-Repository đã hoàn thành Flutter foundation, Moodle subset/schema reference, canonical synthetic dataset và milestone **production product UI polish** cho Student V1. Tích hợp thật với `https://lms.dlu.edu.vn/` vẫn bị chặn cho đến khi DLU xác nhận authentication, Web Services và cấp quyền test phù hợp.
+Repository đã hoàn thành Flutter foundation, Moodle subset/schema reference, canonical synthetic dataset, milestone **production product UI polish** cho Student V1 và Supabase backend foundation cho dữ liệu do ứng dụng sở hữu. Tích hợp thật với `https://lms.dlu.edu.vn/` vẫn bị chặn cho đến khi DLU xác nhận authentication, Web Services và cấp quyền test phù hợp.
 
 ## Trạng thái nhanh
 
@@ -12,10 +12,11 @@ Repository đã hoàn thành Flutter foundation, Moodle subset/schema reference,
 - Student flow: Splash → Login → Trang chủ → Khóa học → Chi tiết/Tài liệu/Bài tập/Điểm → Lịch → Hồ sơ.
 - Primary navigation gồm bốn mục `Trang chủ` / `Khóa học` / `Lịch` / `Hồ sơ`; màn hình dữ liệu có loading/empty/error/retry phù hợp.
 - Database analysis dùng `MOODLE_SUBSET_V1` gồm 20 bảng từ teacher-provided Moodle LMS 3.9 SchemaSpy, cùng dữ liệu AI-generated synthetic; đây không phải schema/data production DLU.
+- Supabase foundation chỉ có `mobile_preferences`, migration + RLS + typed repository; chưa link/deploy project thật và không sao chép course/assignment/grade từ Moodle.
 - Moodle version, cơ chế xác thực, Web Services và test account/token chưa được DLU cung cấp/xác nhận. Database thật không cần cho phase hiện tại theo chỉ đạo GVHD.
 - Không có dữ liệu giả nào được coi là dữ liệu production.
 
-Xem [Project Status](docs/PROJECT_STATUS.md), [Architecture](docs/ARCHITECTURE.md), [Selected Moodle Tables](docs/database/SELECTED_TABLES.md), [Feature/Data Traceability](docs/FEATURE_DATA_TRACEABILITY.md) và [Environment Setup](docs/ENVIRONMENT_SETUP.md).
+Xem [Project Status](docs/PROJECT_STATUS.md), [Architecture](docs/ARCHITECTURE.md), [Supabase Architecture](docs/supabase/ARCHITECTURE.md), [Selected Moodle Tables](docs/database/SELECTED_TABLES.md), [Feature/Data Traceability](docs/FEATURE_DATA_TRACEABILITY.md) và [Environment Setup](docs/ENVIRONMENT_SETUP.md).
 
 ## Nguyên tắc bắt buộc
 
@@ -62,5 +63,13 @@ dart format .
 .\tool\flutter_dlu.ps1 analyze
 .\tool\flutter_dlu.ps1 test
 ```
+
+Kiểm tra Supabase migration/RLS contract hoàn toàn offline:
+
+```powershell
+.\tool\validate_supabase_foundation.ps1
+```
+
+`SUPABASE_URL` và `SUPABASE_PUBLISHABLE_KEY` chỉ được cấp qua runtime/build configuration sau khi một project non-production được chọn. Không dùng secret/service-role key trong Flutter. Runtime Supabase hiện fail closed vì DLU-to-Supabase identity mapping chưa được xác minh.
 
 Wrapper giữ generated build trên `D:\DLU-LMS\Build\DoAnTotNghiep`, tạm dừng OneDrive trong lúc Flutter chạy và tháo junction `build\` trước khi bật sync lại. Hai VS Code launch profiles đã tự động dùng cùng workflow; không tạo junction thủ công trong thư mục OneDrive.
