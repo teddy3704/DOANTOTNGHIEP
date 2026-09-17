@@ -1,5 +1,23 @@
 # Project Status
 
+## 2026-09-17 — Render staging deployment checkpoint
+
+**STATUS: PARTIAL / IN PROGRESS.** Active branch: `integration-api-render-staging`.
+The user authorized publishing only the Integration API and safe deployment
+documents on this dedicated branch, never merging or pushing `main`.
+Local format/typecheck/build and 50/50 tests PASS; the existing real-Neon smoke
+recheck passed 20 checks. Swagger staging now uses its own origin, not localhost.
+The secret gate inspects both working files and actual Git index blobs.
+
+Render setup: Node 24.15.0, Free, Singapore, root `integration-api`,
+`npm ci --include=dev && npm run build`, `npm start`, health `/health`.
+Database secret must be entered privately into Render by the user; no value is
+copied into source, docs, Postman, terminal output or screenshots.
+**RENDER_STAGING_GATE: NOT_RUN. POSTMAN_STAGING_GATE: NOT_RUN.**
+Flutter work is approved but must wait for both staging gates to PASS.
+Earlier database/API/local Postman PASS results are retained, not rerun from zero.
+Authoritative deployment evidence and next action: `INTEGRATION_STATUS.md`.
+
 **Cập nhật:** 2026-08-16 (Asia/Saigon)
 
 **Milestone:** Production UX Polish + Moodle Schema/Synthetic Student Core + Secure Supabase Foundation

@@ -1,0 +1,613 @@
+{
+  "info": {
+    "name": "DLU LMS Student Support — Development API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Synthetic development model, student support only. SV001 enrollment verified in courses 1 and 2. No production DLU authentication or write endpoints."
+  },
+  "item": [
+    {
+      "name": "00 Health",
+      "item": [
+        {
+          "name": "Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/health",
+            "description": "Development PostgreSQL model only. This is NOT the production DLU LMS API."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected HTTP status', () => pm.response.to.have.status(200));",
+                  "pm.test('JSON response', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const body = pm.response.json();",
+                  "pm.test('Health is reachable', () => { pm.expect(body.status).to.eql('ok'); pm.expect(body.database).to.eql('reachable'); });",
+                  "function safeKeys(value) { if (!value || typeof value !== 'object') return true; return Object.entries(value).every(([key, val]) => !/password|token|authorization|database.?url|stack|sql/i.test(key) && safeKeys(val)); }",
+                  "pm.test('No credential or internal error fields', () => pm.expect(safeKeys(body)).to.eql(true));",
+                  "pm.test('List count is correct', () => { if (Array.isArray(body.data)) { pm.expect(body.meta.count).to.eql(body.data.length); } });"
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "01 Student Profile",
+      "item": [
+        {
+          "name": "Current synthetic student",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Demo-Student-Code",
+                "value": "{{demo_student_code}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/me",
+            "description": "Development PostgreSQL model only. This is NOT the production DLU LMS API."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected HTTP status', () => pm.response.to.have.status(200));",
+                  "pm.test('JSON response', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const body = pm.response.json();",
+                  "pm.test('Data contract', () => pm.expect(body).to.have.property('data'));",
+                  "function safeKeys(value) { if (!value || typeof value !== 'object') return true; return Object.entries(value).every(([key, val]) => !/password|token|authorization|database.?url|stack|sql/i.test(key) && safeKeys(val)); }",
+                  "pm.test('No credential or internal error fields', () => pm.expect(safeKeys(body)).to.eql(true));",
+                  "pm.test('List count is correct', () => { if (Array.isArray(body.data)) { pm.expect(body.meta.count).to.eql(body.data.length); } });"
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "02 Courses",
+      "item": [
+        {
+          "name": "Courses",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Demo-Student-Code",
+                "value": "{{demo_student_code}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/me/courses",
+            "description": "Development PostgreSQL model only. This is NOT the production DLU LMS API."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected HTTP status', () => pm.response.to.have.status(200));",
+                  "pm.test('JSON response', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const body = pm.response.json();",
+                  "pm.test('Data contract', () => pm.expect(body).to.have.property('data'));",
+                  "function safeKeys(value) { if (!value || typeof value !== 'object') return true; return Object.entries(value).every(([key, val]) => !/password|token|authorization|database.?url|stack|sql/i.test(key) && safeKeys(val)); }",
+                  "pm.test('No credential or internal error fields', () => pm.expect(safeKeys(body)).to.eql(true));",
+                  "pm.test('List count is correct', () => { if (Array.isArray(body.data)) { pm.expect(body.meta.count).to.eql(body.data.length); } });"
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "03 Course Content",
+      "item": [
+        {
+          "name": "Course content",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Demo-Student-Code",
+                "value": "{{demo_student_code}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/me/courses/1/content",
+            "description": "Development PostgreSQL model only. This is NOT the production DLU LMS API."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected HTTP status', () => pm.response.to.have.status(200));",
+                  "pm.test('JSON response', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const body = pm.response.json();",
+                  "pm.test('Data contract', () => pm.expect(body).to.have.property('data'));",
+                  "function safeKeys(value) { if (!value || typeof value !== 'object') return true; return Object.entries(value).every(([key, val]) => !/password|token|authorization|database.?url|stack|sql/i.test(key) && safeKeys(val)); }",
+                  "pm.test('No credential or internal error fields', () => pm.expect(safeKeys(body)).to.eql(true));",
+                  "pm.test('List count is correct', () => { if (Array.isArray(body.data)) { pm.expect(body.meta.count).to.eql(body.data.length); } });"
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "04 Resources",
+      "item": [
+        {
+          "name": "Learning resources",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Demo-Student-Code",
+                "value": "{{demo_student_code}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/me/resources",
+            "description": "Development PostgreSQL model only. This is NOT the production DLU LMS API."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected HTTP status', () => pm.response.to.have.status(200));",
+                  "pm.test('JSON response', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const body = pm.response.json();",
+                  "pm.test('Data contract', () => pm.expect(body).to.have.property('data'));",
+                  "function safeKeys(value) { if (!value || typeof value !== 'object') return true; return Object.entries(value).every(([key, val]) => !/password|token|authorization|database.?url|stack|sql/i.test(key) && safeKeys(val)); }",
+                  "pm.test('No credential or internal error fields', () => pm.expect(safeKeys(body)).to.eql(true));",
+                  "pm.test('List count is correct', () => { if (Array.isArray(body.data)) { pm.expect(body.meta.count).to.eql(body.data.length); } });"
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "05 Assignments",
+      "item": [
+        {
+          "name": "Assignments",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Demo-Student-Code",
+                "value": "{{demo_student_code}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/me/assignments",
+            "description": "Development PostgreSQL model only. This is NOT the production DLU LMS API."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected HTTP status', () => pm.response.to.have.status(200));",
+                  "pm.test('JSON response', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const body = pm.response.json();",
+                  "pm.test('Data contract', () => pm.expect(body).to.have.property('data'));",
+                  "function safeKeys(value) { if (!value || typeof value !== 'object') return true; return Object.entries(value).every(([key, val]) => !/password|token|authorization|database.?url|stack|sql/i.test(key) && safeKeys(val)); }",
+                  "pm.test('No credential or internal error fields', () => pm.expect(safeKeys(body)).to.eql(true));",
+                  "pm.test('List count is correct', () => { if (Array.isArray(body.data)) { pm.expect(body.meta.count).to.eql(body.data.length); } });"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Assignment status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Demo-Student-Code",
+                "value": "{{demo_student_code}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/me/assignment-status",
+            "description": "Development PostgreSQL model only. This is NOT the production DLU LMS API."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected HTTP status', () => pm.response.to.have.status(200));",
+                  "pm.test('JSON response', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const body = pm.response.json();",
+                  "pm.test('Data contract', () => pm.expect(body).to.have.property('data'));",
+                  "function safeKeys(value) { if (!value || typeof value !== 'object') return true; return Object.entries(value).every(([key, val]) => !/password|token|authorization|database.?url|stack|sql/i.test(key) && safeKeys(val)); }",
+                  "pm.test('No credential or internal error fields', () => pm.expect(safeKeys(body)).to.eql(true));",
+                  "pm.test('List count is correct', () => { if (Array.isArray(body.data)) { pm.expect(body.meta.count).to.eql(body.data.length); } });"
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "06 Grades",
+      "item": [
+        {
+          "name": "Grades and feedback",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Demo-Student-Code",
+                "value": "{{demo_student_code}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/me/grades",
+            "description": "Development PostgreSQL model only. This is NOT the production DLU LMS API."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected HTTP status', () => pm.response.to.have.status(200));",
+                  "pm.test('JSON response', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const body = pm.response.json();",
+                  "pm.test('Data contract', () => pm.expect(body).to.have.property('data'));",
+                  "function safeKeys(value) { if (!value || typeof value !== 'object') return true; return Object.entries(value).every(([key, val]) => !/password|token|authorization|database.?url|stack|sql/i.test(key) && safeKeys(val)); }",
+                  "pm.test('No credential or internal error fields', () => pm.expect(safeKeys(body)).to.eql(true));",
+                  "pm.test('List count is correct', () => { if (Array.isArray(body.data)) { pm.expect(body.meta.count).to.eql(body.data.length); } });"
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "07 Progress",
+      "item": [
+        {
+          "name": "Learning progress",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Demo-Student-Code",
+                "value": "{{demo_student_code}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/me/progress",
+            "description": "Development PostgreSQL model only. This is NOT the production DLU LMS API."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected HTTP status', () => pm.response.to.have.status(200));",
+                  "pm.test('JSON response', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const body = pm.response.json();",
+                  "pm.test('Data contract', () => pm.expect(body).to.have.property('data'));",
+                  "function safeKeys(value) { if (!value || typeof value !== 'object') return true; return Object.entries(value).every(([key, val]) => !/password|token|authorization|database.?url|stack|sql/i.test(key) && safeKeys(val)); }",
+                  "pm.test('No credential or internal error fields', () => pm.expect(safeKeys(body)).to.eql(true));",
+                  "pm.test('List count is correct', () => { if (Array.isArray(body.data)) { pm.expect(body.meta.count).to.eql(body.data.length); } });"
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "08 Deadlines",
+      "item": [
+        {
+          "name": "Upcoming deadlines",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Demo-Student-Code",
+                "value": "{{demo_student_code}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/me/deadlines",
+            "description": "Development PostgreSQL model only. This is NOT the production DLU LMS API."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected HTTP status', () => pm.response.to.have.status(200));",
+                  "pm.test('JSON response', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const body = pm.response.json();",
+                  "pm.test('Data contract', () => pm.expect(body).to.have.property('data'));",
+                  "function safeKeys(value) { if (!value || typeof value !== 'object') return true; return Object.entries(value).every(([key, val]) => !/password|token|authorization|database.?url|stack|sql/i.test(key) && safeKeys(val)); }",
+                  "pm.test('No credential or internal error fields', () => pm.expect(safeKeys(body)).to.eql(true));",
+                  "pm.test('List count is correct', () => { if (Array.isArray(body.data)) { pm.expect(body.meta.count).to.eql(body.data.length); } });"
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "09 Overview",
+      "item": [
+        {
+          "name": "Student learning overview",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Demo-Student-Code",
+                "value": "{{demo_student_code}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/me/overview",
+            "description": "Development PostgreSQL model only. This is NOT the production DLU LMS API."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected HTTP status', () => pm.response.to.have.status(200));",
+                  "pm.test('JSON response', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const body = pm.response.json();",
+                  "pm.test('Data contract', () => pm.expect(body).to.have.property('data'));",
+                  "function safeKeys(value) { if (!value || typeof value !== 'object') return true; return Object.entries(value).every(([key, val]) => !/password|token|authorization|database.?url|stack|sql/i.test(key) && safeKeys(val)); }",
+                  "pm.test('No credential or internal error fields', () => pm.expect(safeKeys(body)).to.eql(true));",
+                  "pm.test('List count is correct', () => { if (Array.isArray(body.data)) { pm.expect(body.meta.count).to.eql(body.data.length); } });"
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "10 Negative & Security Tests",
+      "item": [
+        {
+          "name": "Missing identity",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/api/v1/me/courses",
+            "description": "Development PostgreSQL model only. This is NOT the production DLU LMS API."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected HTTP status', () => pm.response.to.have.status(401));",
+                  "pm.test('JSON response', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const body = pm.response.json();",
+                  "pm.test('Safe error contract', () => { pm.expect(body.error.code).to.be.a('string'); pm.expect(body.error.message).to.be.a('string'); });",
+                  "function safeKeys(value) { if (!value || typeof value !== 'object') return true; return Object.entries(value).every(([key, val]) => !/password|token|authorization|database.?url|stack|sql/i.test(key) && safeKeys(val)); }",
+                  "pm.test('No credential or internal error fields', () => pm.expect(safeKeys(body)).to.eql(true));",
+                  "pm.test('List count is correct', () => { if (Array.isArray(body.data)) { pm.expect(body.meta.count).to.eql(body.data.length); } });"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Inaccessible course for SV001",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Demo-Student-Code",
+                "value": "{{demo_student_code}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/me/courses/3/content",
+            "description": "Development PostgreSQL model only. This is NOT the production DLU LMS API."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected HTTP status', () => pm.response.to.have.status(404));",
+                  "pm.test('JSON response', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const body = pm.response.json();",
+                  "pm.test('Safe error contract', () => { pm.expect(body.error.code).to.be.a('string'); pm.expect(body.error.message).to.be.a('string'); });",
+                  "function safeKeys(value) { if (!value || typeof value !== 'object') return true; return Object.entries(value).every(([key, val]) => !/password|token|authorization|database.?url|stack|sql/i.test(key) && safeKeys(val)); }",
+                  "pm.test('No credential or internal error fields', () => pm.expect(safeKeys(body)).to.eql(true));",
+                  "pm.test('List count is correct', () => { if (Array.isArray(body.data)) { pm.expect(body.meta.count).to.eql(body.data.length); } });"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Unknown course",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Demo-Student-Code",
+                "value": "{{demo_student_code}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/me/courses/999999999/content",
+            "description": "Development PostgreSQL model only. This is NOT the production DLU LMS API."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected HTTP status', () => pm.response.to.have.status(404));",
+                  "pm.test('JSON response', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const body = pm.response.json();",
+                  "pm.test('Safe error contract', () => { pm.expect(body.error.code).to.be.a('string'); pm.expect(body.error.message).to.be.a('string'); });",
+                  "function safeKeys(value) { if (!value || typeof value !== 'object') return true; return Object.entries(value).every(([key, val]) => !/password|token|authorization|database.?url|stack|sql/i.test(key) && safeKeys(val)); }",
+                  "pm.test('No credential or internal error fields', () => pm.expect(safeKeys(body)).to.eql(true));",
+                  "pm.test('List count is correct', () => { if (Array.isArray(body.data)) { pm.expect(body.meta.count).to.eql(body.data.length); } });"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Reject identity override query",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Demo-Student-Code",
+                "value": "{{demo_student_code}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/me/grades?studentCode=SV002",
+            "description": "Development PostgreSQL model only. This is NOT the production DLU LMS API."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected HTTP status', () => pm.response.to.have.status(400));",
+                  "pm.test('JSON response', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const body = pm.response.json();",
+                  "pm.test('Safe error contract', () => { pm.expect(body.error.code).to.be.a('string'); pm.expect(body.error.message).to.be.a('string'); });",
+                  "function safeKeys(value) { if (!value || typeof value !== 'object') return true; return Object.entries(value).every(([key, val]) => !/password|token|authorization|database.?url|stack|sql/i.test(key) && safeKeys(val)); }",
+                  "pm.test('No credential or internal error fields', () => pm.expect(safeKeys(body)).to.eql(true));",
+                  "pm.test('List count is correct', () => { if (Array.isArray(body.data)) { pm.expect(body.meta.count).to.eql(body.data.length); } });"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "No submission route",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Demo-Student-Code",
+                "value": "{{demo_student_code}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/assignments/1/submit",
+            "description": "Development PostgreSQL model only. This is NOT the production DLU LMS API."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected HTTP status', () => pm.response.to.have.status(404));",
+                  "pm.test('JSON response', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const body = pm.response.json();",
+                  "pm.test('Safe error contract', () => { pm.expect(body.error.code).to.be.a('string'); pm.expect(body.error.message).to.be.a('string'); });",
+                  "function safeKeys(value) { if (!value || typeof value !== 'object') return true; return Object.entries(value).every(([key, val]) => !/password|token|authorization|database.?url|stack|sql/i.test(key) && safeKeys(val)); }",
+                  "pm.test('No credential or internal error fields', () => pm.expect(safeKeys(body)).to.eql(true));",
+                  "pm.test('List count is correct', () => { if (Array.isArray(body.data)) { pm.expect(body.meta.count).to.eql(body.data.length); } });"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "No grading route",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Demo-Student-Code",
+                "value": "{{demo_student_code}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/teacher/grades",
+            "description": "Development PostgreSQL model only. This is NOT the production DLU LMS API."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected HTTP status', () => pm.response.to.have.status(404));",
+                  "pm.test('JSON response', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const body = pm.response.json();",
+                  "pm.test('Safe error contract', () => { pm.expect(body.error.code).to.be.a('string'); pm.expect(body.error.message).to.be.a('string'); });",
+                  "function safeKeys(value) { if (!value || typeof value !== 'object') return true; return Object.entries(value).every(([key, val]) => !/password|token|authorization|database.?url|stack|sql/i.test(key) && safeKeys(val)); }",
+                  "pm.test('No credential or internal error fields', () => pm.expect(safeKeys(body)).to.eql(true));",
+                  "pm.test('List count is correct', () => { if (Array.isArray(body.data)) { pm.expect(body.meta.count).to.eql(body.data.length); } });"
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    }
+  ]
+}

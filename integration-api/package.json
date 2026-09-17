@@ -1,0 +1,33 @@
+{
+  "name": "dlu-student-support-integration-api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "scripts": {
+    "dev": "node --env-file=.env --experimental-strip-types src/server.ts",
+    "start": "node dist/src/server.js",
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc --noEmit",
+    "test": "node --experimental-strip-types --test test/*.test.ts",
+    "db:verify": "node --env-file=.env --experimental-strip-types scripts/verify-database.ts",
+    "test:neon": "node --env-file=.env --experimental-strip-types scripts/neon-smoke.ts",
+    "export:contracts": "node --experimental-strip-types scripts/export-contracts.ts",
+    "format": "prettier --write src test scripts package.json tsconfig.json",
+    "format:check": "prettier --check src test scripts package.json tsconfig.json"
+  },
+  "dependencies": {
+    "@fastify/swagger": "9.8.1",
+    "@fastify/swagger-ui": "6.1.1",
+    "fastify": "5.12.4",
+    "pg": "8.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "24.13.5",
+    "@types/pg": "8.23.1",
+    "prettier": "3.9.6",
+    "typescript": "5.9.3"
+  }
+}

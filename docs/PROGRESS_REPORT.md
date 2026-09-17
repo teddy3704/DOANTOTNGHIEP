@@ -1,5 +1,20 @@
 # Progress Report
 
+## 2026-09-17 — Dedicated Integration API staging preparation
+
+- Resumed the approved Render deployment chain without changing Flutter or the
+  database. Created `integration-api-render-staging` from the actual baseline;
+  preserved all unrelated uncommitted work and the original C workspace.
+- Verified remote main at `c773b7e`; only the dedicated branch is authorized for
+  publish. The private environment file remains ignored.
+- Fixed staging Swagger to use same-origin requests; added staged-blob secret
+  scanning with sanitized output. Format/typecheck/build and 50/50 tests PASS;
+  regenerated safe OpenAPI/Postman artifacts.
+- Configured the Render form for Node/Free/Singapore and the real build/start
+  commands. No service deployment or public staging test is claimed yet.
+- Public Render and Postman staging gates remain prerequisites for Flutter.
+  See `INTEGRATION_STATUS.md` for current deployment/secret handoff evidence.
+
 ## 2026-08-12 — Phase 0 Repository & Environment Audit
 
 ### Công việc đã thực hiện
