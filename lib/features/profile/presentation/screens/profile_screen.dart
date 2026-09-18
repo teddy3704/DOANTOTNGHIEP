@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/theme/app_tokens.dart';
 import '../../../../app/theme/theme_mode_provider.dart';
+import '../../../../core/config/app_config.dart';
 import '../../../../core/errors/failure_message.dart';
 import '../../../../core/widgets/content_skeleton.dart';
 import '../../../../core/widgets/error_state.dart';
@@ -36,6 +37,7 @@ class _ProfileContent extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = Theme.of(context).colorScheme;
     final themeMode = ref.watch(appThemeModeProvider);
+    final config = ref.watch(appConfigProvider);
     return SingleChildScrollView(
       padding: AppLayout.pagePadding,
       child: Center(
@@ -59,69 +61,70 @@ class _ProfileContent extends ConsumerWidget {
                     builder: (context, constraints) {
                       final wide =
                           constraints.maxWidth >= AppLayout.compactBreakpoint;
-                      return Flex(
-                        direction: wide ? Axis.horizontal : Axis.vertical,
+                      final avatar = CircleAvatar(
+                        radius: 46,
+                        backgroundColor: colors.primaryContainer,
+                        foregroundColor: colors.onPrimaryContainer,
+                        child: Text(
+                          _initials(profile.displayName),
+                          style: Theme.of(context).textTheme.headlineMedium
+                              ?.copyWith(
+                                color: colors.onPrimaryContainer,
+                                fontWeight: FontWeight.w800,
+                              ),
+                        ),
+                      );
+                      final identity = Column(
+                        crossAxisAlignment: wide
+                            ? CrossAxisAlignment.start
+                            : CrossAxisAlignment.center,
+                        children: [
+                          Text(
+                            profile.displayName.trim().isEmpty
+                                ? 'Người học'
+                                : profile.displayName,
+                            textAlign: wide ? TextAlign.left : TextAlign.center,
+                            style: Theme.of(context).textTheme.titleLarge
+                                ?.copyWith(fontWeight: FontWeight.w800),
+                          ),
+                          if (profile.roleLabel case final role?) ...[
+                            const SizedBox(height: AppSpacing.xxs),
+                            Text(
+                              role,
+                              textAlign: wide
+                                  ? TextAlign.left
+                                  : TextAlign.center,
+                              style: TextStyle(color: colors.primary),
+                            ),
+                          ],
+                          if (profile.faculty case final faculty?) ...[
+                            const SizedBox(height: AppSpacing.xxs),
+                            Text(
+                              faculty,
+                              textAlign: wide
+                                  ? TextAlign.left
+                                  : TextAlign.center,
+                              style: TextStyle(color: colors.onSurfaceVariant),
+                            ),
+                          ],
+                        ],
+                      );
+                      if (wide) {
+                        return Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            avatar,
+                            const SizedBox(width: AppSpacing.xl),
+                            Expanded(child: identity),
+                          ],
+                        );
+                      }
+                      return Column(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          CircleAvatar(
-                            radius: 46,
-                            backgroundColor: colors.primaryContainer,
-                            foregroundColor: colors.onPrimaryContainer,
-                            child: Text(
-                              _initials(profile.displayName),
-                              style: Theme.of(context).textTheme.headlineMedium
-                                  ?.copyWith(
-                                    color: colors.onPrimaryContainer,
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                            ),
-                          ),
-                          SizedBox(
-                            width: wide ? AppSpacing.xl : 0,
-                            height: wide ? 0 : AppSpacing.md,
-                          ),
-                          Expanded(
-                            flex: wide ? 1 : 0,
-                            child: Column(
-                              crossAxisAlignment: wide
-                                  ? CrossAxisAlignment.start
-                                  : CrossAxisAlignment.center,
-                              children: [
-                                Text(
-                                  profile.displayName.trim().isEmpty
-                                      ? 'Người học'
-                                      : profile.displayName,
-                                  textAlign: wide
-                                      ? TextAlign.left
-                                      : TextAlign.center,
-                                  style: Theme.of(context).textTheme.titleLarge
-                                      ?.copyWith(fontWeight: FontWeight.w800),
-                                ),
-                                if (profile.roleLabel case final role?) ...[
-                                  const SizedBox(height: AppSpacing.xxs),
-                                  Text(
-                                    role,
-                                    textAlign: wide
-                                        ? TextAlign.left
-                                        : TextAlign.center,
-                                    style: TextStyle(color: colors.primary),
-                                  ),
-                                ],
-                                if (profile.faculty case final faculty?) ...[
-                                  const SizedBox(height: AppSpacing.xxs),
-                                  Text(
-                                    faculty,
-                                    textAlign: wide
-                                        ? TextAlign.left
-                                        : TextAlign.center,
-                                    style: TextStyle(
-                                      color: colors.onSurfaceVariant,
-                                    ),
-                                  ),
-                                ],
-                              ],
-                            ),
-                          ),
+                          avatar,
+                          const SizedBox(height: AppSpacing.md),
+                          identity,
                         ],
                       );
                     },
@@ -135,6 +138,16 @@ class _ProfileContent extends ConsumerWidget {
                     icon: Icons.alternate_email_rounded,
                     title: 'Email',
                     value: email,
+                  ),
+                ),
+              ],
+              if (profile.idNumber case final idNumber?) ...[
+                const SizedBox(height: AppSpacing.md),
+                Card(
+                  child: _InfoTile(
+                    icon: Icons.badge_outlined,
+                    title: 'Mã sinh viên',
+                    value: idNumber,
                   ),
                 ),
               ],
@@ -198,13 +211,15 @@ class _ProfileContent extends ConsumerWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: AppSpacing.xl),
-              OutlinedButton.icon(
-                onPressed: () =>
-                    ref.read(authControllerProvider.notifier).signOut(),
-                icon: const Icon(Icons.logout_rounded),
-                label: const Text('Đăng xuất'),
-              ),
+              if (!config.isStaging) ...[
+                const SizedBox(height: AppSpacing.xl),
+                OutlinedButton.icon(
+                  onPressed: () =>
+                      ref.read(authControllerProvider.notifier).signOut(),
+                  icon: const Icon(Icons.logout_rounded),
+                  label: const Text('Đăng xuất'),
+                ),
+              ],
             ],
           ),
         ),

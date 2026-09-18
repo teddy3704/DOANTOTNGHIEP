@@ -2,9 +2,12 @@
 
 **Loại:** Implemented foundation + target architecture
 
-**Implementation status:** Phase 2 foundation đã được triển khai. Các module Moodle live và phần được gắn `BLOCKED`/`PROPOSED` vẫn chưa phải chức năng production hoàn chỉnh.
+**Implementation status:** Phase 2 foundation đã được triển khai. The separate
+read-only Student Support staging composition root has passed its Flutter quality
+and emulator verification; các module Moodle live và phần được gắn
+`BLOCKED`/`PROPOSED` vẫn chưa phải chức năng production hoàn chỉnh.
 
-**Cập nhật:** 2026-08-16
+**Cập nhật:** 2026-09-18
 
 ## 1. Architecture goals
 
@@ -56,6 +59,7 @@ lib/
     widgets/
   dev/
     fixtures/
+    student_support_api/
   features/
     assignments/
     auth/
@@ -69,6 +73,7 @@ lib/
     splash/
   main.dart
   main_development.dart
+  main_staging.dart
 test/
   core/
   features/
@@ -117,6 +122,31 @@ flowchart LR
 - Flutter không đọc SQL. `SyntheticFixtureDataSource` tải JSON asset rồi repository ánh xạ sang domain model.
 - `main_development.dart` là composition root duy nhất inject fixture repositories; `main.dart` không import hoặc fallback sang chúng.
 - Quan hệ đa hình/không có FK vật lý trên nguồn, ví dụ `course_modules.instance`, được ghi là `LOCAL_SYNTHETIC_CONVENTION` trong fixture và không được nâng thành live API contract.
+
+### Explicit Student Support staging boundary
+
+```mermaid
+flowchart LR
+    StagingMain["main_staging.dart\nexplicit selection"] --> StagingConfig["StudentSupportStagingConfig\nHTTPS origin + sample identity"]
+    StagingConfig --> StagingClient["StudentSupportApiClient\nstatic GET allowlist"]
+    StagingClient --> StagingRepos["Typed staging repositories"]
+    StagingRepos --> Contracts["Existing domain contracts/providers"]
+    Contracts --> StudentUI["Read-only student screens"]
+    ProdMain["main.dart"] -. "does not select or fallback" .-> StagingClient
+    StagingClient --> DevApi["Student Support development API\nRender staging"]
+```
+
+- `main_staging.dart` is intentionally separate from production and fixture roots.
+  It restores a read-only preview session from the staging profile endpoint; it does
+  not perform DLU password authentication or persist a DLU credential.
+- `StudentSupportApiClient` accepts only the documented HTTPS origin and 11 GET
+  contract paths. It sends no Moodle token, database secret, arbitrary query or
+  write request.
+- This boundary is development/staging-only. `STAGING_FLUTTER_CONSUMER_GATE=PASS`:
+  `dart format .`, `flutter analyze` and `flutter test` (93 tests) passed, and the
+  Android emulator verified Dashboard, Courses, Course Detail, Resource Detail,
+  Assignment Detail, Grades, Calendar and Profile. It does not change the target
+  production architecture in section 2 or add DLU authentication/write support.
 
 ## 4. Layer responsibilities
 
@@ -180,6 +210,10 @@ Compile-time/runtime configuration tối thiểu dự kiến:
 - `MOODLE_BASE_URL` — mặc định development có thể trỏ DLU URL, nhưng phải validate HTTPS ở production.
 - `SUPABASE_URL` — chỉ origin HTTPS của project được duyệt; không path/query/userinfo.
 - `SUPABASE_PUBLISHABLE_KEY` — allowlist đúng `sb_publishable_*` hoặc legacy JWT role `anon`; opaque, user JWT, `sb_secret_*` và legacy `service_role` đều bị từ chối.
+- `STUDENT_SUPPORT_API_BASE_URL` — HTTPS origin only for the explicitly selected
+  non-production Student Support staging entrypoint; never read by `main.dart`.
+- `STUDENT_SUPPORT_STUDENT_CODE` — synthetic development identity accepted only
+  by that staging API; it is not a password, Moodle token or production secret.
 - authentication strategy identifier — chỉ sau khi DLU xác nhận.
 - non-secret network timeout values.
 - build flavor/environment label để ngăn nhầm staging/production.
@@ -249,6 +283,11 @@ flowchart LR
 - Dio/HTTP failure mapping; Moodle body-level exception-envelope parsing vẫn `BLOCKED` đến khi response contract DLU được xác minh;
 - cancellation qua Dio `CancelToken`.
 - raw `DioException`, request options, headers, body và response không được giữ trong `AppFailure`; network diagnostic chỉ chứa method/path cùng-origin đã khử query, status và Dio type.
+
+`StudentSupportApiClient` is a separate, staging-only read client rather than a
+configuration switch for `MoodleApiClient`. It enforces its own HTTPS/same-origin
+and static-GET-route boundary; staging response parsing fails closed without a
+fixture fallback.
 
 Correlation ID, safe retry và file download progress được giữ cho phase API thật sau khi contract tồn tại.
 
@@ -341,3 +380,4 @@ Release signing/CI/CD chưa được thiết kế chi tiết vì application ide
 | ADR-010 | Android compile SDK 36; pin secure storage 10.3.1 pending stable API 37 tooling | ACCEPTED |
 | ADR-011 | Supabase chỉ lưu app-owned `mobile_preferences`; Moodle tiếp tục là LMS source of truth | ACCEPTED/IMPLEMENTED LOCALLY |
 | ADR-012 | Supabase authenticated session phải dùng verified one-login UUID `sub`; anonymous/second login bị cấm | BLOCKED — project + identity mapping |
+| ADR-013 | Student Support development API được tiêu thụ qua `main_staging.dart` explicit read-only boundary, không là production fallback | IMPLEMENTED / staging quality gate PASS |

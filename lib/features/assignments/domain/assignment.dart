@@ -1,6 +1,14 @@
 enum AssignmentTiming { future, soon, overdue }
 
-enum SubmissionState { notSubmitted, draft, submitted, graded }
+enum SubmissionState {
+  notSubmitted,
+  draft,
+  submitted,
+  late,
+  graded,
+  returnedForResubmission,
+  missing,
+}
 
 class AssignmentDetail {
   const AssignmentDetail({
@@ -25,7 +33,7 @@ class AssignmentDetail {
   final String description;
   final DateTime dueAt;
   final DateTime allowsSubmissionsFrom;
-  final DateTime cutoffAt;
+  final DateTime? cutoffAt;
   final AssignmentTiming timing;
   final SubmissionState submissionState;
   final DateTime? submittedAt;
@@ -41,7 +49,10 @@ extension SubmissionStateLabel on SubmissionState {
     SubmissionState.notSubmitted => 'Chưa nộp',
     SubmissionState.draft => 'Bản nháp',
     SubmissionState.submitted => 'Đã nộp · Chờ chấm',
+    SubmissionState.late => 'Nộp trễ · Chờ chấm',
     SubmissionState.graded => 'Đã chấm',
+    SubmissionState.returnedForResubmission => 'Cần nộp lại',
+    SubmissionState.missing => 'Chưa nộp',
   };
 }
 

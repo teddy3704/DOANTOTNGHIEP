@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-enum AppEnvironment { development, production }
+enum AppEnvironment { development, staging, production }
 
 class AppConfig {
   AppConfig({
@@ -9,9 +9,9 @@ class AppConfig {
     required this.enableDevFixtures,
     this.appName = 'DLU LMS Mobile',
   }) : moodleBaseUri = _normalizeMoodleOrigin(moodleBaseUri) {
-    if (environment == AppEnvironment.production && enableDevFixtures) {
+    if (environment != AppEnvironment.development && enableDevFixtures) {
       throw ArgumentError(
-        'DEV fixtures cannot be enabled in a production configuration.',
+        'DEV fixtures can only be enabled in a development configuration.',
       );
     }
   }
@@ -34,12 +34,24 @@ class AppConfig {
     enableDevFixtures: true,
   );
 
+  /// A clearly separated build mode for the development Student Support API.
+  ///
+  /// The staging API configuration and identity live in the development layer;
+  /// production remains fail-closed and never selects that adapter implicitly.
+  factory AppConfig.staging() => AppConfig(
+    environment: AppEnvironment.staging,
+    moodleBaseUri: Uri.parse('https://lms.dlu.edu.vn'),
+    enableDevFixtures: false,
+  );
+
   final AppEnvironment environment;
   final Uri moodleBaseUri;
   final bool enableDevFixtures;
   final String appName;
 
   bool get isProduction => environment == AppEnvironment.production;
+
+  bool get isStaging => environment == AppEnvironment.staging;
 
   static Uri _normalizeMoodleOrigin(Uri uri) {
     if (!uri.hasScheme || uri.scheme.toLowerCase() != 'https') {

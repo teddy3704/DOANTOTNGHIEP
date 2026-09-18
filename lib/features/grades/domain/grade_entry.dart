@@ -3,7 +3,7 @@ class GradeEntry {
     required this.id,
     required this.courseId,
     required this.itemName,
-    required this.minimum,
+    this.minimum,
     required this.maximum,
     required this.hidden,
     this.finalGrade,
@@ -13,7 +13,7 @@ class GradeEntry {
   final String id;
   final String courseId;
   final String itemName;
-  final double minimum;
+  final double? minimum;
   final double maximum;
   final bool hidden;
   final double? finalGrade;
@@ -21,8 +21,10 @@ class GradeEntry {
 
   double? get fraction {
     final value = finalGrade;
-    final span = maximum - minimum;
-    if (value == null || span <= 0) return null;
-    return ((value - minimum) / span).clamp(0, 1);
+    final lowerBound = minimum;
+    if (value == null || lowerBound == null) return null;
+    final span = maximum - lowerBound;
+    if (span <= 0) return null;
+    return ((value - lowerBound) / span).clamp(0, 1);
   }
 }

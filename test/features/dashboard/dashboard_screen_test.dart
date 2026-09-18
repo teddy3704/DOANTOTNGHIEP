@@ -1,5 +1,7 @@
 import 'package:dlu_lms_mobile/features/assignments/domain/assignment.dart';
 import 'package:dlu_lms_mobile/features/assignments/domain/assignment_repository.dart';
+import 'package:dlu_lms_mobile/features/auth/domain/auth_repository.dart';
+import 'package:dlu_lms_mobile/features/auth/domain/auth_session.dart';
 import 'package:dlu_lms_mobile/features/calendar/domain/calendar_repository.dart';
 import 'package:dlu_lms_mobile/features/calendar/domain/learning_event.dart';
 import 'package:dlu_lms_mobile/features/courses/domain/course.dart';
@@ -61,6 +63,29 @@ void main() {
       expect(visibleText, isNot(contains(forbidden)));
     }
   });
+
+  testWidgets(
+    'keeps a meaningful greeting when a preview name ends in digits',
+    (tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: <Override>[
+            authRepositoryProvider.overrideWithValue(const _SessionAuth()),
+            courseRepositoryProvider.overrideWithValue(_CourseRepository()),
+            assignmentRepositoryProvider.overrideWithValue(
+              _AssignmentRepository(),
+            ),
+            calendarRepositoryProvider.overrideWithValue(_CalendarRepository()),
+          ],
+          child: const MaterialApp(home: Scaffold(body: DashboardScreen())),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Xin chào, Sinh viên mẫu'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
 }
 
 class _CourseRepository implements CourseRepository {
@@ -82,8 +107,10 @@ class _CourseRepository implements CourseRepository {
 
 class _AssignmentRepository implements AssignmentRepository {
   @override
-  Future<AssignmentDetail> getAssignment(String assignmentId) async =>
-      (await getAssignments()).first;
+  Future<AssignmentDetail> getAssignment(
+    String assignmentId, {
+    String? courseId,
+  }) async => (await getAssignments()).first;
 
   @override
   Future<List<AssignmentDetail>> getAssignments({String? courseId}) async =>
@@ -113,4 +140,21 @@ class _CalendarRepository implements CalendarRepository {
       eventType: 'course',
     ),
   ];
+}
+
+class _SessionAuth implements AuthRepository {
+  const _SessionAuth();
+
+  @override
+  Future<AuthSession?> restoreSession() async =>
+      const AuthSession(userId: 'SV001', displayName: 'Sinh viên mẫu 01');
+
+  @override
+  Future<AuthSession> signIn({
+    required String username,
+    required String password,
+  }) => throw UnimplementedError();
+
+  @override
+  Future<void> signOut() async {}
 }

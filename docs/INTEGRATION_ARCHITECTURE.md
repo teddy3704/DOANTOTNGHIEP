@@ -1,17 +1,17 @@
 # Kiến trúc Development Integration API
 
 Phạm vi hiện tại: **STUDENT SUPPORT ONLY**. Tài liệu này mô tả lớp API phát triển
-độc lập trong `integration-api/`; không thay đổi hoặc xác nhận kết nối Flutter.
-**This is NOT the production DLU LMS API.**
+độc lập trong `integration-api/` và consumer Flutter staging chỉ đọc đã được
+xác minh trong clean worktree. **This is NOT the production DLU LMS API.**
 
 ## Current development
 
 Schema Moodle do GVHD cung cấp là cơ sở phân tích. Mô hình PostgreSQL trong Neon
 chứa dữ liệu mẫu, không phải bản sao dữ liệu sinh viên DLU. Luồng hiện tại là:
-schema tham chiếu → mô hình Neon → Development Integration API → Swagger/Postman.
-Mobile là bên sử dụng trong tương lai, chưa được nối vào API trong phase này.
-Flutter đã được phê duyệt nhưng chỉ triển khai sau khi Render staging và Postman
-staging đều PASS; local API PASS không thay hai gate đó.
+schema tham chiếu → mô hình Neon → Development Integration API → Swagger/Postman
+→ explicit Flutter staging consumer. Render staging và Postman staging đều đã
+`PASS`; Flutter consumer cũng đã PASS quality/emulator gate riêng. Không có gate
+nào trong số này biến nó thành production hoặc live Moodle integration.
 
 | Thành phần | Trách nhiệm / giới hạn |
 |---|---|
@@ -22,12 +22,29 @@ staging đều PASS; local API PASS không thay hai gate đó.
 | `pg` | Pool nhỏ, TLS kiểm chứng chứng thư, truy vấn tham số hóa trong transaction read-only |
 | `/docs`, `/openapi.json` | Hợp đồng API development; không chứng minh Moodle Web Services DLU đang bật |
 | Postman | Consumer kiểm thử HTTP; không nhận credential kết nối database |
-| Render | Dedicated-branch staging đã được cấp phép; form đã cấu hình, chưa deploy. Trạng thái thực thi ở `INTEGRATION_STATUS.md`, không suy ra PASS từ cấu hình |
+| Render | Dedicated branch `integration-api-render-staging` deploy commit `e241f8a` lên Node Free staging; `/health`, `/docs`, `/openapi.json` đều HTTP 200; chi tiết/evidence ở `INTEGRATION_STATUS.md` |
 
 Identity development lấy từ header `X-Demo-Student-Code`, kiểm tra tài khoản mẫu
 student đang hoạt động. Header này **không phải xác thực**: người dùng biết mã khác
 có thể chọn sinh viên mẫu khác. Chỉ dùng development/staging được phép; không chứa
 PII thật. Các query vẫn phải giới hạn dữ liệu theo principal đã chọn và ghi danh.
+
+## Flutter staging consumer — verified PASS (read-only)
+
+`lib/main_staging.dart` là composition root được chọn tường minh, không phải
+fallback của production. Nó inject `StudentSupportApiClient` và staging
+repositories vào contract/domain provider đã có, nên presentation giữ cùng flow
+Student Dashboard/Courses/Content/Assignments/Grades/Calendar/Profile. Client chỉ
+cho phép HTTPS, origin đã cấu hình, 11 GET route contract và header development
+identity; không gửi password, token Moodle, `Authorization` header, database
+credential hoặc mutation request.
+
+Staging preview không thay thế đăng nhập DLU: `main.dart` tiếp tục fail closed và
+`main_development.dart` tiếp tục là fixture boundary riêng. `dart format .`,
+`flutter analyze` và `flutter test` (93 tests) đã PASS. Emulator đã xác minh
+Dashboard, Courses, Course Detail, Resource Detail, Assignment Detail, Grades,
+Calendar và Profile. Không có password login DLU, upload, submission, grading hay
+write workflow nào được thêm hoặc giả lập ở boundary này.
 
 API tái sử dụng `vw_assignment_status`, không tạo view trùng chỉ để đổi tên thành
 `vw_student_assignment_status`. Hai teacher views hiện có trong mô hình phân tích
@@ -60,8 +77,9 @@ DLU xác nhận; không ghép URL từ ID Neon. Nộp bài phải diễn ra trê
 ## Chất lượng và trạng thái
 
 Các gate build/test/real-Neon/browser phải có bằng chứng thực thi riêng ở
-`API_TEST_RESULT.md` và `INTEGRATION_STATUS.md`. Kiến trúc, export hoặc test dùng
-test doubles không tự chứng minh Postman Web, Render hay production DLU PASS.
+`API_TEST_RESULT.md` và `INTEGRATION_STATUS.md`. Render/Postman staging và
+Flutter read-only consumer đều đã PASS với evidence riêng; kiến trúc, export hoặc
+test dùng test doubles không tự chứng minh production DLU PASS.
 
 Nguồn kỹ thuật: [Fastify validation và serialization](https://fastify.dev/docs/latest/Reference/Validation-and-Serialization/)
 cho schema request/response; [node-postgres SSL](https://node-postgres.com/features/ssl)

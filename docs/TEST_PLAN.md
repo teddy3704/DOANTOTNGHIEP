@@ -4,6 +4,25 @@
 
 **Current executable test result:** `PASS — Moodle fixture validator, Supabase foundation validator, dart format 80 files/0 changed, analyze 0 issues, 73 tests, final production/DEV debug APK builds and Android 15 smoke tests`.
 
+## Student Support Render staging gate — 2026-09-18
+
+- `RENDER_STAGING_GATE=PASS`: public `/health`, `/docs` and `/openapi.json` each
+  returned HTTP 200; OpenAPI 3.0.3 exposes 11 GET operations.
+- `POSTMAN_STAGING_GATE=PASS`: the Render staging environment completed 17
+  requests and 85/85 assertions with zero failed/skipped/errors. A separate
+  status-only smoke run passed ten scoped read endpoints and six expected
+  401/404/404/400/404/404 negative cases.
+- These results prove only the non-production API deployment/contract. They do
+  not prove Moodle DLU authentication, live data, write permission or Flutter UI.
+- `STAGING_FLUTTER_CONSUMER_GATE=PASS`: config/origin/route-isolation unit tests,
+  typed mapper/repository tests and read-only UI widget smoke passed together with
+  `dart format .`, `flutter analyze` and `flutter test` (93 tests). The Android
+  emulator verified Dashboard, Courses, Course Detail, Resource Detail,
+  Assignment Detail, Grades, Calendar and Profile.
+- This consumer remains deliberately read-only. It does not provide DLU password
+  login, upload, submission, grading or another write workflow, and `main.dart`
+  does not select it as a production fallback.
+
 ## Product UI polish gate — 2026-08-16
 
 1. Automated demo flow bao phủ Login → Trang chủ → Khóa học → Course Detail → Assignment → Grades → Lịch → Hồ sơ và kiểm tra logout.

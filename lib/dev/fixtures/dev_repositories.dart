@@ -199,10 +199,17 @@ class DevAssignmentRepository implements AssignmentRepository {
   final SyntheticFixtureDataSource _dataSource;
 
   @override
-  Future<AssignmentDetail> getAssignment(String assignmentId) async {
+  Future<AssignmentDetail> getAssignment(
+    String assignmentId, {
+    String? courseId,
+  }) async {
     final snapshot = await _dataSource.load();
     final row = _rowById(snapshot.table('assign'), int.parse(assignmentId));
-    _requireEnrolledCourse(snapshot, fixtureInt(row, 'course'));
+    final rowCourseId = fixtureInt(row, 'course');
+    _requireEnrolledCourse(snapshot, rowCourseId);
+    if (courseId != null && courseId != rowCourseId.toString()) {
+      throw StateError('Assignment is outside the requested course.');
+    }
     return _assignmentFrom(snapshot, row, _fixtureStudentId);
   }
 

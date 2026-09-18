@@ -12,8 +12,9 @@ Swagger UI `/docs`. OpenAPI **3.0.3** là version được chọn để tương 
 Fastify Swagger/UI hiện tại; không khai báo 3.1/3.2 khi chưa được pipeline xác nhận.
 Không đưa LMS DLU vào OpenAPI `servers`. Development dùng localhost như trên;
 staging dùng server tương đối `/` (same-origin), để Swagger gửi request về đúng
-host đang phục vụ API thay vì localhost của người xem. Test đã xác nhận lựa chọn
-server theo environment; chưa có public staging host được xác minh ở checkpoint này.
+host đang phục vụ API thay vì localhost của người xem. Public Render staging đã
+xác minh `/health`, `/docs` và `/openapi.json` HTTP 200; xem
+`INTEGRATION_STATUS.md` cho evidence/negative checks, không coi đó là DLU proof.
 
 Mọi `/api/v1/me` endpoint yêu cầu `X-Demo-Student-Code`, ví dụ `SV001`. Mã phải
 đúng pattern `^SV[0-9]{3}$` và là student mẫu đang hoạt động trong data source.
@@ -108,8 +109,11 @@ liệu không bí mật và kết quả thật.
 Nguồn tương lai từng endpoint được truy vết ở `TRACEABILITY_MATRIX.md`; upstream
 Moodle candidates **không phải** xác nhận DLU đã enable. SV-06 chỉ design deep-link,
 SV-09 hiện có assignment deadline chứ chưa general calendar events endpoint,
-SV-10 reminders app-owned chưa triển khai. Resource binary/open action, Flutter
-integration, DLU identity và staging Render không được suy ra từ contract này.
+SV-10 reminders app-owned chưa triển khai. Resource binary/open action và DLU
+identity không được suy ra từ contract này. Flutter staging consumer đã PASS
+quality/emulator gate riêng qua explicit entrypoint chỉ đọc; nó không thay đổi
+contract thành production Moodle integration hoặc cấp quyền upload/submission/
+grading.
 
 Versioned route `/api/v1` cho phép evolve contract có kiểm soát. Thay data source
 không được âm thầm đổi ownership/visibility hoặc đưa synthetic data vào production.

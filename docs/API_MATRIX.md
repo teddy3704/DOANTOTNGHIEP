@@ -16,6 +16,16 @@
 | External/mobile service | No enabled service evidence | `UNKNOWN` | Service shortname and function allowlist must not be guessed |
 | Successful API response | None | `0 VERIFIED_API` | No live DTO/repository may be implemented from HTML |
 
+## Separate development/staging boundary — not DLU evidence
+
+The Student Support development API is independently verified on Render staging:
+11 GET operations, public `/health`/`/docs`/`/openapi.json` HTTP 200, a 19-check
+read-only smoke run and Postman 85/85 assertions all passed. Its `X-Demo-Student-Code`
+header identifies only synthetic development records; it is not DLU authentication
+and does not change any row above. The Flutter `main_staging.dart` consumer has
+passed its separate read-only quality/emulator gate and must never become a
+fallback inside `main.dart`.
+
 ## Read-only integration matrix
 
 | App Feature | DLU Evidence | Moodle Function | Verified | Permission | Response Verified | Flutter Status |

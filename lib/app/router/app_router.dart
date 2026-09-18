@@ -13,6 +13,7 @@ import '../../features/dashboard/presentation/widgets/app_shell.dart';
 import '../../features/grades/presentation/screens/grades_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../../features/splash/presentation/splash_screen.dart';
+import '../../core/widgets/staging_read_only_notice.dart';
 import 'app_routes.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -90,22 +91,28 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.assignmentDetail,
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => AssignmentScreen(
-          courseId: state.pathParameters['courseId']!,
-          assignmentId: state.pathParameters['assignmentId']!,
+        builder: (context, state) => StagingReadOnlyFrame(
+          child: AssignmentScreen(
+            courseId: state.pathParameters['courseId']!,
+            assignmentId: state.pathParameters['assignmentId']!,
+          ),
         ),
       ),
       GoRoute(
         path: AppRoutes.courseGrades,
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) =>
-            GradesScreen(courseId: state.pathParameters['courseId']!),
+        builder: (context, state) => StagingReadOnlyFrame(
+          child: GradesScreen(courseId: state.pathParameters['courseId']!),
+        ),
       ),
       GoRoute(
         path: AppRoutes.courseDetail,
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) =>
-            CourseDetailScreen(courseId: state.pathParameters['courseId']!),
+        builder: (context, state) => StagingReadOnlyFrame(
+          child: CourseDetailScreen(
+            courseId: state.pathParameters['courseId']!,
+          ),
+        ),
       ),
     ],
   );

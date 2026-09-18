@@ -40,10 +40,7 @@ class DashboardScreen extends ConsumerWidget {
       for (final course in courses.asData?.value ?? const <Course>[])
         course.id: course,
     };
-    final displayName = auth.session?.displayName.trim();
-    final firstName = displayName == null || displayName.isEmpty
-        ? 'bạn'
-        : displayName.split(RegExp(r'\s+')).last;
+    final firstName = _greetingName(auth.session?.displayName);
 
     return RefreshIndicator(
       onRefresh: () => _refresh(ref),
@@ -239,6 +236,17 @@ class DashboardScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+String _greetingName(String? displayName) {
+  final normalized = displayName?.trim() ?? '';
+  if (normalized.isEmpty) return 'bạn';
+  final parts = normalized.split(RegExp(r'\s+'));
+  final last = parts.last;
+  if (RegExp(r'^\d+$').hasMatch(last)) {
+    return parts.length == 1 ? 'bạn' : parts.take(parts.length - 1).join(' ');
+  }
+  return last;
 }
 
 class _Greeting extends StatelessWidget {

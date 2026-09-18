@@ -21,13 +21,20 @@ Postman ran the staging environment successfully: 17 requests, 85/85 assertions,
 zero failed/skipped/errors. The reviewed Render deployment log contained no
 database credential or connection string.
 
-**RENDER_STAGING_GATE: PASS. POSTMAN_STAGING_GATE: PASS.** Flutter Student
-Support may start only in a clean isolated worktree so pre-existing local demo and
-Flutter work is preserved. Earlier database/API/local Postman results are retained,
-not restated as production Moodle verification. Authoritative evidence:
-`INTEGRATION_STATUS.md` and `ADVISOR_EVIDENCE_INDEX.md`.
+**RENDER_STAGING_GATE: PASS. POSTMAN_STAGING_GATE: PASS.
+STAGING_FLUTTER_CONSUMER_GATE: PASS (read-only).** The isolated clean worktree's
+explicit `main_staging.dart` composition root is separate from `main.dart` and
+uses the Student Support staging API boundary only. `dart format .`,
+`flutter analyze` and `flutter test` (93 tests) passed; Android emulator
+verification covered Dashboard, Courses, Course Detail, Resource Detail,
+Assignment Detail, Grades, Calendar and Profile. The consumer has no DLU password
+login, upload, submission, grading or other write workflow, and none is
+fabricated. It is not evidence of production Moodle authentication or write access;
+production Moodle remains `BLOCKED_EXTERNAL`. Earlier database/API/local Postman
+results are retained, not restated as production Moodle verification. Authoritative
+evidence: `INTEGRATION_STATUS.md` and `ADVISOR_EVIDENCE_INDEX.md`.
 
-**Cập nhật:** 2026-08-16 (Asia/Saigon)
+**Cập nhật:** 2026-09-18 (Asia/Saigon)
 
 **Milestone:** Production UX Polish + Moodle Schema/Synthetic Student Core + Secure Supabase Foundation
 
@@ -222,8 +229,11 @@ Không yêu cầu production admin password và không cần production database
 
 ## NEXT STEP
 
-1. Dùng bộ tài liệu `docs/database/` và `docs/FEATURE_DATA_TRACEABILITY.md` cho chương Database Analysis/bảo vệ; không xin database thật trong phase này.
-2. Chọn/tạo project Supabase non-production dành riêng cho app, xác minh DLU → Supabase stable UUID identity mapping; sau đó apply migration, chạy 28 pgTAP assertions và Security/Performance Advisors.
-3. DLU LMS administrator phê duyệt mobile integration và bật Web Services + selected REST/mobile/external service, ưu tiên staging/test.
-4. Khi gate live mở, chạy POC đúng thứ tự: auth → current user/site info → own courses → one course content; chỉ sau sanitized successful contracts mới tạo DTO/repository live.
-5. Xác nhận ownership của `vn.edu.dlu.lmsmobile`, branding chính thức và release signing trước Phase 9.
+1. Duy trì boundary Flutter Student Support staging đã xác minh: chỉ dùng GET
+   contract được tài liệu hóa, không đưa credential DLU vào app, và chỉ mở rộng
+   sau khi có contract/capability được phê duyệt.
+2. Dùng bộ tài liệu `docs/database/` và `docs/FEATURE_DATA_TRACEABILITY.md` cho chương Database Analysis/bảo vệ; không xin database thật trong phase này.
+3. Chọn/tạo project Supabase non-production dành riêng cho app, xác minh DLU → Supabase stable UUID identity mapping; sau đó apply migration, chạy 28 pgTAP assertions và Security/Performance Advisors.
+4. DLU LMS administrator phê duyệt mobile integration và bật Web Services + selected REST/mobile/external service, ưu tiên staging/test.
+5. Khi gate live mở, chạy POC đúng thứ tự: auth → current user/site info → own courses → one course content; chỉ sau sanitized successful contracts mới tạo DTO/repository live.
+6. Xác nhận ownership của `vn.edu.dlu.lmsmobile`, branding chính thức và release signing trước Phase 9.

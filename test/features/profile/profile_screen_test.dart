@@ -1,3 +1,4 @@
+import 'package:dlu_lms_mobile/core/config/app_config.dart';
 import 'package:dlu_lms_mobile/features/profile/domain/app_user.dart';
 import 'package:dlu_lms_mobile/features/profile/domain/user_repository.dart';
 import 'package:dlu_lms_mobile/features/profile/presentation/screens/profile_screen.dart';
@@ -17,6 +18,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: <Override>[
+          appConfigProvider.overrideWithValue(AppConfig.development()),
           userRepositoryProvider.overrideWithValue(
             const _UserRepository(
               AppUser(
@@ -49,6 +51,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: <Override>[
+          appConfigProvider.overrideWithValue(AppConfig.development()),
           userRepositoryProvider.overrideWithValue(
             const _UserRepository(
               AppUser(id: 'fictional-user', displayName: ''),
@@ -62,6 +65,35 @@ void main() {
 
     expect(find.text('NH'), findsOneWidget);
     expect(find.text('Người học'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('staging profile retains identity but hides logout', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: <Override>[
+          appConfigProvider.overrideWithValue(AppConfig.staging()),
+          userRepositoryProvider.overrideWithValue(
+            const _UserRepository(
+              AppUser(
+                id: 'SV001',
+                displayName: 'Nguyễn Minh Anh',
+                idNumber: 'SV001',
+                roleLabel: 'Sinh viên',
+              ),
+            ),
+          ),
+        ],
+        child: const MaterialApp(home: Scaffold(body: ProfileScreen())),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Mã sinh viên'), findsOneWidget);
+    expect(find.text('SV001'), findsOneWidget);
+    expect(find.text('Đăng xuất'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 }

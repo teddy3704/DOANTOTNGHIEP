@@ -49,6 +49,19 @@ function Assert-ExpectedBuildLink([string]$Path) {
     }
 }
 
+function Remove-ExpectedBuildLink([string]$Path) {
+    Assert-ExpectedBuildLink $Path
+
+    # Directory.Delete removes the verified junction itself; it does not recurse
+    # into the external D: build target.  Avoid Move-Item here because PowerShell
+    # may dereference a junction and recreate it as a regular directory.
+    [System.IO.Directory]::Delete($Path, $false)
+
+    if (Test-Path -LiteralPath $Path) {
+        throw "Could not remove verified build junction '$Path'."
+    }
+}
+
 function Stop-OneDriveForBuild {
     $oneDrive = Get-Process -Name OneDrive -ErrorAction SilentlyContinue
     New-Item -ItemType Directory -Force -Path $stateRoot | Out-Null
@@ -119,7 +132,11 @@ function Prepare-BuildStorage {
         }
         elseif (Test-Path -LiteralPath $inactiveLink) {
             Assert-ExpectedBuildLink $inactiveLink
-            Move-Item -LiteralPath $inactiveLink -Destination $activeLink
+            Remove-ExpectedBuildLink $inactiveLink
+            New-Item `
+                -ItemType Junction `
+                -Path $activeLink `
+                -Target $expectedTarget | Out-Null
         }
         else {
             New-Item `
@@ -142,23 +159,27 @@ function Prepare-BuildStorage {
 }
 
 function Cleanup-BuildStorage {
-    if ((Test-Path -LiteralPath $activeLink) -and
-        (Test-Path -LiteralPath $inactiveLink)) {
-        throw 'Both active and inactive build junctions exist.'
-    }
+    try {
+        if ((Test-Path -LiteralPath $activeLink) -and
+            (Test-Path -LiteralPath $inactiveLink)) {
+            throw 'Both active and inactive build junctions exist.'
+        }
 
-    if (Test-Path -LiteralPath $activeLink) {
-        Assert-ExpectedBuildLink $activeLink
-        New-Item -ItemType Directory -Force -Path $inactiveRoot | Out-Null
-        Move-Item -LiteralPath $activeLink -Destination $inactiveLink
-    }
+        if (Test-Path -LiteralPath $activeLink) {
+            Remove-ExpectedBuildLink $activeLink
+        }
 
-    if (Test-Path -LiteralPath $inactiveLink) {
-        Assert-ExpectedBuildLink $inactiveLink
-    }
+        # Remove a verified junction left by an earlier version of this script.
+        # A normal directory remains refused by Assert-ExpectedBuildLink.
+        if (Test-Path -LiteralPath $inactiveLink) {
+            Remove-ExpectedBuildLink $inactiveLink
+        }
 
-    Start-OneDriveAfterBuild
-    Write-Output "External build inactive; OneDrive can sync the source tree."
+        Write-Output "External build inactive; OneDrive can sync the source tree."
+    }
+    finally {
+        Start-OneDriveAfterBuild
+    }
 }
 
 function Show-BuildStorageStatus {

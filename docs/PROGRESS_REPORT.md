@@ -1,5 +1,25 @@
 # Progress Report
 
+## 2026-09-18 — Flutter Student Support staging consumer (PASS, read-only)
+
+- Started the Flutter work only after both public staging gates passed, from an
+  isolated clean worktree so unrelated local demo/database work remains untouched.
+- Added an explicit `main_staging.dart` composition root for the verified Student
+  Support staging API. It is read-only, uses typed adapters/repositories behind the
+  existing feature contracts, and is separate from both `main.dart` production and
+  `main_development.dart` fixture composition roots.
+- The staging entrypoint deliberately does not implement DLU password login or
+  production fallback. Its sample identity is a non-secret development header
+  accepted only by the staging API; it is not a DLU account, password or token.
+- `STAGING_FLUTTER_CONSUMER_GATE=PASS`: `dart format .`, `flutter analyze` and
+  `flutter test` passed with 93 tests. The Android emulator verified Dashboard,
+  Courses, Course Detail, Resource Detail, Assignment Detail, Grades, Calendar
+  and Profile; evidence is retained under
+  `docs/screenshots/student-support-staging/`.
+- The adapter is deliberately non-production and read-only. It does not implement
+  DLU password login, upload, submission, grading or another write workflow;
+  `main.dart` remains fail-closed and does not select this consumer as a fallback.
+
 ## 2026-09-18 — Render staging and Postman verification
 
 - Deployed the dedicated `integration-api-render-staging` branch commit `e241f8a`
@@ -17,9 +37,9 @@
   connection string.
 - The user entered the Render database secret directly. It was never read, copied,
   committed, logged, shown in a screenshot or passed to Postman.
-- `RENDER_STAGING_GATE=PASS`; `POSTMAN_STAGING_GATE=PASS`. Flutter Student Support
-  is unblocked, but starts in an isolated clean worktree so existing local demo and
-  Flutter changes remain preserved.
+- `RENDER_STAGING_GATE=PASS`; `POSTMAN_STAGING_GATE=PASS`. The subsequent Flutter
+  Student Support read-only consumer has also passed in an isolated clean worktree,
+  preserving existing local demo and Flutter changes.
 
 ## 2026-09-17 — Dedicated Integration API staging preparation
 

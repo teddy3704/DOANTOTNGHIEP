@@ -124,7 +124,10 @@ class _MemoryAssignmentRepository implements AssignmentRepository {
   int detailRequestCount = 0;
 
   @override
-  Future<AssignmentDetail> getAssignment(String assignmentId) {
+  Future<AssignmentDetail> getAssignment(
+    String assignmentId, {
+    String? courseId,
+  }) {
     detailRequestCount += 1;
     return onGetAssignment(assignmentId);
   }

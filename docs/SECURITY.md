@@ -24,6 +24,23 @@
 - Bộ screenshot product-polish ở `docs/screenshots/production-polish/` chỉ dùng identity/course content hư cấu và domain `example.test`; không chứa token, cookie, password, production DLU payload hoặc dữ liệu tài khoản đang đăng nhập trên browser.
 - Regression tests kiểm tra production credential surface và quét presentation text để ngăn backend terminology/raw blocker code quay lại UI.
 
+## Student Support staging consumer controls — 2026-09-18
+
+- The verified Render service is a development/staging API only. Flutter reaches it
+  only through explicit `main_staging.dart`; `main.dart` neither selects it nor
+  falls back to it.
+- `StudentSupportStagingConfig` accepts a credential-free HTTPS origin and a
+  synthetic development identity format only. The identity header is not DLU
+  authentication, a password, token or authorization grant.
+- `StudentSupportApiClient` has a static read-only GET allowlist for the 11
+  documented routes, rejects an arbitrary origin/path/query, and does not send an
+  `Authorization` header, Moodle credential or database credential.
+- Staging UI identifies itself as a read-only preview without exposing source
+  infrastructure, passwords, tokens, raw errors or database details. Its Flutter
+  format/analyze/test (93 tests) and emulator read-only walkthrough gates have
+  passed; this does not enable DLU authentication, upload, submission, grading or
+  another write workflow.
+
 ## 1. Security invariants
 
 - Production traffic dùng HTTPS.
@@ -60,6 +77,7 @@
 | Cached data after logout/user switch | Cross-user exposure | Namespaced cache; atomic clear on logout/switch | Integration test |
 | Malicious filename/path | File overwrite/path traversal | Safe app-owned directory and sanitized display filename | Unit/integration tests |
 | Accidental production WRITE | Academic data integrity loss | Environment banner/guard; WRITE disabled until approved | Config tests + manual gate |
+| Development identity mistaken for DLU authentication | Unauthorized or misleading production use | Explicit staging-only entrypoint, read-only route allowlist, no production fallback | Source/isolation tests + staging smoke |
 | Supply-chain/dependency issue | App compromise | Minimal dependencies, lockfile review, advisories/license review | CI/release checklist |
 | Secret in Git/database dump | Long-lived exposure | `.gitignore`, pre-commit/CI scan, history review before publish | Secret scan |
 

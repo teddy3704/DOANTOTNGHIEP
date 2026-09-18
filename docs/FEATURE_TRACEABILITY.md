@@ -18,3 +18,17 @@
 ## Interpretation
 
 DEV fixture tests prove the Flutter foundation and UI states only. They are not evidence of DLU production integration. A row can move to live `PASS` only after a DLU-approved authentication path, enabled service/function, sanitized successful response contract, typed mapper, repository wiring and tests all exist.
+
+## Separate Student Support development/staging traceability
+
+| Non-production feature | Verified API contract | Flutter boundary | UI scope | Status / quality gate |
+| --- | --- | --- | --- | --- |
+| Read-only preview session | `/api/v1/me`, HTTPS Render staging, development identity header | `StagingPreviewAuthRepository` through `AuthRepository` | Splash → Login preview state | `PASS`: non-production preview only; no DLU password/token or production fallback |
+| Student profile/dashboard | `/api/v1/me`, `/courses`, `/progress`, `/deadlines`, `/overview` | `StagingUserRepository`, `StagingCourseRepository` | Profile, Dashboard | `PASS`: mapper/provider tests and emulator Dashboard/Profile verification |
+| Courses and content/resources | `/courses`, `/courses/{courseId}/content`, `/resources` | `StagingCourseRepository`, `StagingCourseContentRepository` | Courses, Course Detail, Resource Detail | `PASS`: read-only adapter and emulator route verification; no download/deep-link fabrication |
+| Assignment status and grades | `/assignments`, `/assignment-status`, `/grades` | `StagingAssignmentRepository`, `StagingGradeRepository` | Assignment Detail, Grades | `PASS`: no submit/grade/write route exists or is fabricated |
+| Deadline calendar | `/deadlines` | `StagingCalendarRepository` | Calendar | `PASS`: assignment deadlines only, not a live DLU calendar |
+
+This table traces only the verified development/staging API. It must not be read
+as an update to the production table above: all DLU-specific rows remain
+`BLOCKED_EXTERNAL` until the documented Moodle evidence and approval gates exist.

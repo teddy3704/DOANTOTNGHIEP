@@ -45,7 +45,7 @@ local Flutter/demo/database changes.
 | DLU Moodle Web Services | TO_VERIFY_DLU | No production request or direct DLU database access |
 | DLU authentication/version/functions/deep-link | TO_VERIFY_DLU | Need DLU-supported contract/capabilities |
 | Real DLU API response | NOT_VERIFIED | Neon sample records are not DLU records |
-| Flutter Integration | APPROVED_UNBLOCKED | Start only from a clean isolated worktree; production Moodle remains separately blocked |
+| Flutter Integration | PASS (staging read-only) | Explicit `main_staging.dart` consumer passed format/analyze/test (93 tests) and emulator verification for Dashboard, Courses, Course Detail, Resource Detail, Assignment Detail, Grades, Calendar and Profile; production Moodle remains separately blocked |
 
 ## Current local entry points
 
@@ -102,6 +102,9 @@ entered the database secret privately in Render. No secret was copied into sourc
 Postman, terminal output, screenshots or documentation.
 
 The historical deployment-preparation notes above are retained for traceability.
-The next work is Flutter Student Support in a clean worktree; it must remain
-read-only against this development/staging API, retain production fail-closed
-behavior and not claim production Moodle integration.
+The Flutter Student Support read-only consumer has passed its own format/analyze/
+test (93 tests) and emulator gates in a clean worktree. It remains read-only
+against this development/staging API, retains production fail-closed behavior and
+does not claim production Moodle integration. DLU password authentication, upload,
+submission, grading and all other write workflows remain intentionally unavailable
+instead of being fabricated.

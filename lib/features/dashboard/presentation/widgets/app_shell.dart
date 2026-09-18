@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/app_routes.dart';
+import '../../../../core/config/app_config.dart';
+import '../../../../core/widgets/staging_read_only_notice.dart';
 
-class AppShell extends StatelessWidget {
+class AppShell extends ConsumerWidget {
   const AppShell({
     required this.currentLocation,
     required this.child,
@@ -34,89 +37,117 @@ class AppShell extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) => LayoutBuilder(
-    builder: (context, constraints) {
-      final extended = constraints.maxWidth >= 980;
-      final useRail = constraints.maxWidth >= 720;
-      if (useRail) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final stagingNotice = ref.watch(appConfigProvider).isStaging
+        ? const StagingReadOnlyNotice()
+        : null;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final extended = constraints.maxWidth >= 980;
+        final useRail = constraints.maxWidth >= 720;
+        if (useRail) {
+          return Scaffold(
+            body: SafeArea(
+              child: Row(
+                children: [
+                  NavigationRail(
+                    selectedIndex: _selectedIndex,
+                    extended: extended,
+                    minExtendedWidth: 220,
+                    onDestinationSelected: (index) => _navigate(context, index),
+                    labelType: extended
+                        ? NavigationRailLabelType.none
+                        : NavigationRailLabelType.all,
+                    leading: Padding(
+                      padding: const EdgeInsets.only(bottom: 22),
+                      child: _RailBrand(extended: extended),
+                    ),
+                    destinations: const [
+                      NavigationRailDestination(
+                        icon: Icon(Icons.space_dashboard_outlined),
+                        selectedIcon: Icon(Icons.space_dashboard_rounded),
+                        label: Text('Trang chủ'),
+                      ),
+                      NavigationRailDestination(
+                        icon: Icon(Icons.menu_book_outlined),
+                        selectedIcon: Icon(Icons.menu_book_rounded),
+                        label: Text('Khóa học'),
+                      ),
+                      NavigationRailDestination(
+                        icon: Icon(Icons.calendar_today_outlined),
+                        selectedIcon: Icon(Icons.calendar_month_rounded),
+                        label: Text('Lịch'),
+                      ),
+                      NavigationRailDestination(
+                        icon: Icon(Icons.person_outline_rounded),
+                        selectedIcon: Icon(Icons.person_rounded),
+                        label: Text('Hồ sơ'),
+                      ),
+                    ],
+                  ),
+                  const VerticalDivider(width: 1),
+                  Expanded(
+                    child: _ShellBody(notice: stagingNotice, child: child),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
         return Scaffold(
           body: SafeArea(
-            child: Row(
-              children: [
-                NavigationRail(
-                  selectedIndex: _selectedIndex,
-                  extended: extended,
-                  minExtendedWidth: 220,
-                  onDestinationSelected: (index) => _navigate(context, index),
-                  labelType: extended
-                      ? NavigationRailLabelType.none
-                      : NavigationRailLabelType.all,
-                  leading: Padding(
-                    padding: const EdgeInsets.only(bottom: 22),
-                    child: _RailBrand(extended: extended),
-                  ),
-                  destinations: const [
-                    NavigationRailDestination(
-                      icon: Icon(Icons.space_dashboard_outlined),
-                      selectedIcon: Icon(Icons.space_dashboard_rounded),
-                      label: Text('Trang chủ'),
-                    ),
-                    NavigationRailDestination(
-                      icon: Icon(Icons.menu_book_outlined),
-                      selectedIcon: Icon(Icons.menu_book_rounded),
-                      label: Text('Khóa học'),
-                    ),
-                    NavigationRailDestination(
-                      icon: Icon(Icons.calendar_today_outlined),
-                      selectedIcon: Icon(Icons.calendar_month_rounded),
-                      label: Text('Lịch'),
-                    ),
-                    NavigationRailDestination(
-                      icon: Icon(Icons.person_outline_rounded),
-                      selectedIcon: Icon(Icons.person_rounded),
-                      label: Text('Hồ sơ'),
-                    ),
-                  ],
-                ),
-                const VerticalDivider(width: 1),
-                Expanded(child: child),
-              ],
-            ),
+            child: _ShellBody(notice: stagingNotice, child: child),
+          ),
+          bottomNavigationBar: NavigationBar(
+            selectedIndex: _selectedIndex,
+            onDestinationSelected: (index) => _navigate(context, index),
+            destinations: const [
+              NavigationDestination(
+                icon: Icon(Icons.space_dashboard_outlined),
+                selectedIcon: Icon(Icons.space_dashboard_rounded),
+                label: 'Trang chủ',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.menu_book_outlined),
+                selectedIcon: Icon(Icons.menu_book_rounded),
+                label: 'Khóa học',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.calendar_today_outlined),
+                selectedIcon: Icon(Icons.calendar_month_rounded),
+                label: 'Lịch',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.person_outline_rounded),
+                selectedIcon: Icon(Icons.person_rounded),
+                label: 'Hồ sơ',
+              ),
+            ],
           ),
         );
-      }
+      },
+    );
+  }
+}
 
-      return Scaffold(
-        body: SafeArea(child: child),
-        bottomNavigationBar: NavigationBar(
-          selectedIndex: _selectedIndex,
-          onDestinationSelected: (index) => _navigate(context, index),
-          destinations: const [
-            NavigationDestination(
-              icon: Icon(Icons.space_dashboard_outlined),
-              selectedIcon: Icon(Icons.space_dashboard_rounded),
-              label: 'Trang chủ',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.menu_book_outlined),
-              selectedIcon: Icon(Icons.menu_book_rounded),
-              label: 'Khóa học',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.calendar_today_outlined),
-              selectedIcon: Icon(Icons.calendar_month_rounded),
-              label: 'Lịch',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.person_outline_rounded),
-              selectedIcon: Icon(Icons.person_rounded),
-              label: 'Hồ sơ',
-            ),
-          ],
-        ),
-      );
-    },
-  );
+class _ShellBody extends StatelessWidget {
+  const _ShellBody({required this.child, required this.notice});
+
+  final Widget child;
+  final Widget? notice;
+
+  @override
+  Widget build(BuildContext context) {
+    final banner = notice;
+    if (banner == null) return child;
+    return Column(
+      children: [
+        banner,
+        Expanded(child: child),
+      ],
+    );
+  }
 }
 
 class _RailBrand extends StatelessWidget {

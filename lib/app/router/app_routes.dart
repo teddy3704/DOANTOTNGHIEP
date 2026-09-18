@@ -10,8 +10,10 @@ abstract final class AppRoutes {
   static const courseGrades = '/courses/:courseId/grades';
   static const profile = '/profile';
 
-  static String course(String courseId) => '/courses/$courseId';
+  static String course(String courseId) =>
+      '/courses/${Uri.encodeComponent(courseId)}';
   static String assignment(String courseId, String assignmentId) =>
-      '/courses/$courseId/assignments/$assignmentId';
-  static String grades(String courseId) => '/courses/$courseId/grades';
+      '/courses/${Uri.encodeComponent(courseId)}/assignments/${Uri.encodeComponent(assignmentId)}';
+  static String grades(String courseId) =>
+      '/courses/${Uri.encodeComponent(courseId)}/grades';
 }

@@ -19,14 +19,18 @@ class AssignmentScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final assignment = ref.watch(assignmentDetailProvider(assignmentId));
+    final reference = AssignmentReference(
+      courseId: courseId,
+      assignmentId: assignmentId,
+    );
+    final assignment = ref.watch(assignmentDetailProvider(reference));
     return Scaffold(
       appBar: AppBar(title: const Text('Bài tập')),
       body: assignment.when(
         loading: () => const _AssignmentLoading(),
         error: (error, _) => ErrorState(
           message: userMessageFor(error),
-          onRetry: () => ref.invalidate(assignmentDetailProvider(assignmentId)),
+          onRetry: () => ref.invalidate(assignmentDetailProvider(reference)),
         ),
         data: (item) => item.courseId == courseId
             ? _AssignmentContent(assignment: item)
@@ -173,12 +177,14 @@ class _AssignmentContent extends StatelessWidget {
                         label: 'Hạn nộp',
                         value: _formatDateTime(assignment.dueAt),
                       ),
-                      const Divider(height: 1),
-                      _InfoTile(
-                        icon: Icons.lock_clock_outlined,
-                        label: 'Kết thúc nhận bài',
-                        value: _formatDateTime(assignment.cutoffAt),
-                      ),
+                      if (assignment.cutoffAt case final cutoffAt?) ...[
+                        const Divider(height: 1),
+                        _InfoTile(
+                          icon: Icons.lock_clock_outlined,
+                          label: 'Kết thúc nhận bài',
+                          value: _formatDateTime(cutoffAt),
+                        ),
+                      ],
                       if (assignment.submittedAt case final submittedAt?) ...[
                         const Divider(height: 1),
                         _InfoTile(

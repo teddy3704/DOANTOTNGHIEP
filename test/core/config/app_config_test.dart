@@ -64,5 +64,26 @@ void main() {
         throwsArgumentError,
       );
     });
+
+    test('staging configuration is HTTPS and does not enable fixtures', () {
+      final config = AppConfig.staging();
+
+      expect(config.environment, AppEnvironment.staging);
+      expect(config.moodleBaseUri, Uri.parse('https://lms.dlu.edu.vn'));
+      expect(config.enableDevFixtures, isFalse);
+      expect(config.isStaging, isTrue);
+      expect(config.isProduction, isFalse);
+    });
+
+    test('rejects DEV fixtures in staging', () {
+      expect(
+        () => AppConfig(
+          environment: AppEnvironment.staging,
+          moodleBaseUri: Uri.parse('https://lms.example.test'),
+          enableDevFixtures: true,
+        ),
+        throwsArgumentError,
+      );
+    });
   });
 }

@@ -2,9 +2,9 @@
 
 **STUDENT SUPPORT ONLY.** Hai bảng nối bằng Function Code bao quát nguồn dữ liệu,
 API và consumer. Mô hình Neon là representation phát triển có dữ liệu mẫu, không
-khẳng định schema/version/endpoint DLU giống upstream. Flutter là **future consumer**
-trong phase này; không sửa Flutter hoặc xác nhận đã tích hợp. Flutter đã được
-phê duyệt nhưng phải chờ cả Render staging và Postman staging PASS.
+khẳng định schema/version/endpoint DLU giống upstream. Flutter staging consumer
+đã được xác minh qua `main_staging.dart` explicit read-only boundary sau khi Render
+staging và Postman staging PASS; điều đó không xác nhận DLU integration.
 
 Moodle source names không có table prefix vì prefix DLU chưa được xác nhận. Các
 mapping tham chiếu đã phân tích nằm trong workspace local tại
@@ -34,12 +34,12 @@ Không tạo view trùng `vw_student_assignment_status`: reuse view thật
 `vw_assignment_status`. Không expose hai teacher views chỉ vì chúng có trong
 database tham chiếu. Hồ sơ current student là endpoint phụ trợ dùng chung SV-01..09.
 
-## View → Development API → OpenAPI/Postman → Future Mobile
+## View → Development API → OpenAPI/Postman → Flutter staging mobile
 
 Operation ID dưới đây khớp `src/app.ts`; Postman đối chiếu bằng GET/path và tên
 request, không suy ra đã chạy Web từ việc collection tồn tại.
 
-| Code | Development API endpoint / HTTP method | OpenAPI operation | Postman request | Future Flutter module/screen | Future production source candidate |
+| Code | Development API endpoint / HTTP method | OpenAPI operation | Postman request | Flutter staging module/screen | Future production source candidate |
 |---|---|---|---|---|---|
 | SV-01 | GET `/api/v1/me/courses` | `getCourses` | Courses | Courses list | `core_enrol_get_users_courses` |
 | SV-02 | GET `/api/v1/me/courses/{courseId}/content` | `getCourseContent` | Course content, course ID lấy từ Courses | Course detail / sections | `core_course_get_contents` |
@@ -67,8 +67,11 @@ matrix, không chứng minh DLU version, enabled service hoặc capability.
 - Execution: `API_TEST_RESULT.md` và `INTEGRATION_STATUS.md` cập nhật theo gate thật.
 - Postman/Render status cần kiểm chứng riêng; chưa hoàn tất không được đổi thành
   PASS nhờ có source hoặc export. API không gọi production LMS và không sửa Moodle.
-- Checkpoint 2026-09-17: final local rechecks PASS (50 tests, 20 HTTP → Neon checks,
-  dependency audit 0 vulnerabilities); Postman local đã PASS 85/85 assertions.
-  Dedicated-branch publication/deployment IN_PROGRESS, `RENDER_STAGING_GATE` và
-  `POSTMAN_STAGING_GATE` đều NOT_RUN. Evidence local/historical được phân loại trong
-  `ADVISOR_EVIDENCE_INDEX.md`.
+- Checkpoint 2026-09-18: `RENDER_STAGING_GATE=PASS` and
+  `POSTMAN_STAGING_GATE=PASS`; the public service returned 200 for `/health`,
+  `/docs` and `/openapi.json`, while Postman completed 85/85 assertions. The
+  explicit Flutter staging consumer also passed `dart format .`, `flutter analyze`
+  and `flutter test` (93 tests) plus Android emulator verification for Dashboard,
+  Courses, Course Detail, Resource Detail, Assignment Detail, Grades, Calendar and
+  Profile. This stays a read-only non-production flow: no DLU password login,
+  upload, submission, grading or other write workflow is available or fabricated.
