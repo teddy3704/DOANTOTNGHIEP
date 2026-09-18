@@ -1,22 +1,31 @@
 # Project Status
 
-## 2026-09-17 — Render staging deployment checkpoint
+## 2026-09-18 — Render staging verification
 
-**STATUS: PARTIAL / IN PROGRESS.** Active branch: `integration-api-render-staging`.
-The user authorized publishing only the Integration API and safe deployment
-documents on this dedicated branch, never merging or pushing `main`.
-Local format/typecheck/build and 50/50 tests PASS; the existing real-Neon smoke
-recheck passed 20 checks. Swagger staging now uses its own origin, not localhost.
-The secret gate inspects both working files and actual Git index blobs.
+**STATUS: PASS — development/staging deployment only.** The dedicated branch
+`integration-api-render-staging` is deployed at
+`https://dlu-lms-student-support-staging.onrender.com`; it remains separate from
+`main`, with no merge, force-push, production LMS request, database migration or
+seed operation.
 
-Render setup: Node 24.15.0, Free, Singapore, root `integration-api`,
-`npm ci --include=dev && npm run build`, `npm start`, health `/health`.
-Database secret must be entered privately into Render by the user; no value is
-copied into source, docs, Postman, terminal output or screenshots.
-**RENDER_STAGING_GATE: NOT_RUN. POSTMAN_STAGING_GATE: NOT_RUN.**
-Flutter work is approved but must wait for both staging gates to PASS.
-Earlier database/API/local Postman PASS results are retained, not rerun from zero.
-Authoritative deployment evidence and next action: `INTEGRATION_STATUS.md`.
+The Render Node Free service uses root `integration-api`, Node 24.15.0, the
+documented build/start commands and `/health`. Its verified source commit is
+`e241f8a`. The database secret was entered privately by the user; no secret value
+was read, copied, logged, photographed or committed.
+
+Public `/health`, `/docs` and `/openapi.json` returned HTTP 200. The OpenAPI
+document is 3.0.3, uses same-origin `/`, and exposes 11 GET operations. A public
+19-check smoke run passed: ten read-only student endpoints returned 200 and all
+six expected negative security cases returned 401/404/400/404/404 as designed.
+Postman ran the staging environment successfully: 17 requests, 85/85 assertions,
+zero failed/skipped/errors. The reviewed Render deployment log contained no
+database credential or connection string.
+
+**RENDER_STAGING_GATE: PASS. POSTMAN_STAGING_GATE: PASS.** Flutter Student
+Support may start only in a clean isolated worktree so pre-existing local demo and
+Flutter work is preserved. Earlier database/API/local Postman results are retained,
+not restated as production Moodle verification. Authoritative evidence:
+`INTEGRATION_STATUS.md` and `ADVISOR_EVIDENCE_INDEX.md`.
 
 **Cập nhật:** 2026-08-16 (Asia/Saigon)
 

@@ -1,5 +1,26 @@
 # Progress Report
 
+## 2026-09-18 — Render staging and Postman verification
+
+- Deployed the dedicated `integration-api-render-staging` branch commit `e241f8a`
+  to the Render Node Free service `dlu-lms-student-support-staging`. No main merge,
+  force-push, database migration, seed operation or production LMS request occurred.
+- Verified the public staging endpoints: `/health`, `/docs` and `/openapi.json`
+  each returned HTTP 200. The OpenAPI document is 3.0.3, same-origin (`/`) and
+  contains 11 GET operations.
+- Ran 19 status-only staging checks: ten read-only student endpoints returned 200;
+  missing identity and the five expected authorization/scope/write-route negatives
+  returned 401/404/404/400/404/404. No response body or secret was printed.
+- Ran the existing Postman collection against `DLU LMS Render Staging`: 17 requests,
+  85/85 assertions, zero failed/skipped/errors. The Render deploy log was reviewed
+  for the build/start/health sequence and contained no database credential or
+  connection string.
+- The user entered the Render database secret directly. It was never read, copied,
+  committed, logged, shown in a screenshot or passed to Postman.
+- `RENDER_STAGING_GATE=PASS`; `POSTMAN_STAGING_GATE=PASS`. Flutter Student Support
+  is unblocked, but starts in an isolated clean worktree so existing local demo and
+  Flutter changes remain preserved.
+
 ## 2026-09-17 — Dedicated Integration API staging preparation
 
 - Resumed the approved Render deployment chain without changing Flutter or the

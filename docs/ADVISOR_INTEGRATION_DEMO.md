@@ -11,11 +11,13 @@ qua Desktop Agent 0.5.1); fresh backend recheck 50 tests và 20 Neon checks PASS
 pgAdmin đã reconnect server Neon hiện có trong phiên này; ERD được xác minh ở
 checkpoint trước theo người dùng. Không lấy credential từ trình duyệt/pgAdmin.
 
-Người dùng đã cho phép publish riêng nhánh `integration-api-render-staging`, nhánh
-local đã tạo; form Render đã cấu hình nhưng chưa nhập secret và chưa deploy.
-`RENDER_STAGING_GATE=NOT_RUN`, `POSTMAN_STAGING_GATE=NOT_RUN`. Nếu cần nhập secret,
-người dùng thao tác trực tiếp ở Render (`ACTION_REQUIRED_RENDER_DATABASE_SECRET`).
-Flutter đã được phê duyệt nhưng chỉ bắt đầu sau khi cả hai staging gates PASS.
+Render staging đã deploy từ `integration-api-render-staging` tại
+`https://dlu-lms-student-support-staging.onrender.com`. Commit `e241f8a` là
+nguồn đã xác minh; `/health`, `/docs`, `/openapi.json` đều HTTP 200. Independent
+smoke 19/19 PASS và Postman staging 17 requests / 85 assertions, 0 errors.
+`RENDER_STAGING_GATE=PASS`, `POSTMAN_STAGING_GATE=PASS`. Database secret do người
+dùng nhập riêng ở Render và không hiển thị/đưa vào kịch bản. Flutter đã được
+phê duyệt và phải bắt đầu ở worktree sạch để giữ nguyên các thay đổi local khác.
 
 - Đọc `INTEGRATION_STATUS.md` và `API_TEST_RESULT.md`; chỉ trình diễn bước thực sự
   đã chạy được. Không dùng screenshot cũ để thay cho kết quả live.
@@ -37,7 +39,7 @@ Flutter đã được phê duyệt nhưng chỉ bắt đầu sau khi cả hai st
 | 3:15–3:45 | `/health` | “Đây là Development Integration API. Kiểm tra này xác minh backend kết nối mô hình Neon, không xác minh Web Services DLU.” |
 | 3:45–4:45 | `/docs`: courses, assignments, grades, progress | Chỉ GET student endpoints. Không có assignment submission, teacher grading hoặc upload endpoint. Deep-link chưa xác minh vẫn null. |
 | 4:45–6:45 | Postman nếu đã kết nối: Health → Courses → Assignments → Grades → Progress → Deadlines → request thiếu header | Dùng synthetic SV001 đã có trong database. So sánh điểm/khóa học với pgAdmin. Bỏ header phải ra 401; header mẫu không phải production authentication. Nếu bị browser/agent block, trình bày bằng chứng local test và ghi đúng BLOCKED/PARTIAL, không giả chạy Web. |
-| 6:45–7:15 | Render nếu đã deploy thành công | Chỉ mở staging đã được xác minh. Nếu deployment chưa xong: nói đúng IN_PROGRESS/NOT_RUN và demo local. Nhánh riêng đã được phép publish, không push main hoặc hiển thị Render secrets. |
+| 6:45–7:15 | Render staging Live | Mở service staging đã xác minh, nhắc đây là development API chỉ đọc. Không push main hoặc hiển thị Render secrets. |
 | 7:15–8:00 | `INTEGRATION_ARCHITECTURE.md` | “Bước tiếp theo là xác nhận cơ chế xác thực và Moodle Web Services với DLU rồi thay adapter dữ liệu. Không thử live rồi fallback sang mẫu.” |
 
 ## Điểm cần trả lời rõ
@@ -53,6 +55,7 @@ Flutter đã được phê duyệt nhưng chỉ bắt đầu sau khi cả hai st
   gates, không dùng API local PASS để khẳng định Mobile đã tích hợp.
 - Supabase? Giữ foundation cũ, không tạo thêm service hoặc clone dữ liệu Moodle.
 
-Kết luận trung thực: Postman Web local đã PASS, nhưng local/API PASS không đồng
-nghĩa Render/Postman staging PASS. Xem `ADVISOR_EVIDENCE_INDEX.md` để phân biệt ảnh
-local cuối cùng và ảnh blocker lịch sử. Production Moodle vẫn **TO_VERIFY_DLU**.
+Kết luận trung thực: Postman local **và** Render/Postman staging đã PASS cho
+development API chỉ đọc. Điều này không xác minh Moodle production. Xem
+`ADVISOR_EVIDENCE_INDEX.md` để phân biệt ảnh local, staging và blocker lịch sử.
+Production Moodle vẫn **TO_VERIFY_DLU**.

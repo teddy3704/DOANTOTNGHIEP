@@ -107,7 +107,7 @@ Không thêm Neon connection string. Với Postman Web, localhost có thể yêu
 Desktop Agent; không coi export thành công là Web execution PASS. Render chỉ dùng
 URL staging đã xác minh; không đưa LMS DLU vào danh sách development servers.
 
-## Render staging — checkpoint 2026-09-17
+## Render staging — verified 2026-09-18
 
 Chỉ dùng một Node Web Service, nguồn từ nhánh `integration-api-render-staging`
 của repository hiện có. Không merge/push main, không force-push; không tạo database
@@ -131,11 +131,15 @@ của Render. Không sao chép giá trị vào tài liệu, source, command line
 ảnh. Khi cần thao tác này, dừng tại đúng field với
 `ACTION_REQUIRED_RENDER_DATABASE_SECRET`; không đọc credential từ pgAdmin.
 
-Nhánh local `integration-api-render-staging` đã tạo. Form Render đã cấu hình các
-giá trị trên, chưa nhập database secret và chưa deploy. Publish/deploy **IN_PROGRESS**;
-`RENDER_STAGING_GATE=NOT_RUN`, `POSTMAN_STAGING_GATE=NOT_RUN`.
-Chỉ đổi thành PASS sau khi kiểm tra public `/health`, `/docs`, `/openapi.json`,
-student requests, Postman collection, negative 401/security và log an toàn.
+Commit `e241f8a` từ `integration-api-render-staging` đã deploy thành công tới
+`https://dlu-lms-student-support-staging.onrender.com`. Public `/health`, `/docs`
+và `/openapi.json` đều HTTP 200; OpenAPI là 3.0.3, same-origin (`/`) với 11 GET
+operations. Smoke status-only 19/19 PASS, gồm student GETs và negative
+401/404/404/400/404/404. Postman staging: 17 requests, 85/85 assertions, zero
+failed/skipped/errors. `RENDER_STAGING_GATE=PASS`; `POSTMAN_STAGING_GATE=PASS`.
+Render log đã được review, không có database credential hoặc connection string.
+Database secret do người dùng nhập trực tiếp vào secret environment field và
+không được đọc, sao chép, commit hoặc đưa vào Postman/evidence.
 
 Local recheck cuối ngày 2026-09-17: format/typecheck/build/export contracts PASS,
 50 tests PASS (44 tests ban đầu và 6 tests bổ sung cho staging OpenAPI/index scan),

@@ -1,7 +1,29 @@
-# Integration status — 2026-09-17
+# Integration status — 2026-09-18
 
 **Overall: PARTIAL.** Active workspace: `D:\DoAnTotNghiep`.
 **STUDENT SUPPORT ONLY. This is NOT the production DLU LMS API.**
+
+## Latest verified milestone — Render staging
+
+**PASS: `RENDER_STAGING_GATE=PASS`; `POSTMAN_STAGING_GATE=PASS`.** Commit
+`e241f8a` is deployed from `integration-api-render-staging` to the Node Free
+Render service `dlu-lms-student-support-staging`; `main` remains separate and no
+merge, force-push or history rewrite occurred.
+
+The public staging URL is `https://dlu-lms-student-support-staging.onrender.com`.
+`/health`, `/docs` and `/openapi.json` each returned HTTP 200. OpenAPI is 3.0.3,
+same-origin (`/`) and contains 11 GET operations. The independent public smoke
+run passed all 19 checks: ten scoped read-only student endpoints returned 200,
+while missing identity and the five intended negative cases returned exactly
+401/404/404/400/404/404. Postman ran the staging environment with 17 requests,
+85/85 assertions and zero failed/skipped/errors.
+
+The user entered the Render database secret directly; its value was not read,
+printed, copied, committed, included in evidence or sent to Postman. Reviewed
+Render deployment logs show the verified commit/build/start/health sequence and
+no database credential or connection string. Flutter is unblocked for the next
+approved phase, but must use an isolated clean worktree to preserve pre-existing
+local Flutter/demo/database changes.
 
 | Gate / component | Status | Evidence / next step |
 |---|---|---|
@@ -16,14 +38,14 @@
 | Dependency audit | PASS | Fresh recheck: 0 vulnerabilities |
 | Security Tests | PASS | SEC-01..10; readonly, scoping, safe logs/errors, secret scan |
 | Postman import | PASS | Existing workspace; collection + environment 2/2 imported |
-| Postman execution | PASS | Desktop Agent 0.5.1; 17 requests, 85/85 assertions, 0 failed/skipped/errors |
-| Dedicated branch publication / Render deployment | IN_PROGRESS | Local branch `integration-api-render-staging` created; form configured, secret not entered, not deployed |
-| RENDER_STAGING_GATE | NOT_RUN | No verified public staging URL yet; deploy and test real endpoints/logs |
-| POSTMAN_STAGING_GATE | NOT_RUN | Reuse collection with verified staging URL; local PASS is not staging PASS |
+| Postman execution | PASS | Local and Render staging environment: 17 requests, 85/85 assertions, 0 failed/skipped/errors |
+| Dedicated branch publication / Render deployment | PASS | `e241f8a` deployed from `integration-api-render-staging`; Node Free service is Live |
+| RENDER_STAGING_GATE | PASS | Public `/health`, `/docs`, `/openapi.json` 200; 19 safe status-only checks passed; logs reviewed without credential exposure |
+| POSTMAN_STAGING_GATE | PASS | Staging environment run: 17 requests, 85/85 assertions, zero failed/skipped/errors |
 | DLU Moodle Web Services | TO_VERIFY_DLU | No production request or direct DLU database access |
 | DLU authentication/version/functions/deep-link | TO_VERIFY_DLU | Need DLU-supported contract/capabilities |
 | Real DLU API response | NOT_VERIFIED | Neon sample records are not DLU records |
-| Flutter Integration | APPROVED_GATED | Start only after both staging gates PASS; no Flutter/platform source edits in this phase |
+| Flutter Integration | APPROVED_UNBLOCKED | Start only from a clean isolated worktree; production Moodle remains separately blocked |
 
 ## Current local entry points
 
@@ -70,20 +92,16 @@ The user has now approved dedicated-branch publishing and the later Flutter phas
 The former `ACTION_REQUIRED_RENDER_DEPLOY_SOURCE` permission blocker is resolved;
 it is not evidence that deployment has completed.
 
-## Next gate: Render staging
+## Verified staging result
 
-Reuse/create one Node Web Service from `integration-api-render-staging`, root
-`integration-api`, Node `24.15.0`, build `npm ci --include=dev && npm run build`,
-start `npm start`, Free instance, health path `/health`. Form already has
-`APP_ENV=staging`, `DEMO_AUTH_ENABLED=true`, `NPM_CONFIG_CACHE=/tmp/npm`,
-`NODE_VERSION=24.15.0` and Singapore region selected. This records form preparation,
-not a deployment; Neon region equivalence has not been claimed.
+The service uses root `integration-api`, Node `24.15.0`,
+`npm ci --include=dev && npm run build`, `npm start`, Free, Singapore and health
+path `/health`; `APP_ENV=staging`, `DEMO_AUTH_ENABLED=true`,
+`NPM_CONFIG_CACHE=/tmp/npm` and `NODE_VERSION=24.15.0` are configured. The user
+entered the database secret privately in Render. No secret was copied into source,
+Postman, terminal output, screenshots or documentation.
 
-The user must enter the database secret only in the Render secret environment
-field. If entry is required, stop at that field with
-`ACTION_REQUIRED_RENDER_DATABASE_SECRET`. Never include its value in source,
-Postman, output, screenshot or documentation.
-
-After deployment, verify actual public health/Swagger/OpenAPI, student requests,
-negative 401/security cases, Postman staging and sanitized Render logs. Flutter
-starts only after `RENDER_STAGING_GATE=PASS` **and** `POSTMAN_STAGING_GATE=PASS`.
+The historical deployment-preparation notes above are retained for traceability.
+The next work is Flutter Student Support in a clean worktree; it must remain
+read-only against this development/staging API, retain production fail-closed
+behavior and not claim production Moodle integration.

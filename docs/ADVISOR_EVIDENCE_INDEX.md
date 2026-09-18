@@ -1,4 +1,4 @@
-# Advisor evidence index — 2026-09-17
+# Advisor evidence index — 2026-09-18
 
 **STUDENT SUPPORT ONLY — Development Integration API.** Dữ liệu Neon là dữ liệu
 mẫu của mô hình phát triển; các ảnh không chứng minh kết nối production LMS DLU.
@@ -12,6 +12,8 @@ mẫu của mô hình phát triển; các ảnh không chứng minh kết nối 
 | [06 — Render source required](../evidence/integration/06_render_source_required.png) | Form Web Service yêu cầu nguồn deploy trước khi có quyền publish | HISTORICAL — quyền publish nhánh riêng đã được cấp; không chứng minh deploy PASS |
 | [07 — Postman collection](../evidence/integration/07_postman_collection_85_pass.png) | 17 requests, 85/85 assertions, 0 failed/skipped/errors | Local PASS — kết quả cuối của lượt local |
 | [08 — Postman security](../evidence/integration/08_postman_security_pass.png) | Negative security cases trong lượt Postman local | Local PASS |
+| [09 — Render staging Live](../evidence/integration/09_render_staging_live.png) | Service Node Free Live, source `integration-api-render-staging`, commit `e241f8a` | Render staging PASS |
+| [10 — Postman Render staging](../evidence/integration/10_postman_render_staging_85_pass.png) | Environment staging, 17 requests, 85/85 assertions, 0 errors | Postman staging PASS |
 
 Postman local run ID: `58266634-a11cc32e-cb1f-4f03-a954-436dfd2739a9`.
 Environment chỉ có `base_url` và `demo_student_code`; không có database credential.
@@ -23,15 +25,17 @@ Environment chỉ có `base_url` và `demo_student_code`; không có database cr
   20 HTTP → Neon checks PASS, dependency audit 0 vulnerabilities.
 - pgAdmin đã reconnect server Neon hiện có trong phiên này; ERD đã được xác minh
   theo checkpoint người dùng. Bộ 6 ảnh này không chứa ảnh ERD mới.
-- Nhánh local `integration-api-render-staging` đã tạo; form Render đã cấu hình,
-  chưa nhập secret, chưa deploy. Publication/deployment: IN_PROGRESS.
-- `RENDER_STAGING_GATE=NOT_RUN`; `POSTMAN_STAGING_GATE=NOT_RUN`.
-- Flutter đã được phê duyệt, chỉ bắt đầu sau khi cả hai staging gates PASS.
+- Render staging đã deploy từ commit `e241f8a`; public `/health`, `/docs` và
+  `/openapi.json` đều HTTP 200. OpenAPI 3.0.3 có 11 GET operations, same-origin `/`.
+- Independent status-only smoke: 19/19 PASS, gồm mười student GET 200 và sáu
+  expected negative 401/404/404/400/404/404. Không in response body hoặc secret.
+- Postman staging: 17 requests, 85/85 assertions, 0 failed/skipped/errors.
+  `RENDER_STAGING_GATE=PASS`; `POSTMAN_STAGING_GATE=PASS`.
+- Flutter đã được phê duyệt và unblocked, nhưng phải bắt đầu trong worktree sạch để
+  không ảnh hưởng phần demo/Flutter local chưa commit.
 
-Không bổ sung ảnh staging hoặc đánh dấu PASS trước khi thao tác và kiểm tra thật.
-Không chụp field credential, ghi giá trị connection secret hoặc đưa secret vào
-Postman/export. Nếu Render cần secret, người dùng nhập trực tiếp vào secret field
-và checkpoint dùng `ACTION_REQUIRED_RENDER_DATABASE_SECRET`.
+Ảnh 09 và 10 là bằng chứng sau khi thao tác và kiểm tra thật. Không chụp field
+credential, ghi giá trị connection secret hoặc đưa secret vào Postman/export.
 
 ## Phạm vi tài liệu xuất bản
 

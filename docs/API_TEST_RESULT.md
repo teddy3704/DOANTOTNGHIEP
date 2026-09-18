@@ -1,6 +1,7 @@
 # Development Integration API — kết quả kiểm thử
 
-Checkpoint: 2026-09-17. Workspace `D:\DoAnTotNghiep`. Đây không phải API production DLU.
+Checkpoint local: 2026-09-17; public staging verification: 2026-09-18. Workspace
+`D:\DoAnTotNghiep`. Đây không phải API production DLU.
 
 Local recheck cuối ngày 2026-09-17 xác nhận format/typecheck/build/export contracts,
 50 automated tests, 20 HTTP → Neon checks và dependency audit 0 vulnerabilities.
@@ -28,8 +29,8 @@ gán lại chúng thành staging results hoặc tuyên bố đã chạy lại br
 | Postman Web via Desktop Agent | PASS: 17 requests, 85/85 assertions, 0 failed/skipped/errors |
 | Preserved Flutter source | Previous comparison PASS: 160 files hash-equal to original C workspace; no Flutter edit in deployment phase |
 | pgAdmin connection | Reconnected to existing Neon server; ERD previously verified per user checkpoint |
-| Render staging | NOT_RUN: deployment IN_PROGRESS, no verified public URL yet |
-| Postman staging | NOT_RUN: requires verified Render URL |
+| Render staging | PASS: `e241f8a` deployed; public `/health`, `/docs`, `/openapi.json` each HTTP 200 |
+| Postman staging | PASS: 17 requests, 85/85 assertions, 0 failed/skipped/errors |
 
 ## Dữ liệu đọc thật từ Neon
 
@@ -66,7 +67,24 @@ Log thật của request thành công và lỗi có route template, request ID, 
 duration; không có URL database, header, SQL, record hoặc raw exception. Ví dụ
 đã quan sát `/health` 200 và `/api/v1/me/courses` 401.
 
-## Postman / Render
+## Verified Render staging
+
+**RENDER_STAGING_GATE=PASS; POSTMAN_STAGING_GATE=PASS.** The public service
+`https://dlu-lms-student-support-staging.onrender.com` deployed commit `e241f8a`
+from `integration-api-render-staging`. Public `/health`, `/docs` and
+`/openapi.json` each returned 200. OpenAPI is 3.0.3, same-origin (`/`) and
+contains 11 GET operations.
+
+A safe public smoke run passed 19/19 checks: the ten scoped student GET endpoints
+returned 200; missing identity and the five intended negative cases returned
+401/404/404/400/404/404. The Postman staging environment completed 17 requests
+with 85/85 assertions and zero failed/skipped/errors. The user supplied the
+Render database secret directly; no credential value was read, logged, committed,
+passed to Postman or included in screenshots. Render deployment logs were reviewed
+for the verified build/start/health sequence and contained no database credential
+or connection string.
+
+## Historical Postman / Render local preparation
 
 Postman collection và environment đã import **2/2** vào workspace hiện có; dùng
 `DLU LMS Development`. Cloud Agent ban đầu bị chặn do localhost; đã xử lý bằng
@@ -92,22 +110,18 @@ copy ảnh được duyệt qua đúng cơ chế, không bypass. Backend đã kh
 khi phiên terminal cũ kết thúc; health cuối trả `ok` / database `reachable`.
 
 Render precheck trước đây bị chặn tại nguồn deploy; ảnh
-`06_render_source_required.png` chỉ là bằng chứng lịch sử. Người dùng hiện đã cho
-phép commit/push riêng nhánh `integration-api-render-staging`; nhánh local đã tạo,
-publication/deploy đang **IN_PROGRESS**. Không merge main hoặc force-push. Chưa có public staging URL
-được xác minh: `RENDER_STAGING_GATE=NOT_RUN`, `POSTMAN_STAGING_GATE=NOT_RUN`.
+`06_render_source_required.png` chỉ là bằng chứng lịch sử. Nhánh
+`integration-api-render-staging` đã được publish và deploy thành công theo phần
+verified ở trên. Không merge main hoặc force-push.
 
 Form Render đã cấu hình root `integration-api`, Node `24.15.0`, build
 `npm ci --include=dev && npm run build`, start `npm start`, health `/health`, Free,
 Singapore, `APP_ENV=staging`, `DEMO_AUTH_ENABLED=true`, `NPM_CONFIG_CACHE=/tmp/npm`
-và `NODE_VERSION=24.15.0`. Chưa nhập database secret hoặc deploy.
-Database secret chỉ do người dùng nhập vào secret environment field; nếu cần
-nhập, dừng với `ACTION_REQUIRED_RENDER_DATABASE_SECRET`. Không đưa secret vào
-collection/export, source, terminal output hay evidence.
-
-Staging còn phải kiểm tra public health/docs/OpenAPI, student requests, negative
-401/security, toàn bộ Postman collection và log Render không lộ secret. Không lấy
-local tests, source hoặc export để tuyên bố những bước đó đã PASS.
+và `NODE_VERSION=24.15.0`. Database secret được người dùng nhập riêng trong
+Render secret environment field; không đưa secret vào collection/export, source,
+terminal output hay evidence. Các public health/docs/OpenAPI, student/negative
+checks, Postman collection và Render log review đã hoàn tất như phần verified ở
+trên; local tests vẫn không được diễn giải thành production Moodle validation.
 
 ## Commands
 
