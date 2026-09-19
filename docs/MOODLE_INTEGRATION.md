@@ -1,5 +1,15 @@
 # Moodle Integration Plan
 
+## Continuation evidence — 19/09/2026
+
+Both Mobile roles can open the official HTTPS LMS through the shared safe
+launcher. No activity identifiers were fabricated; no assignment or grade was
+written. Existing authorized website navigation evidence is retained in
+`DLU_LMS_AUTH_DISCOVERY.md`; no cookie/session/token extraction. Authentication
+protocol, Web Services and Teacher capabilities remain TO_VERIFY_DLU.
+Node/Fastify/Neon is development infrastructure, not DLU production truth;
+the separate group schema report is reconciled in `REPORT_ALIGNMENT_NOTES.md`.
+
 **DLU LMS:** `https://lms.dlu.edu.vn/`
 
 **Status:** `BLOCKED_EXTERNAL — authenticated UI verified; DLU token/mobile site check reports Web Services disabled`

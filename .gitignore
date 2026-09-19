@@ -62,6 +62,12 @@ supabase/signing_keys.json
 !database/moodle_subset/schema.sql
 !database/moodle_subset/seed.sql
 
+# Reviewed read-only demonstration queries; database exports remain ignored.
+!demo/01_verify_database_baseline.sql
+!demo/02_council_database_demo.sql
+/evidence/council-backup/
+/group-input/
+
 # Reviewed Supabase schema migrations and database policy tests only
 !supabase/migrations/*.sql
 !supabase/tests/**/*.sql

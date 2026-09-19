@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dlu_lms_mobile/core/errors/app_failure.dart';
 import 'package:dlu_lms_mobile/features/auth/domain/auth_repository.dart';
 import 'package:dlu_lms_mobile/features/auth/domain/auth_session.dart';
@@ -37,12 +39,32 @@ void main() {
       expect(controller.state.error, isA<ConfigurationFailure>());
     },
   );
+
+  test(
+    'returns to unauthenticated state when its identity is invalidated',
+    () async {
+      final repository = _InvalidatingAuthRepository();
+      final controller = AuthController(repository);
+      await controller.restoreSession();
+      expect(controller.state.status, AuthStatus.authenticated);
+
+      repository.invalidate();
+      await Future<void>.delayed(Duration.zero);
+
+      expect(controller.state.status, AuthStatus.unauthenticated);
+      controller.dispose();
+      await repository.dispose();
+    },
+  );
 }
 
 class _FakeAuthRepository implements AuthRepository {
   _FakeAuthRepository({this.restoredSession});
 
   final AuthSession? restoredSession;
+
+  @override
+  Stream<void> get sessionInvalidations => const Stream<void>.empty();
 
   @override
   Future<AuthSession?> restoreSession() async => restoredSession;
@@ -56,4 +78,30 @@ class _FakeAuthRepository implements AuthRepository {
 
   @override
   Future<void> signOut() async {}
+}
+
+class _InvalidatingAuthRepository implements AuthRepository {
+  final StreamController<void> _invalidations =
+      StreamController<void>.broadcast();
+
+  @override
+  Stream<void> get sessionInvalidations => _invalidations.stream;
+
+  @override
+  Future<AuthSession?> restoreSession() async =>
+      const AuthSession(userId: 'student-1', displayName: 'Student One');
+
+  @override
+  Future<AuthSession> signIn({
+    required String username,
+    required String password,
+  }) async =>
+      const AuthSession(userId: 'student-1', displayName: 'Student One');
+
+  @override
+  Future<void> signOut() async {}
+
+  void invalidate() => _invalidations.add(null);
+
+  Future<void> dispose() => _invalidations.close();
 }

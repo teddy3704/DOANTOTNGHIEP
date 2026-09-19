@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/app_routes.dart';
 import '../../../../core/errors/failure_message.dart';
+import '../../../../core/external_links/official_lms_launcher.dart';
 import '../../../../core/widgets/empty_state.dart';
 import '../../../../core/widgets/error_state.dart';
 import '../../domain/course.dart';
@@ -268,14 +269,14 @@ class _SectionCard extends StatelessWidget {
   );
 }
 
-class _ActivityTile extends StatelessWidget {
+class _ActivityTile extends ConsumerWidget {
   const _ActivityTile({required this.courseId, required this.activity});
 
   final String courseId;
   final CourseActivity activity;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final assignment = activity.kind == CourseActivityKind.assignment;
     final subtitle = <String>[assignment ? 'Bài tập' : 'Tài liệu'];
     final status = activity.statusLabel;
@@ -312,12 +313,20 @@ class _ActivityTile extends StatelessWidget {
             ? () => context.push(
                 AppRoutes.assignment(courseId, activity.instanceId),
               )
-            : () => _showResource(context, activity),
+            : () => _showResource(
+                context,
+                activity,
+                ref.read(officialLmsLauncherProvider),
+              ),
       ),
     );
   }
 
-  void _showResource(BuildContext context, CourseActivity activity) {
+  void _showResource(
+    BuildContext context,
+    CourseActivity activity,
+    OfficialLmsLauncher lmsLauncher,
+  ) {
     showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
@@ -386,6 +395,31 @@ class _ActivityTile extends StatelessWidget {
                         label: 'Dung lượng',
                         value: _formatBytes(fileSize),
                       ),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      child: FilledButton.tonalIcon(
+                        onPressed: () async {
+                          try {
+                            await lmsLauncher.openHome();
+                          } catch (error) {
+                            if (!context.mounted) return;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(userMessageFor(error))),
+                            );
+                          }
+                        },
+                        icon: const Icon(Icons.open_in_new_rounded),
+                        label: const Text('Mở LMS'),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Tài liệu chính thức được mở an toàn trên DLU LMS.',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
                   ],
                 ],
               ),

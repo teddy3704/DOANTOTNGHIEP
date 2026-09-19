@@ -5,13 +5,17 @@ import 'core/config/app_config.dart';
 import 'dev/student_support_api/student_support_api_client.dart';
 import 'dev/student_support_api/student_support_repositories.dart';
 import 'dev/student_support_api/student_support_staging_config.dart';
+import 'dev/student_support_api/staging_student_identity_provider.dart';
 import 'features/assignments/domain/assignment_repository.dart';
 import 'features/auth/domain/auth_repository.dart';
+import 'features/auth/domain/student_identity_provider.dart';
 import 'features/calendar/domain/calendar_repository.dart';
 import 'features/courses/domain/course_content_repository.dart';
 import 'features/courses/domain/course_repository.dart';
 import 'features/grades/domain/grade_repository.dart';
 import 'features/profile/domain/user_repository.dart';
+import 'dev/fixtures/staging_teacher_support_repository.dart';
+import 'features/teacher/domain/teacher_support_repository.dart';
 
 /// Explicit, read-only entrypoint for the verified Student Support staging API.
 ///
@@ -19,15 +23,32 @@ import 'features/profile/domain/user_repository.dart';
 /// never falls back from a production API request to development data.
 void main() {
   final stagingConfig = StudentSupportStagingConfig.fromEnvironment();
-  final client = StudentSupportApiClient(config: stagingConfig);
+  final identityProvider = StagingStudentIdentityProvider(includeTeacher: true);
+  final teacherRepository = StagingTeacherSupportRepository(identityProvider);
+  final client = StudentSupportApiClient(
+    config: stagingConfig,
+    identityProvider: identityProvider,
+  );
 
   runDluLmsApp(
     overrides: <Override>[
       appConfigProvider.overrideWithValue(AppConfig.staging()),
+      studentIdentityProvider.overrideWithValue(identityProvider),
       authRepositoryProvider.overrideWithValue(
-        StagingPreviewAuthRepository(client),
+        StagingPreviewAuthRepository(
+          client,
+          identityProvider,
+          teacherRepository: teacherRepository,
+        ),
       ),
-      userRepositoryProvider.overrideWithValue(StagingUserRepository(client)),
+      userRepositoryProvider.overrideWithValue(
+        StagingUserRepository(
+          client,
+          identityProvider: identityProvider,
+          teacherRepository: teacherRepository,
+        ),
+      ),
+      teacherSupportRepositoryProvider.overrideWithValue(teacherRepository),
       courseRepositoryProvider.overrideWithValue(
         StagingCourseRepository(client),
       ),

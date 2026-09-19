@@ -1,6 +1,6 @@
 # Flutter existing-code audit
 
-**Date:** 2026-09-18  
+**Date:** 2026-09-18
 **Scope:** Flutter client in this worktree only; this is an inventory and
 classification, not a proposal to replace the application.
 

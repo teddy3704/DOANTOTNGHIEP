@@ -1,10 +1,21 @@
 # Architecture
 
+## Current deployed boundary — 19/09/2026
+
+Student staging: Flutter → HTTPS Render → Node/Fastify read API → Neon `lms`
+(22 tables/10 views). Teacher: explicitly selected read-only canonical fixture
+adapter, not a Teacher endpoint. Local reminders are app-owned device metadata.
+The group's 3-schema/39-table report is a separate input, not deployed reality;
+see `REPORT_ALIGNMENT_NOTES.md`. No Spring backend, seed import or remote changes
+were introduced during this alignment. Production still requires DLU-approved
+auth/integration and never falls back to these development sources.
+
 **Loại:** Implemented foundation + target architecture
 
 **Implementation status:** Phase 2 foundation đã được triển khai. The separate
-read-only Student Support staging composition root has passed its Flutter quality
-and emulator verification; các module Moodle live và phần được gắn
+read-only Student Support staging composition root has a verified baseline; its
+current local extension passes analysis and automated tests but remains pending
+the combined APK/emulator gate. Các module Moodle live và phần được gắn
 `BLOCKED`/`PROPOSED` vẫn chưa phải chức năng production hoàn chỉnh.
 
 **Cập nhật:** 2026-09-18
@@ -54,6 +65,7 @@ lib/
   core/
     config/
     errors/
+    external_links/
     network/
     storage/
     widgets/
@@ -70,6 +82,8 @@ lib/
     courses/
     grades/
     profile/
+    progress/
+    reminders/
     splash/
   main.dart
   main_development.dart
@@ -80,24 +94,33 @@ test/
   app/
 ```
 
-Hiện đã triển khai `auth`, `dashboard`, `courses`, `assignments`, `grades`, `calendar`, `profile`, `splash`, core config/errors/network/storage/widgets và dev fixture boundary. Student data screens dùng một canonical generated fixture; production adapters tương ứng vẫn fail closed.
+Hiện đã triển khai `auth`, `dashboard`, `courses`, `assignments`, `grades`, `calendar`, `profile`, `progress`, `reminders`, `splash`, core config/errors/network/storage/widgets và dev fixture boundary. Student data screens dùng một canonical generated fixture; production adapters tương ứng vẫn fail closed.
 
 ### Product presentation and navigation
 
-Primary navigation đã chốt thành bốn destination ổn định:
+Primary navigation của Student Support staging có năm destination tập trung:
 
 ```text
 Splash → Login → App shell
                    ├── Trang chủ
                    ├── Khóa học → Course Detail → Assignment / Grades
-                   ├── Lịch
-                   └── Hồ sơ → Giao diện / Đăng xuất
+                   ├── Bài tập → Assignment Detail
+                   ├── Tiến độ
+                   └── Hồ sơ → Giao diện / Nhắc việc học tập / Đăng xuất
+
+Dashboard ──→ Lịch học tập (route theo ngữ cảnh)
+Assignment Detail ──→ Tạo/chỉnh sửa nhắc việc cục bộ
 ```
 
 - `AppShell` dùng Material 3 `NavigationBar` trên phone và chuyển sang `NavigationRail` từ breakpoint 720 px; rail mở rộng từ 980 px.
-- Course Detail, Assignment và Grades là route theo context, không chiếm primary destination. Route Assignment kiểm tra `courseId` khớp assignment trước khi hiển thị.
+- Course Detail, Assignment Detail, Grades và Calendar là route theo context khi
+  phù hợp. Bài tập và Tiến độ là primary destination riêng; route Assignment
+  Detail kiểm tra `courseId` khớp assignment trước khi hiển thị.
 - `AppTokens` tập trung spacing, radius, content width và breakpoint; `SectionHeader`/`ContentSkeleton` là primitive dùng chung để giữ hierarchy/loading state đồng nhất.
 - `appThemeModeProvider` quản lý lựa chọn `Hệ thống`/`Sáng`/`Tối` cục bộ trong vòng đời app. Chưa đồng bộ setting này lên backend và không giả vờ đã persistence cross-device.
+- Reminder Manager là route theo ngữ cảnh từ Hồ sơ. Assignment Detail chỉ mở
+  editor nhắc việc cho deadline còn trong tương lai; reminder là setting cục bộ
+  của người học, không phải event hay notification được ghi vào Moodle.
 - Error state presentation đi qua `userMessageFor`; raw blocker code, endpoint, token, repository, schema, response body và exception không được render cho người dùng.
 - Mọi data screen giữ loading/empty/error/retry contract phù hợp. Skeleton mô phỏng đúng cấu trúc nội dung thay vì một spinner toàn trang chung.
 - Presentation không hiển thị nhãn fixture. Việc app chạy `main_development.dart` được quyết định ở composition root, không phải bằng banner/copy trong UI.
@@ -127,8 +150,10 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-    StagingMain["main_staging.dart\nexplicit selection"] --> StagingConfig["StudentSupportStagingConfig\nHTTPS origin + sample identity"]
-    StagingConfig --> StagingClient["StudentSupportApiClient\nstatic GET allowlist"]
+    StagingMain["main_staging.dart\nexplicit selection"] --> Selector["StagingStudentIdentityProvider\nallowlisted sample scope"]
+    StagingMain --> StagingConfig["StudentSupportStagingConfig\nHTTPS origin"]
+    Selector --> StagingClient["StudentSupportApiClient\nHTTPS + static GET allowlist"]
+    StagingConfig --> StagingClient
     StagingClient --> StagingRepos["Typed staging repositories"]
     StagingRepos --> Contracts["Existing domain contracts/providers"]
     Contracts --> StudentUI["Read-only student screens"]
@@ -137,8 +162,12 @@ flowchart LR
 ```
 
 - `main_staging.dart` is intentionally separate from production and fixture roots.
-  It restores a read-only preview session from the staging profile endpoint; it does
-  not perform DLU password authentication or persist a DLU credential.
+  `StagingStudentIdentityProvider` first restores an allowlisted sample scope and
+  the staging repository then resolves a read-only profile. The stored value is
+  only a non-secret sample code, not a DLU password, token or credential.
+- A staging 401 invalidates that local sample scope; `AuthController` returns to
+  the selector through the usual unauthenticated router state. This is local
+  development hygiene, not production session semantics or server authorization.
 - `StudentSupportApiClient` accepts only the documented HTTPS origin and 11 GET
   contract paths. It sends no Moodle token, database secret, arbitrary query or
   write request.
@@ -147,6 +176,38 @@ flowchart LR
   Android emulator verified Dashboard, Courses, Course Detail, Resource Detail,
   Assignment Detail, Grades, Calendar and Profile. It does not change the target
   production architecture in section 2 or add DLU authentication/write support.
+- `OfficialLmsLauncher` is a separate safe handoff boundary for the Assignment
+  Detail. It opens only the exact canonical HTTPS LMS origin through the platform
+  external application. It never constructs activity links from sample IDs and
+  does not turn the mobile app into a Moodle submission surface.
+
+### App-owned local reminder boundary
+
+```mermaid
+flowchart LR
+    Assignment["Read-only assignment deadline"] --> Editor["Assignment Detail reminder editor"]
+    Profile["Profile reminder manager"] --> Repository["SecureLocalReminderRepository\nowner-scoped CRUD"]
+    Editor --> Repository
+    Repository --> Storage["Platform-backed secure local metadata"]
+    Repository --> Scheduler["FlutterLocalReminderScheduler"]
+    Scheduler --> Android["Android local notification\ngeneric message"]
+    Repository -. "never writes" .-> Moodle["Moodle / staging API / Neon"]
+```
+
+- `LearningReminder` keeps only opaque owner/course/assignment references, due
+  and reminder timestamps, enabled state and audit timestamps. It deliberately
+  excludes academic text, grades, feedback, submission/file data, tokens and
+  passwords.
+- `SecureLocalReminderRepository` requires the active owner for every list,
+  create, update, enable/disable and delete operation. Owner/course/assignment
+  references are immutable after creation; duplicate and invalid/past schedules
+  fail safely. Scheduling is coordinated with persistence so a failed local write
+  attempts to restore the previous scheduler state.
+- `FlutterLocalReminderScheduler` requests Android notification permission only
+  when the learner enables a reminder and schedules a generic device-local
+  message. It does not promise Moodle delivery, copy academic data into a
+  notification, or issue a network request. Device delivery remains a manual
+  emulator/device verification item.
 
 ## 4. Layer responsibilities
 
@@ -196,6 +257,9 @@ Supabase không thay Moodle làm nguồn dữ liệu LMS. Moodle identity attrib
 | `go_router` | Declarative navigation, auth redirect | IMPLEMENTED — 17.5.0 |
 | `dio` | Timeout, request boundary và typed error mapping | IMPLEMENTED — 5.11.0 |
 | `flutter_secure_storage` | Lưu token/session secret bằng platform-backed storage | IMPLEMENTED abstraction — 10.3.1; live auth chưa dùng |
+| `url_launcher` | Handoff giới hạn sang LMS chính thức qua ứng dụng ngoài | IMPLEMENTED — `^6.3.1`; chỉ canonical HTTPS origin |
+| `flutter_local_notifications` | Nhắc việc cục bộ do người học bật, qua scheduler boundary có thể kiểm thử | IMPLEMENTED — `^22.3.1`; generic Android notification, không phải Moodle notification |
+| `flutter_timezone` + `timezone` | Resolve timezone thiết bị và lập lịch local theo instant cụ thể | IMPLEMENTED — `^5.1.0` / `^0.11.1`; không đồng bộ event lên server |
 | `supabase_flutter` | Typed Data API client cho dữ liệu app-owned sau project/identity gate | IMPLEMENTED foundation — pinned 2.17.2; chưa remote-enable |
 | `json_annotation` + `json_serializable` | Typed DTO và predictable parsing | PROPOSED khi API contract đầu tiên rõ |
 | `intl` | Date/time/localization formatting | DEFERRED — chưa có use case cần package |
@@ -212,8 +276,10 @@ Compile-time/runtime configuration tối thiểu dự kiến:
 - `SUPABASE_PUBLISHABLE_KEY` — allowlist đúng `sb_publishable_*` hoặc legacy JWT role `anon`; opaque, user JWT, `sb_secret_*` và legacy `service_role` đều bị từ chối.
 - `STUDENT_SUPPORT_API_BASE_URL` — HTTPS origin only for the explicitly selected
   non-production Student Support staging entrypoint; never read by `main.dart`.
-- `STUDENT_SUPPORT_STUDENT_CODE` — synthetic development identity accepted only
-  by that staging API; it is not a password, Moodle token or production secret.
+- `STUDENT_SUPPORT_STUDENT_CODE` — retained as a validated sample-code default
+  for isolated adapter/test construction. The interactive `main_staging.dart`
+  path selects its allowlisted sample scope explicitly; neither form is a
+  password, Moodle token or production secret.
 - authentication strategy identifier — chỉ sau khi DLU xác nhận.
 - non-secret network timeout values.
 - build flavor/environment label để ngăn nhầm staging/production.
@@ -222,7 +288,7 @@ Token, username và password không nằm trong `.env` committed hoặc compile-
 
 ## 8. Authentication architecture
 
-Do DLU authentication chưa được xác nhận và DLU mobile site check hiện trả `enablewsdescription`, production dùng `UnconfiguredAuthRepository` và `UnconfiguredRequestAuthorizer`, trả blocker rõ thay vì gọi endpoint phỏng đoán. Production Login không thu username/password; form credential chỉ xuất hiện trong DEV fixture. `AuthRepository` là boundary để bổ sung implementation khi có bằng chứng:
+Do DLU authentication chưa được xác nhận và DLU mobile site check hiện trả `enablewsdescription`, production dùng `UnconfiguredAuthRepository` và `UnconfiguredRequestAuthorizer`, trả blocker rõ thay vì gọi endpoint phỏng đoán. Production Login không thu username/password; current development/staging entrypoints cũng chỉ dùng sample-scope selector, không có interactive password form. Test fixture remains isolated from runtime authentication. `AuthRepository` là boundary để bổ sung implementation khi có bằng chứng:
 
 - Moodle token authentication nếu DLU cho phép;
 - approved browser/SSO flow nếu DLU dùng SSO;
@@ -313,6 +379,10 @@ Không auto-retry authentication, submission, grading hoặc request WRITE.
 - Cache không thay thế capability check, không chứa password và có clear-on-logout/user-switch.
 - Dữ liệu nhạy cảm phải có classification/retention trước khi cache.
 - File URL/token không được log hoặc publicize. Download đi qua endpoint/cơ chế Moodle xác nhận, có progress, cancellation và safe filename handling.
+- Local reminder metadata là ngoại lệ app-owned hẹp: chỉ opaque references và
+  learner-controlled scheduling settings trong secure local storage. Nó không
+  là cache Moodle, không được đồng bộ qua Supabase/Neon và không tồn tại sau khi
+  người học xóa reminder.
 
 ## 12. Target use cases
 

@@ -23,7 +23,15 @@ try {
     $exitCode = $LASTEXITCODE
 }
 finally {
-    & $storageScript -Action Cleanup
+    # Some Flutter test workers finalize their cache a moment after the CLI
+    # returns. Keep the verified junction alive briefly so that final write
+    # still lands on D: instead of recreating build/ inside OneDrive.
+    # Keep the D: worktree junction stable while test workers finish. Only the
+    # original synchronized checkout needs its junction removed for OneDrive.
+    if ($PSScriptRoot.StartsWith('C:\', [StringComparison]::OrdinalIgnoreCase)) {
+        Start-Sleep -Milliseconds 1200
+        & $storageScript -Action Cleanup
+    }
 }
 
 exit $exitCode

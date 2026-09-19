@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:dlu_lms_mobile/core/external_links/official_lms_launcher.dart';
 import 'package:dlu_lms_mobile/features/courses/domain/course.dart';
 import 'package:dlu_lms_mobile/features/courses/domain/course_content.dart';
 import 'package:dlu_lms_mobile/features/courses/domain/course_content_repository.dart';
@@ -104,12 +105,20 @@ void main() {
       ),
     ];
 
+    final launchedUris = <Uri>[];
     await tester.pumpWidget(
       _courseDetailApp(
         courseRepository: _MemoryCourseRepository(
           onGetCourse: (_) async => _course,
         ),
         contentRepository: const _MemoryCourseContentRepository(sections),
+        lmsLauncher: OfficialLmsLauncher(
+          lmsBaseUri: Uri.parse('https://lms.dlu.edu.vn'),
+          launch: (uri) async {
+            launchedUris.add(uri);
+            return true;
+          },
+        ),
       ),
     );
     await tester.pumpAndSettle();
@@ -121,6 +130,10 @@ void main() {
     expect(find.text('Thông tin tài liệu'), findsOneWidget);
     await tester.ensureVisible(find.text('PDF'));
     expect(find.text('1.5 MB'), findsOneWidget);
+    await tester.ensureVisible(find.text('Mở LMS'));
+    await tester.tap(find.text('Mở LMS'));
+    await tester.pump();
+    expect(launchedUris, <Uri>[Uri.parse('https://lms.dlu.edu.vn')]);
     expect(find.byType(SingleChildScrollView), findsWidgets);
     expect(tester.takeException(), isNull);
   });
@@ -129,10 +142,13 @@ void main() {
 Widget _courseDetailApp({
   required CourseRepository courseRepository,
   required CourseContentRepository contentRepository,
+  OfficialLmsLauncher? lmsLauncher,
 }) => ProviderScope(
   overrides: <Override>[
     courseRepositoryProvider.overrideWithValue(courseRepository),
     courseContentRepositoryProvider.overrideWithValue(contentRepository),
+    if (lmsLauncher != null)
+      officialLmsLauncherProvider.overrideWithValue(lmsLauncher),
   ],
   child: const MaterialApp(home: CourseDetailScreen(courseId: 'course-1')),
 );

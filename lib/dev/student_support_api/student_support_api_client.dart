@@ -3,6 +3,9 @@ import 'dart:async';
 import 'package:dio/dio.dart';
 
 import '../../core/errors/app_failure.dart';
+import '../../features/auth/domain/student_identity_provider.dart';
+import '../../features/auth/domain/auth_session.dart';
+import 'staging_student_identity_provider.dart';
 import 'student_support_staging_config.dart';
 
 typedef StudentSupportJson = Map<String, Object?>;
@@ -15,9 +18,12 @@ typedef StudentSupportJson = Map<String, Object?>;
 class StudentSupportApiClient {
   StudentSupportApiClient({
     required StudentSupportStagingConfig config,
+    StudentIdentityProvider? identityProvider,
     Dio? dio,
   }) : _origin = config.baseUri,
-       _studentCode = config.studentCode,
+       _identityProvider =
+           identityProvider ??
+           FixedStagingStudentIdentityProvider(config.studentCode),
        _dio =
            dio ??
            Dio(
@@ -48,7 +54,7 @@ class StudentSupportApiClient {
 
   final Dio _dio;
   final Uri _origin;
-  final String _studentCode;
+  final StudentIdentityProvider _identityProvider;
 
   Future<void> getHealth() async {
     final response = await _get('/health', includeStudentCode: false);
@@ -119,11 +125,14 @@ class StudentSupportApiClient {
       );
     }
 
+    final studentCode = includeStudentCode
+        ? await _selectedStudentCode()
+        : null;
     final options = Options(
       method: 'GET',
       followRedirects: false,
       headers: includeStudentCode
-          ? <String, Object>{'X-Demo-Student-Code': _studentCode}
+          ? <String, Object>{'X-Demo-Student-Code': studentCode!}
           : const <String, Object>{},
     );
     final request = options.compose(_dio.options, path);
@@ -134,12 +143,33 @@ class StudentSupportApiClient {
       _ensureSameOrigin(response.requestOptions.uri);
       return response;
     } on DioException catch (error) {
-      throw _mapDioException(error, path);
+      final failure = _mapDioException(error, path);
+      if (failure is AuthenticationFailure) {
+        await _identityProvider.invalidate();
+      }
+      throw failure;
     } on TimeoutException {
       throw const TimeoutFailure(
         'Không thể tải dữ liệu học tập trong thời gian chờ.',
       );
     }
+  }
+
+  Future<String> _selectedStudentCode() async {
+    final identity = await _identityProvider.restore();
+    if (identity == null) {
+      throw const AuthenticationFailure(
+        'Chưa chọn dữ liệu người học cho môi trường thử nghiệm.',
+        code: 'STAGING_IDENTITY_REQUIRED',
+      );
+    }
+    if (identity.role != DluRole.student) {
+      throw const ConfigurationFailure(
+        'Dữ liệu này chỉ dành cho ngữ cảnh sinh viên.',
+        code: 'STUDENT_CONTEXT_REQUIRED',
+      );
+    }
+    return identity.studentCode;
   }
 
   bool _isAllowedPath(String path) =>

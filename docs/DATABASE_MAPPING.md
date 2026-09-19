@@ -1,5 +1,17 @@
 # Database Mapping
 
+## Current baseline verification — 19/09/2026
+
+Configured Neon catalog: lms only; 22 physical tables, 10 lms views, 22 PK,
+35 physical FK, 135 physical-table columns; no app/derived schema. Counts from
+`demo/01_verify_database_baseline.sql`, not inferred from Word. Group model claims
+3 schemas/39 tables/20 derived views/548 columns belong to a different schema;
+its schema export is missing. No migration/import was attempted. Current user
+representation `lms.users` contains no password column. Role/context, enrolment,
+polymorphic module and Student/Teacher view examples were exercised read-only in
+`demo/02_council_database_demo.sql`; report corrections are in
+`REPORT_ALIGNMENT_NOTES.md`.
+
 **Status:** `PARTIAL — MOODLE_SUBSET_V1 GROUNDED; DLU PRODUCTION SCHEMA UNKNOWN`
 
 **REAL_DLU_DATABASE:** `NOT_REQUIRED_FOR_CURRENT_PHASE`

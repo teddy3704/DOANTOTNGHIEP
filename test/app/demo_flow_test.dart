@@ -6,6 +6,8 @@ import 'package:dlu_lms_mobile/dev/fixtures/dev_repositories.dart';
 import 'package:dlu_lms_mobile/dev/fixtures/synthetic_fixture_data_source.dart';
 import 'package:dlu_lms_mobile/features/assignments/domain/assignment_repository.dart';
 import 'package:dlu_lms_mobile/features/auth/domain/auth_repository.dart';
+import 'package:dlu_lms_mobile/features/auth/domain/auth_session.dart';
+import 'package:dlu_lms_mobile/features/auth/domain/student_identity_provider.dart';
 import 'package:dlu_lms_mobile/features/calendar/domain/calendar_repository.dart';
 import 'package:dlu_lms_mobile/features/courses/domain/course_content_repository.dart';
 import 'package:dlu_lms_mobile/features/courses/domain/course_repository.dart';
@@ -61,11 +63,13 @@ void main() {
     final fixtures = SyntheticFixtureDataSource(
       loadAsset: (_) async => fixtureJson,
     );
+    final identity = _FixtureIdentityProvider();
     await tester.pumpWidget(
       ProviderScope(
         overrides: <Override>[
           appConfigProvider.overrideWithValue(AppConfig.development()),
-          authRepositoryProvider.overrideWithValue(DevAuthRepository(fixtures)),
+          authRepositoryProvider.overrideWithValue(_FixtureAuth(identity)),
+          studentIdentityProvider.overrideWithValue(identity),
           courseRepositoryProvider.overrideWithValue(
             DevCourseRepository(fixtures),
           ),
@@ -89,18 +93,12 @@ void main() {
     expect(find.text('Đang chuẩn bị không gian học tập…'), findsOneWidget);
     await tester.pumpAndSettle();
 
-    expect(find.text('Đăng nhập'), findsOneWidget);
-    _expectNoTechnicalCopy(tester);
-
-    await tester.enterText(
-      find.widgetWithText(TextFormField, 'Tên đăng nhập'),
-      'synthetic-user',
-    );
-    await tester.enterText(
-      find.widgetWithText(TextFormField, 'Mật khẩu'),
-      'synthetic-password',
-    );
-    await tester.tap(find.widgetWithText(FilledButton, 'Tiếp tục'));
+    expect(find.text('Dữ liệu mô phỏng phục vụ phát triển'), findsOneWidget);
+    expect(find.text('Sinh viên mẫu 01'), findsOneWidget);
+    expect(find.byType(TextFormField), findsNothing);
+    await tester.ensureVisible(find.text('Sinh viên mẫu 01'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Sinh viên mẫu 01'));
     for (var frame = 0; frame < 6; frame++) {
       await tester.pump(const Duration(milliseconds: 500));
     }
@@ -151,10 +149,33 @@ void main() {
     await tester.pumpAndSettle();
     await tester.pageBack();
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Lịch').last);
+    await tester.tap(find.text('Bài tập').last);
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Theo dõi hạn nộp và kết quả đã được công bố.'),
+      findsOneWidget,
+    );
+    _expectNoTechnicalCopy(tester);
+
+    await tester.tap(find.text('Tiến độ').last);
+    await tester.pumpAndSettle();
+    expect(find.text('Tiến độ học tập'), findsOneWidget);
+    _expectNoTechnicalCopy(tester);
+
+    await tester.tap(find.text('Trang chủ').last);
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('Xem lịch'),
+      260,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(find.text('Xem lịch'));
     await tester.pumpAndSettle();
     expect(find.text('Lịch học tập'), findsOneWidget);
     _expectNoTechnicalCopy(tester);
+
+    await tester.tap(find.byTooltip('Quay lại'));
+    await tester.pumpAndSettle();
 
     await tester.tap(find.text('Hồ sơ').last);
     await tester.pumpAndSettle();
@@ -182,4 +203,67 @@ void _expectNoTechnicalCopy(WidgetTester tester) {
     caseSensitive: false,
   );
   expect(forbidden.hasMatch(visibleText), isFalse, reason: visibleText);
+}
+
+class _FixtureIdentityProvider implements StudentIdentityProvider {
+  String? selectedCode;
+
+  @override
+  List<StudentIdentity> get availableIdentities => const <StudentIdentity>[
+    StudentIdentity(studentCode: 'SV001', label: 'Sinh viên mẫu 01'),
+    StudentIdentity(studentCode: 'SV002', label: 'Sinh viên mẫu 02'),
+  ];
+
+  @override
+  Future<void> clear() async => selectedCode = null;
+
+  @override
+  Future<void> invalidate() async => selectedCode = null;
+
+  @override
+  Stream<void> get invalidations => const Stream<void>.empty();
+
+  @override
+  Future<StudentIdentity?> restore() async {
+    final code = selectedCode;
+    if (code == null) return null;
+    return availableIdentities.firstWhere(
+      (identity) => identity.studentCode == code,
+    );
+  }
+
+  @override
+  Future<void> select(String studentCode) async {
+    selectedCode = availableIdentities
+        .firstWhere((identity) => identity.studentCode == studentCode)
+        .studentCode;
+  }
+}
+
+class _FixtureAuth implements AuthRepository {
+  _FixtureAuth(this.identity);
+
+  final _FixtureIdentityProvider identity;
+
+  @override
+  Stream<void> get sessionInvalidations => const Stream<void>.empty();
+
+  @override
+  Future<AuthSession?> restoreSession() async {
+    final selected = await identity.restore();
+    if (selected == null) return null;
+    return AuthSession(
+      userId: selected.studentCode,
+      displayName: 'Nguyễn Minh Anh',
+    );
+  }
+
+  @override
+  Future<AuthSession> signIn({
+    required String username,
+    required String password,
+  }) => throw UnsupportedError('Sample identity selection is required.');
+
+  @override
+  Future<void> signOut() => identity.clear();
 }

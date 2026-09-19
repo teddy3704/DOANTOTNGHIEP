@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/scheduler.dart';
 
 import '../../features/assignments/domain/assignment.dart';
@@ -18,13 +20,16 @@ import 'synthetic_fixture_data_source.dart';
 
 const _fixtureStudentId = 1001;
 
-/// DEV FIXTURE ONLY. This class is injected exclusively by main_development.dart.
+/// TEST FIXTURE ONLY. No application entrypoint injects this repository.
 class DevAuthRepository implements AuthRepository {
   DevAuthRepository([SyntheticFixtureDataSource? dataSource])
     : _dataSource = dataSource ?? SyntheticFixtureDataSource();
 
   final SyntheticFixtureDataSource _dataSource;
   AuthSession? _session;
+
+  @override
+  Stream<void> get sessionInvalidations => const Stream<void>.empty();
 
   @override
   Future<AuthSession?> restoreSession() async {

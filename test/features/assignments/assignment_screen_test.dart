@@ -4,6 +4,11 @@ import 'package:dlu_lms_mobile/core/errors/app_failure.dart';
 import 'package:dlu_lms_mobile/features/assignments/domain/assignment.dart';
 import 'package:dlu_lms_mobile/features/assignments/domain/assignment_repository.dart';
 import 'package:dlu_lms_mobile/features/assignments/presentation/screens/assignment_screen.dart';
+import 'package:dlu_lms_mobile/features/auth/domain/auth_repository.dart';
+import 'package:dlu_lms_mobile/features/auth/domain/auth_session.dart';
+import 'package:dlu_lms_mobile/features/reminders/domain/learning_reminder.dart';
+import 'package:dlu_lms_mobile/features/reminders/domain/reminder_repository.dart';
+import 'package:dlu_lms_mobile/features/reminders/presentation/reminder_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -90,11 +95,60 @@ void main() {
     expect(find.text('Bài tập phân tích yêu cầu'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('authenticated learner can open the local reminder editor', (
+    tester,
+  ) async {
+    final assignment = AssignmentDetail(
+      id: 'assignment-reminder',
+      courseId: 'course-1',
+      name: 'Bài tập cần theo dõi',
+      description: 'Nội dung chỉ đọc.',
+      dueAt: DateTime.now().toUtc().add(const Duration(days: 7)),
+      allowsSubmissionsFrom: DateTime.now().toUtc(),
+      cutoffAt: null,
+      timing: AssignmentTiming.future,
+      submissionState: SubmissionState.notSubmitted,
+    );
+    final assignments = _MemoryAssignmentRepository(
+      onGetAssignment: (_) async => assignment,
+    );
+
+    await tester.pumpWidget(
+      _assignmentApp(
+        assignments,
+        authRepository: const _AuthenticatedAuthRepository(),
+        reminderRepository: _MemoryReminderRepository(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Nhắc việc học tập'), findsOneWidget);
+    expect(find.widgetWithText(FilledButton, 'Đặt nhắc việc'), findsOneWidget);
+
+    final reminderButton = find.widgetWithText(FilledButton, 'Đặt nhắc việc');
+    await tester.ensureVisible(reminderButton);
+    await tester.pumpAndSettle();
+    await tester.tap(reminderButton);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Tạo nhắc việc'), findsOneWidget);
+    expect(find.text('Bài tập cần theo dõi'), findsNWidgets(2));
+    expect(tester.takeException(), isNull);
+  });
 }
 
-Widget _assignmentApp(AssignmentRepository repository) => ProviderScope(
+Widget _assignmentApp(
+  AssignmentRepository repository, {
+  AuthRepository? authRepository,
+  ReminderRepository? reminderRepository,
+}) => ProviderScope(
   overrides: <Override>[
     assignmentRepositoryProvider.overrideWithValue(repository),
+    if (authRepository != null)
+      authRepositoryProvider.overrideWithValue(authRepository),
+    if (reminderRepository != null)
+      reminderRepositoryProvider.overrideWithValue(reminderRepository),
   ],
   child: const MaterialApp(
     home: AssignmentScreen(courseId: 'course-1', assignmentId: 'assignment-1'),
@@ -135,4 +189,77 @@ class _MemoryAssignmentRepository implements AssignmentRepository {
   @override
   Future<List<AssignmentDetail>> getAssignments({String? courseId}) async =>
       <AssignmentDetail>[_assignment];
+}
+
+class _AuthenticatedAuthRepository implements AuthRepository {
+  const _AuthenticatedAuthRepository();
+
+  @override
+  Stream<void> get sessionInvalidations => const Stream<void>.empty();
+
+  @override
+  Future<AuthSession?> restoreSession() async =>
+      const AuthSession(userId: 'SV001', displayName: 'Người học');
+
+  @override
+  Future<AuthSession> signIn({
+    required String username,
+    required String password,
+  }) => throw UnimplementedError();
+
+  @override
+  Future<void> signOut() async {}
+}
+
+class _MemoryReminderRepository implements ReminderRepository {
+  final List<LearningReminder> reminders = <LearningReminder>[];
+
+  @override
+  Future<LearningReminder> create({
+    required String ownerId,
+    required LearningReminderDraft draft,
+  }) async {
+    final now = DateTime.now().toUtc();
+    final reminder = LearningReminder(
+      id: 'reminder-${reminders.length + 1}',
+      ownerId: ownerId,
+      courseId: draft.courseId,
+      assignmentId: draft.assignmentId,
+      dueAt: draft.dueAt,
+      remindAt: draft.remindAt,
+      isEnabled: draft.isEnabled,
+      createdAt: now,
+      updatedAt: now,
+    );
+    reminders.add(reminder);
+    return reminder;
+  }
+
+  @override
+  Future<void> delete({
+    required String ownerId,
+    required String reminderId,
+  }) async {
+    reminders.removeWhere(
+      (reminder) => reminder.ownerId == ownerId && reminder.id == reminderId,
+    );
+  }
+
+  @override
+  Future<List<LearningReminder>> listForOwner(String ownerId) async => reminders
+      .where((reminder) => reminder.ownerId == ownerId)
+      .toList(growable: false);
+
+  @override
+  Future<LearningReminder> setEnabled({
+    required String ownerId,
+    required String reminderId,
+    required bool isEnabled,
+  }) => throw UnimplementedError();
+
+  @override
+  Future<LearningReminder> update({
+    required String ownerId,
+    required LearningReminder reminder,
+  }) async => reminder;
 }

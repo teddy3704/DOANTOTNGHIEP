@@ -10,28 +10,54 @@ class AppShell extends ConsumerWidget {
   const AppShell({
     required this.currentLocation,
     required this.child,
+    this.teacher = false,
     super.key,
   });
 
   final String currentLocation;
   final Widget child;
+  final bool teacher;
 
   int get _selectedIndex {
+    if (teacher) {
+      return switch (currentLocation) {
+        '/teacher/courses' => 1,
+        '/teacher/work' => 2,
+        '/teacher/calendar' => 3,
+        '/teacher/profile' => 4,
+        _ => 0,
+      };
+    }
     if (currentLocation.startsWith(AppRoutes.courses)) return 1;
-    if (currentLocation.startsWith(AppRoutes.calendar)) return 2;
-    if (currentLocation.startsWith(AppRoutes.profile)) return 3;
+    if (currentLocation.startsWith(AppRoutes.assignments)) return 2;
+    if (currentLocation.startsWith(AppRoutes.progress)) return 3;
+    if (currentLocation.startsWith(AppRoutes.profile)) return 4;
     return 0;
   }
 
   void _navigate(BuildContext context, int index) {
+    if (teacher) {
+      context.go(
+        [
+          '/teacher',
+          '/teacher/courses',
+          '/teacher/work',
+          '/teacher/calendar',
+          '/teacher/profile',
+        ][index],
+      );
+      return;
+    }
     switch (index) {
       case 0:
         context.go(AppRoutes.dashboard);
       case 1:
         context.go(AppRoutes.courses);
       case 2:
-        context.go(AppRoutes.calendar);
+        context.go(AppRoutes.assignments);
       case 3:
+        context.go(AppRoutes.progress);
+      case 4:
         context.go(AppRoutes.profile);
     }
   }
@@ -62,7 +88,7 @@ class AppShell extends ConsumerWidget {
                       padding: const EdgeInsets.only(bottom: 22),
                       child: _RailBrand(extended: extended),
                     ),
-                    destinations: const [
+                    destinations: [
                       NavigationRailDestination(
                         icon: Icon(Icons.space_dashboard_outlined),
                         selectedIcon: Icon(Icons.space_dashboard_rounded),
@@ -74,9 +100,20 @@ class AppShell extends ConsumerWidget {
                         label: Text('Khóa học'),
                       ),
                       NavigationRailDestination(
-                        icon: Icon(Icons.calendar_today_outlined),
-                        selectedIcon: Icon(Icons.calendar_month_rounded),
-                        label: Text('Lịch'),
+                        icon: Icon(Icons.assignment_outlined),
+                        selectedIcon: Icon(Icons.assignment_rounded),
+                        label: Text(teacher ? 'Công việc' : 'Bài tập'),
+                      ),
+                      NavigationRailDestination(
+                        icon: Icon(
+                          teacher
+                              ? Icons.event_outlined
+                              : Icons.auto_graph_outlined,
+                        ),
+                        selectedIcon: Icon(
+                          teacher ? Icons.event : Icons.auto_graph_rounded,
+                        ),
+                        label: Text(teacher ? 'Lịch' : 'Tiến độ'),
                       ),
                       NavigationRailDestination(
                         icon: Icon(Icons.person_outline_rounded),
@@ -102,7 +139,7 @@ class AppShell extends ConsumerWidget {
           bottomNavigationBar: NavigationBar(
             selectedIndex: _selectedIndex,
             onDestinationSelected: (index) => _navigate(context, index),
-            destinations: const [
+            destinations: [
               NavigationDestination(
                 icon: Icon(Icons.space_dashboard_outlined),
                 selectedIcon: Icon(Icons.space_dashboard_rounded),
@@ -114,9 +151,18 @@ class AppShell extends ConsumerWidget {
                 label: 'Khóa học',
               ),
               NavigationDestination(
-                icon: Icon(Icons.calendar_today_outlined),
-                selectedIcon: Icon(Icons.calendar_month_rounded),
-                label: 'Lịch',
+                icon: Icon(Icons.assignment_outlined),
+                selectedIcon: Icon(Icons.assignment_rounded),
+                label: teacher ? 'Công việc' : 'Bài tập',
+              ),
+              NavigationDestination(
+                icon: Icon(
+                  teacher ? Icons.event_outlined : Icons.auto_graph_outlined,
+                ),
+                selectedIcon: Icon(
+                  teacher ? Icons.event : Icons.auto_graph_rounded,
+                ),
+                label: teacher ? 'Lịch' : 'Tiến độ',
               ),
               NavigationDestination(
                 icon: Icon(Icons.person_outline_rounded),

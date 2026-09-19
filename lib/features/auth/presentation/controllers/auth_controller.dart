@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/auth_repository.dart';
@@ -36,10 +38,21 @@ class AuthState {
 
 class AuthController extends StateNotifier<AuthState> {
   AuthController(this._repository) : super(const AuthState.checking()) {
+    _invalidations = _repository.sessionInvalidations.listen((_) {
+      if (!mounted) return;
+      state = const AuthState(status: AuthStatus.unauthenticated);
+    });
     restoreSession();
   }
 
   final AuthRepository _repository;
+  late final StreamSubscription<void> _invalidations;
+
+  @override
+  void dispose() {
+    _invalidations.cancel();
+    super.dispose();
+  }
 
   Future<void> restoreSession() async {
     try {

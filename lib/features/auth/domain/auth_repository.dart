@@ -1,9 +1,14 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/errors/app_failure.dart';
 import 'auth_session.dart';
 
 abstract interface class AuthRepository {
+  /// Emits if a backing identity is rejected and the app must return to login.
+  Stream<void> get sessionInvalidations;
+
   Future<AuthSession?> restoreSession();
   Future<AuthSession> signIn({
     required String username,
@@ -14,6 +19,9 @@ abstract interface class AuthRepository {
 
 class UnconfiguredAuthRepository implements AuthRepository {
   const UnconfiguredAuthRepository();
+
+  @override
+  Stream<void> get sessionInvalidations => const Stream<void>.empty();
 
   @override
   Future<AuthSession?> restoreSession() async => null;

@@ -22,6 +22,19 @@ Mọi `/api/v1/me` endpoint yêu cầu `X-Demo-Student-Code`, ví dụ `SV001`. 
 parameter chọn user; không chấp nhận query parameter ngoài contract. Course ID là
 chuỗi số dương tối đa 15 chữ số, lấy từ courses response, không dùng ID Moodle thật.
 
+### Flutter staging scope selection
+
+`main_staging.dart` obtains this header only from an explicit, allowlisted sample
+student selection. The client stores at most that non-secret sample code in
+platform-backed storage; it never asks for, transmits or persists a DLU password,
+Moodle token or database credential. The code is loaded at request time rather
+than copied into a domain user profile.
+
+If the API returns 401 for a selected scope, the Flutter adapter clears the local
+selection and the auth state returns to the selector. This limits stale preview
+state only: it is not a production login flow, does not make the header a DLU
+authorization grant, and must not be copied into `main.dart`.
+
 - List: `{ "data": [], "meta": { "count": 0 } }`; count là số item trả về,
   không phải pagination total. Không pagination/filter chưa được hỗ trợ.
 - Single: `{ "data": { ... } }`; overview là single object.
@@ -104,16 +117,37 @@ Không trả stack, raw exception, SQL, credential, host/role database hoặc m�
 Không tạo payload lỗi giả chứa secret chỉ để trình diễn. Test negative dùng dữ
 liệu không bí mật và kết quả thật.
 
+## App-owned local reminder boundary (SV-10)
+
+SV-10 is intentionally **outside** this HTTP/OpenAPI contract. Creating,
+editing, enabling, disabling or deleting a personal reminder makes no API call,
+does not use a Neon table/view, and creates no Moodle event or notification.
+The reminder starts from an already-read assignment deadline and persists only
+opaque owner/course/assignment references, due/reminder times and enabled state
+in secure local storage. Assignment title, description, grade, feedback,
+submission/file data, password, token and full API response are not persisted.
+
+When a learner enables a reminder, Android local-notification permission is
+requested by the device scheduler. Scheduled text is generic and contains no
+academic content. This is not an official Moodle notification; device delivery
+remains pending manual APK/emulator verification even though `flutter analyze`
+is clean and the full Flutter suite currently passes 137 tests.
+
 ## Future production và phần không triển khai
 
 Nguồn tương lai từng endpoint được truy vết ở `TRACEABILITY_MATRIX.md`; upstream
 Moodle candidates **không phải** xác nhận DLU đã enable. SV-06 chỉ design deep-link,
-SV-09 hiện có assignment deadline chứ chưa general calendar events endpoint,
-SV-10 reminders app-owned chưa triển khai. Resource binary/open action và DLU
+SV-09 hiện có assignment deadline chứ chưa general calendar events endpoint và
+SV-10 chỉ là local app-owned setting ngoài API. Resource binary/open action và DLU
 identity không được suy ra từ contract này. Flutter staging consumer đã PASS
-quality/emulator gate riêng qua explicit entrypoint chỉ đọc; nó không thay đổi
-contract thành production Moodle integration hoặc cấp quyền upload/submission/
-grading.
+quality/emulator gate riêng qua explicit entrypoint chỉ đọc; current extension
+still awaits its combined format/build/emulator gate and does not biến contract
+này thành production Moodle integration hoặc cấp quyền upload/submission/grading.
+
+The current Assignment Detail handoff is deliberately outside this API contract:
+until a specific activity URL is verified, it may open only the canonical official
+LMS home through the platform external-browser mechanism. It never constructs an
+activity URL from response/sample IDs and offers no mobile submission control.
 
 Versioned route `/api/v1` cho phép evolve contract có kiểm soát. Thay data source
 không được âm thầm đổi ownership/visibility hoặc đưa synthetic data vào production.

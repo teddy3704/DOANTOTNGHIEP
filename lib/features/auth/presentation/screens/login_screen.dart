@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/config/app_config.dart';
 import '../../../../core/errors/failure_message.dart';
 import '../../../../core/widgets/app_wordmark.dart';
+import '../../domain/student_identity_provider.dart';
 import '../controllers/auth_controller.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -14,28 +15,23 @@ class LoginScreen extends ConsumerStatefulWidget {
 }
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final _usernameController = TextEditingController();
-  final _passwordController = TextEditingController();
-  bool _obscurePassword = true;
+  bool _isSelectingStagingIdentity = false;
+  Object? _stagingIdentityError;
 
-  @override
-  void dispose() {
-    _usernameController.dispose();
-    _passwordController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _submit() async {
-    if (!_formKey.currentState!.validate()) return;
-    FocusScope.of(context).unfocus();
-    await ref
-        .read(authControllerProvider.notifier)
-        .signIn(
-          username: _usernameController.text.trim(),
-          password: _passwordController.text,
-        );
-    _passwordController.clear();
+  Future<void> _selectStagingIdentity(String studentCode) async {
+    setState(() {
+      _isSelectingStagingIdentity = true;
+      _stagingIdentityError = null;
+    });
+    try {
+      await ref.read(studentIdentityProvider).select(studentCode);
+      if (!mounted) return;
+      await ref.read(authControllerProvider.notifier).restoreSession();
+    } on Object catch (error) {
+      if (mounted) setState(() => _stagingIdentityError = error);
+    } finally {
+      if (mounted) setState(() => _isSelectingStagingIdentity = false);
+    }
   }
 
   @override
@@ -43,6 +39,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final config = ref.watch(appConfigProvider);
     final auth = ref.watch(authControllerProvider);
     final colors = Theme.of(context).colorScheme;
+    final usesSampleIdentity = config.isStaging || config.enableDevFixtures;
 
     return Scaffold(
       body: DecoratedBox(
@@ -94,28 +91,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             child: Card(
                               child: Padding(
                                 padding: const EdgeInsets.all(28),
-                                child: config.isStaging
-                                    ? _StagingPreviewUnavailable(
-                                        error: auth.error,
-                                        onRetry: () => ref
-                                            .read(
-                                              authControllerProvider.notifier,
-                                            )
-                                            .restoreSession(),
-                                      )
-                                    : config.enableDevFixtures
-                                    ? _LoginForm(
-                                        formKey: _formKey,
-                                        usernameController: _usernameController,
-                                        passwordController: _passwordController,
-                                        obscurePassword: _obscurePassword,
-                                        isSubmitting: auth.isSubmitting,
-                                        error: auth.error,
-                                        onTogglePassword: () => setState(
-                                          () => _obscurePassword =
-                                              !_obscurePassword,
-                                        ),
-                                        onSubmit: _submit,
+                                child: usesSampleIdentity
+                                    ? _StagingIdentitySelector(
+                                        identities: ref
+                                            .watch(studentIdentityProvider)
+                                            .availableIdentities,
+                                        error:
+                                            _stagingIdentityError ?? auth.error,
+                                        isSelecting:
+                                            _isSelectingStagingIdentity,
+                                        onSelect: _selectStagingIdentity,
                                       )
                                     : const _AuthenticationBlocker(),
                               ),
@@ -125,26 +110,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           Card(
                             child: Padding(
                               padding: const EdgeInsets.all(28),
-                              child: config.isStaging
-                                  ? _StagingPreviewUnavailable(
-                                      error: auth.error,
-                                      onRetry: () => ref
-                                          .read(authControllerProvider.notifier)
-                                          .restoreSession(),
-                                    )
-                                  : config.enableDevFixtures
-                                  ? _LoginForm(
-                                      formKey: _formKey,
-                                      usernameController: _usernameController,
-                                      passwordController: _passwordController,
-                                      obscurePassword: _obscurePassword,
-                                      isSubmitting: auth.isSubmitting,
-                                      error: auth.error,
-                                      onTogglePassword: () => setState(
-                                        () => _obscurePassword =
-                                            !_obscurePassword,
-                                      ),
-                                      onSubmit: _submit,
+                              child: usesSampleIdentity
+                                  ? _StagingIdentitySelector(
+                                      identities: ref
+                                          .watch(studentIdentityProvider)
+                                          .availableIdentities,
+                                      error:
+                                          _stagingIdentityError ?? auth.error,
+                                      isSelecting: _isSelectingStagingIdentity,
+                                      onSelect: _selectStagingIdentity,
                                     )
                                   : const _AuthenticationBlocker(),
                             ),
@@ -177,15 +151,19 @@ class _WelcomePanel extends StatelessWidget {
           : CrossAxisAlignment.center,
       children: [
         const AppWordmark(),
-        const SizedBox(height: 32),
+        SizedBox(height: isWide ? 32 : 20),
         Text(
           'Học tập chủ động,\nmọi lúc và mọi nơi.',
           textAlign: isWide ? TextAlign.left : TextAlign.center,
-          style: Theme.of(context).textTheme.displaySmall?.copyWith(
-            height: 1.12,
-            fontWeight: FontWeight.w800,
-            letterSpacing: -1.4,
-          ),
+          style:
+              (isWide
+                      ? Theme.of(context).textTheme.displaySmall
+                      : Theme.of(context).textTheme.headlineMedium)
+                  ?.copyWith(
+                    height: 1.12,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -1.4,
+                  ),
         ),
         const SizedBox(height: 18),
         Text(
@@ -196,120 +174,6 @@ class _WelcomePanel extends StatelessWidget {
       ],
     ),
   );
-}
-
-class _LoginForm extends StatelessWidget {
-  const _LoginForm({
-    required this.formKey,
-    required this.usernameController,
-    required this.passwordController,
-    required this.obscurePassword,
-    required this.isSubmitting,
-    required this.error,
-    required this.onTogglePassword,
-    required this.onSubmit,
-  });
-
-  final GlobalKey<FormState> formKey;
-  final TextEditingController usernameController;
-  final TextEditingController passwordController;
-  final bool obscurePassword;
-  final bool isSubmitting;
-  final Object? error;
-  final VoidCallback onTogglePassword;
-  final VoidCallback onSubmit;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    return Form(
-      key: formKey,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            'Đăng nhập',
-            style: Theme.of(
-              context,
-            ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Sử dụng tài khoản học tập của bạn để tiếp tục.',
-            style: TextStyle(color: colors.onSurfaceVariant, height: 1.45),
-          ),
-          const SizedBox(height: 24),
-          TextFormField(
-            controller: usernameController,
-            enabled: !isSubmitting,
-            textInputAction: TextInputAction.next,
-            autofillHints: const [AutofillHints.username],
-            decoration: const InputDecoration(
-              labelText: 'Tên đăng nhập',
-              prefixIcon: Icon(Icons.person_outline_rounded),
-            ),
-            validator: (value) => value == null || value.trim().isEmpty
-                ? 'Vui lòng nhập tên đăng nhập.'
-                : null,
-          ),
-          const SizedBox(height: 14),
-          TextFormField(
-            controller: passwordController,
-            enabled: !isSubmitting,
-            obscureText: obscurePassword,
-            textInputAction: TextInputAction.done,
-            autofillHints: const [AutofillHints.password],
-            onFieldSubmitted: (_) => onSubmit(),
-            decoration: InputDecoration(
-              labelText: 'Mật khẩu',
-              prefixIcon: const Icon(Icons.lock_outline_rounded),
-              suffixIcon: IconButton(
-                onPressed: onTogglePassword,
-                tooltip: obscurePassword ? 'Hiện mật khẩu' : 'Ẩn mật khẩu',
-                icon: Icon(
-                  obscurePassword
-                      ? Icons.visibility_outlined
-                      : Icons.visibility_off_outlined,
-                ),
-              ),
-            ),
-            validator: (value) => value == null || value.isEmpty
-                ? 'Vui lòng nhập mật khẩu.'
-                : null,
-          ),
-          if (error != null) ...[
-            const SizedBox(height: 16),
-            _InlineMessage(message: userMessageFor(error!)),
-          ],
-          const SizedBox(height: 20),
-          FilledButton.icon(
-            onPressed: isSubmitting ? null : onSubmit,
-            icon: isSubmitting
-                ? const SizedBox.square(
-                    dimension: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2.4),
-                  )
-                : const Icon(Icons.login_rounded),
-            label: Text(isSubmitting ? 'Đang xác thực…' : 'Tiếp tục'),
-          ),
-          const SizedBox(height: 18),
-          Row(
-            children: [
-              Icon(Icons.shield_outlined, size: 18, color: colors.primary),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'Ứng dụng không lưu mật khẩu của bạn.',
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 class _AuthenticationBlocker extends StatelessWidget {
@@ -371,14 +235,18 @@ class _AuthenticationBlocker extends StatelessWidget {
   }
 }
 
-class _StagingPreviewUnavailable extends StatelessWidget {
-  const _StagingPreviewUnavailable({
+class _StagingIdentitySelector extends StatelessWidget {
+  const _StagingIdentitySelector({
+    required this.identities,
     required this.error,
-    required this.onRetry,
+    required this.isSelecting,
+    required this.onSelect,
   });
 
+  final List<StudentIdentity> identities;
   final Object? error;
-  final VoidCallback onRetry;
+  final bool isSelecting;
+  final Future<void> Function(String studentCode) onSelect;
 
   @override
   Widget build(BuildContext context) {
@@ -406,7 +274,7 @@ class _StagingPreviewUnavailable extends StatelessWidget {
         ),
         const SizedBox(height: 22),
         Text(
-          'Bản xem trước dữ liệu mẫu',
+          'Dữ liệu mô phỏng phục vụ phát triển',
           style: Theme.of(
             context,
           ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
@@ -414,17 +282,27 @@ class _StagingPreviewUnavailable extends StatelessWidget {
         const SizedBox(height: 10),
         Text(
           error == null
-              ? 'Đang kết nối dữ liệu học tập để hiển thị bản xem trước.'
+              ? 'Chọn hồ sơ mẫu. Đây không phải tài khoản DLU.'
               : userMessageFor(error!),
           style: TextStyle(color: colors.onSurfaceVariant, height: 1.5),
         ),
         const SizedBox(height: 20),
-        OutlinedButton.icon(
-          onPressed: onRetry,
-          icon: const Icon(Icons.refresh_rounded),
-          label: const Text('Thử lại'),
-        ),
-        const SizedBox(height: 14),
+        for (final identity in identities) ...[
+          FilledButton.tonalIcon(
+            onPressed: isSelecting
+                ? null
+                : () => onSelect(identity.studentCode),
+            icon: isSelecting
+                ? const SizedBox.square(
+                    dimension: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2.4),
+                  )
+                : const Icon(Icons.school_outlined),
+            label: Text(identity.label),
+          ),
+          const SizedBox(height: 10),
+        ],
+        const SizedBox(height: 4),
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -439,39 +317,6 @@ class _StagingPreviewUnavailable extends StatelessWidget {
           ],
         ),
       ],
-    );
-  }
-}
-
-class _InlineMessage extends StatelessWidget {
-  const _InlineMessage({required this.message});
-
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: colors.errorContainer,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(Icons.info_outline, color: colors.onErrorContainer, size: 20),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                message,
-                style: TextStyle(color: colors.onErrorContainer, height: 1.4),
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

@@ -1,6 +1,7 @@
 import 'package:dlu_lms_mobile/core/errors/app_failure.dart';
 import 'package:dlu_lms_mobile/dev/student_support_api/student_support_api_client.dart';
 import 'package:dlu_lms_mobile/dev/student_support_api/student_support_staging_config.dart';
+import 'package:dlu_lms_mobile/dev/student_support_api/staging_student_identity_provider.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -170,10 +171,54 @@ void main() {
       expect('$failure $diagnostic', isNot(contains(sentinel)));
     }
   });
+
+  test('clears a selected staging identity after a 401 response', () async {
+    final storage = _MemoryStagingIdentityStorage();
+    final identity = StagingStudentIdentityProvider(storage: storage);
+    await identity.select('SV001');
+    final client = StudentSupportApiClient(
+      config: config,
+      identityProvider: identity,
+      dio: _dio((options, handler) {
+        handler.reject(
+          DioException(
+            requestOptions: options,
+            response: Response<Object?>(
+              requestOptions: options,
+              statusCode: 401,
+            ),
+            type: DioExceptionType.badResponse,
+          ),
+        );
+      }),
+    );
+
+    await expectLater(
+      client.getCourses(),
+      throwsA(isA<AuthenticationFailure>()),
+    );
+    expect(await identity.restore(), isNull);
+    expect(storage.value, isNull);
+  });
 }
 
 Dio _dio(void Function(RequestOptions, RequestInterceptorHandler) onRequest) {
   final dio = Dio(BaseOptions(baseUrl: 'https://staging.example.test'));
   dio.interceptors.add(InterceptorsWrapper(onRequest: onRequest));
   return dio;
+}
+
+class _MemoryStagingIdentityStorage implements StagingIdentityStorage {
+  String? value;
+
+  @override
+  Future<void> deleteStudentCode() async => value = null;
+
+  @override
+  Future<String?> readStudentCode() async => value;
+
+  @override
+  Future<void> writeStudentCode(String studentCode) async {
+    value = studentCode;
+  }
 }

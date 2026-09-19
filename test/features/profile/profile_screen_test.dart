@@ -40,6 +40,7 @@ void main() {
     expect(find.text('Nguyễn Minh Anh'), findsOneWidget);
     expect(find.text('minh.anh@example.test'), findsOneWidget);
     expect(find.text('Tùy chọn ứng dụng'), findsOneWidget);
+    expect(find.text('Nhắc việc học tập'), findsOneWidget);
     expect(find.text('Đăng xuất'), findsOneWidget);
     expect(find.textContaining('Token'), findsNothing);
     expect(find.textContaining('lms.dlu.edu.vn'), findsNothing);
@@ -68,7 +69,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('staging profile retains identity but hides logout', (
+  testWidgets('staging profile retains identity and can switch sample data', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -94,6 +95,7 @@ void main() {
     expect(find.text('Mã sinh viên'), findsOneWidget);
     expect(find.text('SV001'), findsOneWidget);
     expect(find.text('Đăng xuất'), findsNothing);
+    expect(find.text('Đổi dữ liệu mô phỏng'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

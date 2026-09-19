@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import '../../core/errors/app_failure.dart';
 import '../../features/assignments/domain/assignment.dart';
 import '../../features/assignments/domain/assignment_repository.dart';
 import '../../features/auth/domain/auth_repository.dart';
 import '../../features/auth/domain/auth_session.dart';
+import '../../features/auth/domain/student_identity_provider.dart';
 import '../../features/calendar/domain/calendar_repository.dart';
 import '../../features/calendar/domain/learning_event.dart';
 import '../../features/courses/domain/course.dart';
@@ -13,6 +16,7 @@ import '../../features/grades/domain/grade_entry.dart';
 import '../../features/grades/domain/grade_repository.dart';
 import '../../features/profile/domain/app_user.dart';
 import '../../features/profile/domain/user_repository.dart';
+import '../../features/teacher/domain/teacher_support_repository.dart';
 import 'student_support_api_client.dart';
 
 /// Read-only repository adapters for the explicitly selected staging API.
@@ -20,12 +24,39 @@ import 'student_support_api_client.dart';
 /// These adapters are injected only by `main_staging.dart`. Production uses the
 /// unconfigured Moodle repositories and never falls back to these values.
 class StagingPreviewAuthRepository implements AuthRepository {
-  StagingPreviewAuthRepository(this._client);
+  StagingPreviewAuthRepository(
+    this._client,
+    this._identityProvider, {
+    this.teacherRepository,
+  });
+
+  final TeacherSupportRepository? teacherRepository;
 
   final StudentSupportApiClient _client;
+  final StudentIdentityProvider _identityProvider;
+
+  @override
+  Stream<void> get sessionInvalidations => _identityProvider.invalidations;
 
   @override
   Future<AuthSession?> restoreSession() async {
+    final identity = await _identityProvider.restore();
+    if (identity == null) return null;
+    if (identity.role == DluRole.teacher) {
+      final repository = teacherRepository;
+      if (repository == null) {
+        throw const ConfigurationFailure(
+          'Kết nối giảng dạy chưa được cấu hình.',
+          code: 'TEACHER_SUPPORT_UNCONFIGURED',
+        );
+      }
+      final overview = await repository.getOverview();
+      return AuthSession(
+        userId: overview.profile.id,
+        displayName: overview.profile.displayName,
+        role: DluRole.teacher,
+      );
+    }
     final profile = await _client.getProfile();
     return AuthSession(
       userId: _requiredString(profile, 'studentCode'),
@@ -45,16 +76,33 @@ class StagingPreviewAuthRepository implements AuthRepository {
   }
 
   @override
-  Future<void> signOut() async {}
+  Future<void> signOut() => _identityProvider.clear();
 }
 
 class StagingUserRepository implements UserRepository {
-  StagingUserRepository(this._client);
+  StagingUserRepository(
+    this._client, {
+    this.identityProvider,
+    this.teacherRepository,
+  });
+
+  final StudentIdentityProvider? identityProvider;
+  final TeacherSupportRepository? teacherRepository;
 
   final StudentSupportApiClient _client;
 
   @override
   Future<AppUser> getCurrentUser() async {
+    if ((await identityProvider?.restore())?.role == DluRole.teacher) {
+      final repository = teacherRepository;
+      if (repository == null) {
+        throw const ConfigurationFailure(
+          'Kết nối giảng dạy chưa được cấu hình.',
+          code: 'TEACHER_SUPPORT_UNCONFIGURED',
+        );
+      }
+      return (await repository.getOverview()).profile;
+    }
     final profile = await _client.getProfile();
     final role = _requiredString(profile, 'role');
     if (role != 'student') {

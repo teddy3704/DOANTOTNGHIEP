@@ -2,10 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/errors/failure_message.dart';
+import '../../../../core/external_links/official_lms_launcher.dart';
 import '../../../../core/widgets/empty_state.dart';
 import '../../../../core/widgets/error_state.dart';
 import '../../domain/assignment.dart';
 import '../../domain/assignment_repository.dart';
+import '../../../auth/presentation/controllers/auth_controller.dart';
+import '../../../reminders/domain/learning_reminder.dart';
+import '../../../reminders/presentation/reminder_providers.dart';
+import '../../../reminders/presentation/widgets/reminder_editor_sheet.dart';
 
 class AssignmentScreen extends ConsumerWidget {
   const AssignmentScreen({
@@ -44,14 +49,19 @@ class AssignmentScreen extends ConsumerWidget {
   }
 }
 
-class _AssignmentContent extends StatelessWidget {
+class _AssignmentContent extends ConsumerWidget {
   const _AssignmentContent({required this.assignment});
 
   final AssignmentDetail assignment;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colors = Theme.of(context).colorScheme;
+    final auth = ref.watch(authControllerProvider);
+    final ownerId = auth.session?.userId;
+    final reminders = ownerId == null
+        ? null
+        : ref.watch(remindersForOwnerProvider(ownerId));
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
       children: [
@@ -205,12 +215,175 @@ class _AssignmentContent extends StatelessWidget {
                 ),
                 const SizedBox(height: 10),
                 _GradeCard(assignment: assignment),
+                if (ownerId != null &&
+                    reminders != null &&
+                    assignment.dueAt.isAfter(DateTime.now())) ...[
+                  const SizedBox(height: 24),
+                  Text(
+                    'Nhắc việc học tập',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  _AssignmentReminderCard(
+                    ownerId: ownerId,
+                    assignment: assignment,
+                    reminders: reminders,
+                  ),
+                ],
+                const SizedBox(height: 24),
+                Text(
+                  'Thao tác chính thức',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(
+                          'Nộp bài và thao tác học vụ chính thức được thực hiện trên DLU LMS.',
+                          style: TextStyle(
+                            color: colors.onSurfaceVariant,
+                            height: 1.45,
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                        FilledButton.tonalIcon(
+                          onPressed: () => _openOfficialLms(context, ref),
+                          icon: const Icon(Icons.open_in_new_rounded),
+                          label: const Text('Nộp bài trên LMS'),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
         ),
       ],
     );
+  }
+
+  Future<void> _openOfficialLms(BuildContext context, WidgetRef ref) async {
+    try {
+      await ref.read(officialLmsLauncherProvider).openHome();
+    } on Object catch (error) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(userMessageFor(error))));
+    }
+  }
+}
+
+class _AssignmentReminderCard extends ConsumerWidget {
+  const _AssignmentReminderCard({
+    required this.ownerId,
+    required this.assignment,
+    required this.reminders,
+  });
+
+  final String ownerId;
+  final AssignmentDetail assignment;
+  final AsyncValue<List<LearningReminder>> reminders;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colors = Theme.of(context).colorScheme;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: reminders.when(
+          loading: () => const Row(
+            children: [
+              SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+              SizedBox(width: 12),
+              Text('Đang tải nhắc việc…'),
+            ],
+          ),
+          error: (error, _) => Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Không thể tải nhắc việc lúc này.',
+                style: TextStyle(color: colors.onSurfaceVariant),
+              ),
+              const SizedBox(height: 10),
+              OutlinedButton.icon(
+                onPressed: () =>
+                    ref.invalidate(remindersForOwnerProvider(ownerId)),
+                icon: const Icon(Icons.refresh_rounded),
+                label: const Text('Thử lại'),
+              ),
+            ],
+          ),
+          data: (items) {
+            final existing = items.where((reminder) {
+              return reminder.courseId == assignment.courseId &&
+                  reminder.assignmentId == assignment.id;
+            }).firstOrNull;
+            final isEditing = existing != null;
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  isEditing
+                      ? 'Bạn đã đặt nhắc lúc ${_formatDateTime(existing.remindAt)}.'
+                      : 'Tạo lời nhắc hạn nộp trên thiết bị của bạn.',
+                  style: TextStyle(color: colors.onSurfaceVariant, height: 1.4),
+                ),
+                const SizedBox(height: 12),
+                FilledButton.tonalIcon(
+                  onPressed: () =>
+                      _openEditor(context, ref, existing: existing),
+                  icon: Icon(
+                    isEditing
+                        ? Icons.edit_notifications_outlined
+                        : Icons.add_alert_outlined,
+                  ),
+                  label: Text(
+                    isEditing ? 'Chỉnh sửa nhắc việc' : 'Đặt nhắc việc',
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openEditor(
+    BuildContext context,
+    WidgetRef ref, {
+    required LearningReminder? existing,
+  }) async {
+    final saved = await showReminderEditorSheet(
+      context,
+      repository: ref.read(reminderRepositoryProvider),
+      ownerId: ownerId,
+      courseId: assignment.courseId,
+      assignmentId: assignment.id,
+      assignmentName: assignment.name,
+      dueAt: assignment.dueAt,
+      existing: existing,
+    );
+    if (saved == null || !context.mounted) return;
+    ref.invalidate(remindersForOwnerProvider(ownerId));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Đã lưu nhắc việc.')));
   }
 }
 

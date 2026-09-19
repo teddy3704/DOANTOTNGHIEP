@@ -1,5 +1,14 @@
 # DLU Moodle API Matrix
 
+## Current support boundary — 19/09/2026
+
+No additional official DLU API function verified in this continuation. Current
+DLU auth/Web Services status is **TO_VERIFY_DLU**; older disabled-service evidence
+below is historical, not a fresh server test. Render Student read API remains
+verified and its health is reachable. Teacher Flutter uses an explicit fixture,
+not the two Teacher SQL views or a deployed Teacher endpoint. Official-home
+launcher is runtime PASS; activity-specific deep links remain unverified.
+
 **Status:** `BLOCKED_EXTERNAL` — authenticated UI verified, but DLU currently reports Web Services disabled and `0` Moodle Web Service functions are `VERIFIED_API`.
 
 **Updated:** 2026-08-14 ICT

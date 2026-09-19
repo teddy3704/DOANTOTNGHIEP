@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../../app/router/app_routes.dart';
 import '../../../../app/theme/app_tokens.dart';
 import '../../../../app/theme/theme_mode_provider.dart';
 import '../../../../core/config/app_config.dart';
+import '../../../../core/external_links/official_lms_button.dart';
+import '../../../auth/domain/auth_session.dart';
 import '../../../../core/errors/failure_message.dart';
 import '../../../../core/widgets/content_skeleton.dart';
 import '../../../../core/widgets/error_state.dart';
@@ -38,6 +42,8 @@ class _ProfileContent extends ConsumerWidget {
     final colors = Theme.of(context).colorScheme;
     final themeMode = ref.watch(appThemeModeProvider);
     final config = ref.watch(appConfigProvider);
+    final teacher =
+        ref.watch(authControllerProvider).session?.role == DluRole.teacher;
     return SingleChildScrollView(
       padding: AppLayout.pagePadding,
       child: Center(
@@ -146,7 +152,7 @@ class _ProfileContent extends ConsumerWidget {
                 Card(
                   child: _InfoTile(
                     icon: Icons.badge_outlined,
-                    title: 'Mã sinh viên',
+                    title: teacher ? 'Mã giảng viên' : 'Mã sinh viên',
                     value: idNumber,
                   ),
                 ),
@@ -211,7 +217,34 @@ class _ProfileContent extends ConsumerWidget {
                   ),
                 ),
               ),
-              if (!config.isStaging) ...[
+              const SizedBox(height: AppSpacing.md),
+              if (!teacher)
+                Card(
+                  child: ListTile(
+                    leading: Icon(
+                      Icons.notifications_active_outlined,
+                      color: colors.primary,
+                    ),
+                    title: const Text(
+                      'Nhắc việc học tập',
+                      style: TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                    subtitle: const Text(
+                      'Quản lý lời nhắc hạn nộp trên thiết bị này.',
+                    ),
+                    trailing: const Icon(Icons.chevron_right_rounded),
+                    onTap: () => context.push(AppRoutes.reminders),
+                  ),
+                ),
+              if (config.isStaging) ...[
+                const SizedBox(height: AppSpacing.xl),
+                OutlinedButton.icon(
+                  onPressed: () =>
+                      ref.read(authControllerProvider.notifier).signOut(),
+                  icon: const Icon(Icons.switch_account_outlined),
+                  label: const Text('Đổi dữ liệu mô phỏng'),
+                ),
+              ] else ...[
                 const SizedBox(height: AppSpacing.xl),
                 OutlinedButton.icon(
                   onPressed: () =>
@@ -220,6 +253,8 @@ class _ProfileContent extends ConsumerWidget {
                   label: const Text('Đăng xuất'),
                 ),
               ],
+              const SizedBox(height: AppSpacing.md),
+              const OfficialLmsButton(label: 'Mở LMS'),
             ],
           ),
         ),

@@ -25,7 +25,7 @@ class StagingReadOnlyNotice extends StatelessWidget {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              'Bản xem trước dữ liệu mẫu · Chỉ đọc',
+              'Dữ liệu mô phỏng phục vụ phát triển · Chỉ đọc',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: Theme.of(context).textTheme.labelLarge?.copyWith(

@@ -2,6 +2,7 @@ import 'package:dlu_lms_mobile/core/errors/app_failure.dart';
 import 'package:dlu_lms_mobile/dev/student_support_api/student_support_api_client.dart';
 import 'package:dlu_lms_mobile/dev/student_support_api/student_support_repositories.dart';
 import 'package:dlu_lms_mobile/dev/student_support_api/student_support_staging_config.dart';
+import 'package:dlu_lms_mobile/dev/student_support_api/staging_student_identity_provider.dart';
 import 'package:dlu_lms_mobile/features/assignments/domain/assignment.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -94,6 +95,29 @@ void main() {
           ),
         ),
       );
+    },
+  );
+
+  test(
+    'staging auth requires a selected identity and clears it on sign out',
+    () async {
+      final storage = _MemoryStagingIdentityStorage();
+      final identity = StagingStudentIdentityProvider(storage: storage);
+      final repository = StagingPreviewAuthRepository(
+        _AuthProfileClient(identity),
+        identity,
+      );
+
+      expect(await repository.restoreSession(), isNull);
+
+      await identity.select('SV002');
+      final session = await repository.restoreSession();
+      expect(session?.userId, 'SV002');
+      expect(session?.displayName, 'Sinh viên mẫu 02');
+
+      await repository.signOut();
+      expect(await repository.restoreSession(), isNull);
+      expect(storage.value, isNull);
     },
   );
 }
@@ -284,4 +308,39 @@ final class _FixtureClient extends StudentSupportApiClient {
   @override
   Future<List<StudentSupportJson>> getCourseContent(String courseId) async =>
       contentByCourseId[courseId] ?? const <StudentSupportJson>[];
+}
+
+class _AuthProfileClient extends StudentSupportApiClient {
+  _AuthProfileClient(StagingStudentIdentityProvider identity)
+    : super(
+        config: StudentSupportStagingConfig(
+          baseUri: Uri.parse('https://staging.example.test'),
+          studentCode: 'SV001',
+        ),
+        identityProvider: identity,
+      );
+
+  @override
+  Future<StudentSupportJson> getProfile() async => const <String, Object?>{
+    'studentCode': 'SV002',
+    'fullName': 'Sinh viên mẫu 02',
+    'email': 'sv002@example.test',
+    'role': 'student',
+    'department': 'Khoa mẫu',
+  };
+}
+
+class _MemoryStagingIdentityStorage implements StagingIdentityStorage {
+  String? value;
+
+  @override
+  Future<void> deleteStudentCode() async => value = null;
+
+  @override
+  Future<String?> readStudentCode() async => value;
+
+  @override
+  Future<void> writeStudentCode(String studentCode) async {
+    value = studentCode;
+  }
 }

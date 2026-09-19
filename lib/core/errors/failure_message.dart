@@ -1,4 +1,5 @@
 import 'app_failure.dart';
+import '../../features/reminders/domain/reminder_exception.dart';
 
 String userMessageFor(Object error) => switch (error) {
   AuthenticationFailure() =>
@@ -13,5 +14,6 @@ String userMessageFor(Object error) => switch (error) {
   ParsingFailure() =>
     'Dữ liệu tạm thời chưa thể hiển thị. Vui lòng thử lại sau.',
   MoodleApiFailure() => 'Yêu cầu chưa thể hoàn tất. Vui lòng thử lại sau.',
+  ReminderException() => error.message,
   _ => 'Đã xảy ra lỗi không mong muốn. Vui lòng thử lại.',
 };

@@ -1,5 +1,89 @@
 # Progress Report
 
+## 2026-09-19 — Council alignment and runtime verification
+
+Continued the current worktree without restarting passed gates. Student Render
+and Teacher read-only fixture flows, role switching, reminders and external LMS
+navigation were exercised on DLU_LMS_Pixel. User granted Android permission;
+scheduling/persistence worked, future notification delivery not claimed.
+Final analysis and 150 tests PASS. Generic LMS labels and two contrast details
+were corrected; final APK evidence: `FLUTTER_TEST_RESULT.md`.
+
+One catalog check found lms 22 tables / 10 views / 22 PK / 35 FK / 135 columns,
+different from the supplied 39-table group model. Word files read, not edited.
+Node/Fastify remains authoritative; no Spring backend, import or redeployment.
+Seven council SQL SELECTs executed read-only successfully. Prepared demo pack,
+DDL/seed/OpenAPI backup and separate group seed with auth fields disabled.
+Remaining: group schema export; Teacher API; DLU-approved auth/Web Services.
+Prior entries below are historical checkpoints.
+
+## 2026-09-18 — Student + Teacher LMS support and runtime continuation
+
+Added explicit Teacher context, read-only assigned-course/work/calendar/profile
+support, route isolation and central LMS links. Student Render flow and local
+reminders are retained. Production remains unconfigured/fail-closed.
+
+Format/analyze and 150 tests PASS; staging APK build/install PASS. Student runtime
+reached Courses, Content/Resource, Assignment and Reminder editor. Android
+notification permission now needs the user; remaining runtime and final local
+commit are pending. No API/database redeployment or academic write. Evidence:
+`FLUTTER_TEST_RESULT.md`. No source change or rebuild during runtime continuation.
+
+## 2026-09-18 — App-owned local learning reminders
+
+**Status: IN PROGRESS — source and automated checks pass locally; APK and
+emulator/device notification verification are still pending.**
+
+- Added `LearningReminder` and an owner-scoped repository for learner-selected
+  deadlines. Its secure local record is deliberately narrow: opaque owner/course/
+  assignment references, due/reminder times and enabled state only. It does not
+  copy course text, grades, feedback, submissions, passwords, tokens or an LMS
+  response into local reminder storage.
+- The repository rejects cross-owner access, duplicate reminders, changed
+  academic references and invalid/past scheduling times. It coordinates device
+  scheduling with local persistence so a failed write restores the prior
+  scheduler state where possible.
+- Assignment Detail opens a create/edit sheet only while the supplied deadline is
+  still in the future. Profile links to a reminder manager where the active
+  learner can enable, disable or delete only their own reminders. These controls
+  never send a Moodle, Neon, Render or other academic write request.
+- Android local-notification scheduling uses a runtime notification permission
+  request and generic copy that contains no assignment title, course, grade,
+  submission or file data. It is not presented as an official Moodle
+  notification. Actual delivery on an emulator/device is deliberately not yet
+  claimed.
+- Reminder repository, scheduler, editor and manager tests are included in the
+  current suite. `flutter analyze` completed with no issues and `flutter test`
+  completed with **137 passing tests**. The final `dart format`, debug APK and
+  manual emulator flow remain part of the combined extension gate.
+
+## 2026-09-18 — Student Support staging identity and read-only navigation extension
+
+**Status: IN PROGRESS — implementation complete locally; final combined
+quality/emulator gate pending.**
+
+- Replaced the staging password-style entry surface with an explicit selector
+  for approved sample-student scopes. The selection stores only a non-secret
+  sample code through platform-backed storage; it is not a DLU credential,
+  token or production authorization mechanism.
+- A rejected staging identity response invalidates and clears that local scope,
+  allowing the normal auth controller/router path to return to the selector.
+  Production composition remains fail-closed and does not include this path.
+- Added read-only **Bài tập** and **Tiến độ** destinations. Assignment list and
+  detail use documented GET data only; no mobile submission, upload, grading,
+  or synthetic write flow was introduced. Progress renders supplied course
+  completion values without controls that alter Moodle state.
+- Moved Calendar to a contextual Dashboard route, keeping five focused primary
+  destinations: Trang chủ, Khóa học, Bài tập, Tiến độ and Hồ sơ.
+- Added a constrained official-LMS handoff on Assignment Detail. It can open
+  only the canonical official LMS origin through the platform; activity deep
+  links are not guessed and all official academic actions remain on Moodle.
+- Added focused tests for identity persistence/invalidation, no-password staging
+  Login, assignment/progress loading-empty-error-navigation states, responsive
+  shell navigation, external-origin rejection and app-owned local reminders.
+  Analysis is clean and the full suite passes 137 tests; final format, build and
+  emulator results remain pending.
+
 ## 2026-09-18 — Flutter Student Support staging consumer (PASS, read-only)
 
 - Started the Flutter work only after both public staging gates passed, from an

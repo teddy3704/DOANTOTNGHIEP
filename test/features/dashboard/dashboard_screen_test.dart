@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dlu_lms_mobile/features/assignments/domain/assignment.dart';
 import 'package:dlu_lms_mobile/features/assignments/domain/assignment_repository.dart';
 import 'package:dlu_lms_mobile/features/auth/domain/auth_repository.dart';
@@ -144,6 +146,9 @@ class _CalendarRepository implements CalendarRepository {
 
 class _SessionAuth implements AuthRepository {
   const _SessionAuth();
+
+  @override
+  Stream<void> get sessionInvalidations => const Stream<void>.empty();
 
   @override
   Future<AuthSession?> restoreSession() async =>

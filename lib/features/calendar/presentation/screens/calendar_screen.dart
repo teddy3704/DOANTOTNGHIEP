@@ -8,7 +8,9 @@ import '../../domain/calendar_repository.dart';
 import '../../domain/learning_event.dart';
 
 class CalendarScreen extends ConsumerWidget {
-  const CalendarScreen({super.key});
+  const CalendarScreen({this.showBackButton = false, super.key});
+
+  final bool showBackButton;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -23,26 +25,20 @@ class CalendarScreen extends ConsumerWidget {
               alignment: Alignment.topCenter,
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 980),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Lịch học tập',
-                      style: Theme.of(context).textTheme.headlineSmall
-                          ?.copyWith(
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: -0.5,
+                child: showBackButton
+                    ? Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          IconButton(
+                            tooltip: 'Quay lại',
+                            onPressed: () => Navigator.of(context).maybePop(),
+                            icon: const Icon(Icons.arrow_back_rounded),
                           ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      'Theo dõi các mốc quan trọng và chủ động sắp xếp thời gian.',
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
+                          const SizedBox(width: 4),
+                          const Expanded(child: _CalendarHeader()),
+                        ],
+                      )
+                    : const _CalendarHeader(),
               ),
             ),
           ),
@@ -88,6 +84,29 @@ class CalendarScreen extends ConsumerWidget {
       ],
     );
   }
+}
+
+class _CalendarHeader extends StatelessWidget {
+  const _CalendarHeader();
+
+  @override
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        'Lịch học tập',
+        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+          fontWeight: FontWeight.w900,
+          letterSpacing: -0.5,
+        ),
+      ),
+      const SizedBox(height: 6),
+      Text(
+        'Theo dõi các mốc quan trọng và chủ động sắp xếp thời gian.',
+        style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+      ),
+    ],
+  );
 }
 
 class _CalendarTimeline extends StatelessWidget {

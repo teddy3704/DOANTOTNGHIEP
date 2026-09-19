@@ -1,5 +1,14 @@
 # Security Baseline
 
+## 2026-09-19 council alignment
+
+Current Neon `lms.users` has no password column. Group SQL was not imported or
+used for authentication. Its local backup copy replaces all 18 user password
+and secret fields with a non-authenticating marker; originals remain unchanged.
+Raw group inputs/backup exports are ignored by Git. Demo SQL is READ ONLY;
+connection values and raw database errors are never printed. No credentials
+were copied to Postman, Flutter, screenshots or documents.
+
 **Status:** Phase 3B hardening + synthetic-data and product-presentation disclosure controls implemented; live authentication remains blocked by DLU service/auth configuration.
 
 **Scope:** Flutter client, Moodle REST boundary, local data, build/release process.
@@ -32,6 +41,10 @@
 - `StudentSupportStagingConfig` accepts a credential-free HTTPS origin and a
   synthetic development identity format only. The identity header is not DLU
   authentication, a password, token or authorization grant.
+- The staging selector accepts only its fixed sample-student allowlist and keeps
+  at most the selected non-secret scope code in platform-backed storage. It does
+  not persist a password, token, profile payload or DLU session. A staging 401
+  clears that scope before the router returns to the selector.
 - `StudentSupportApiClient` has a static read-only GET allowlist for the 11
   documented routes, rejects an arbitrary origin/path/query, and does not send an
   `Authorization` header, Moodle credential or database credential.
@@ -40,6 +53,33 @@
   format/analyze/test (93 tests) and emulator read-only walkthrough gates have
   passed; this does not enable DLU authentication, upload, submission, grading or
   another write workflow.
+- The official-LMS handoff validates the exact canonical HTTPS origin and opens it
+  through the platform external-application mechanism only. It rejects arbitrary
+  URLs and never derives an activity link from a sample identifier, response ID or
+  unverified database mapping.
+
+## App-owned local reminder controls — 2026-09-18
+
+- A reminder is a learner-controlled, device-local setting, not a Moodle event
+  or an API mutation. The Flutter flow makes no Moodle, Render, Neon or Supabase
+  write request when a learner creates, updates, enables, disables or deletes it.
+- Secure local storage contains only opaque owner/course/assignment references,
+  due/reminder timestamps, enabled state and local audit timestamps. It excludes
+  course/assignment titles, descriptions, grades, feedback, submissions, file
+  paths, passwords, tokens and full API payloads.
+- `SecureLocalReminderRepository` applies owner scope on every operation;
+  immutable academic references prevent a stored reminder from being reassigned
+  across a learner, course or assignment. Invalid duplicate, past or post-deadline
+  schedules are rejected. A persistence failure triggers scheduler restoration
+  where possible rather than silently retaining an inconsistent state.
+- Android notification permission is requested only when a learner enables a
+  reminder. The scheduled text is generic and contains no academic content;
+  delivery is not claimed until manual device/emulator verification. The feature
+  must not be described as an official LMS notification.
+- Automated coverage includes local persistence/owner isolation and scheduler
+  permission, generic-copy, cancellation and safe-failure paths. `flutter
+  analyze` is clean and the current full Flutter suite passes 137 tests; final
+  APK/emulator verification remains pending.
 
 ## 1. Security invariants
 
@@ -77,7 +117,9 @@
 | Cached data after logout/user switch | Cross-user exposure | Namespaced cache; atomic clear on logout/switch | Integration test |
 | Malicious filename/path | File overwrite/path traversal | Safe app-owned directory and sanitized display filename | Unit/integration tests |
 | Accidental production WRITE | Academic data integrity loss | Environment banner/guard; WRITE disabled until approved | Config tests + manual gate |
-| Development identity mistaken for DLU authentication | Unauthorized or misleading production use | Explicit staging-only entrypoint, read-only route allowlist, no production fallback | Source/isolation tests + staging smoke |
+| Development identity mistaken for DLU authentication | Unauthorized or misleading production use | Explicit staging-only entrypoint, allowlisted non-secret scope, 401 invalidation, read-only route allowlist, no production fallback | Source/isolation tests + staging smoke |
+| Unverified activity/deep link | Open arbitrary destination or imply unsupported Moodle action | Exact canonical-origin handoff only; no response-ID URL synthesis or mobile submit control | Launcher unit tests + UI review |
+| Local reminder metadata or notification disclosure | Device-local exposure of academic context | Secure minimal metadata, owner scope, generic notification copy and runtime permission | Repository/scheduler tests + device review pending |
 | Supply-chain/dependency issue | App compromise | Minimal dependencies, lockfile review, advisories/license review | CI/release checklist |
 | Secret in Git/database dump | Long-lived exposure | `.gitignore`, pre-commit/CI scan, history review before publish | Secret scan |
 
@@ -114,7 +156,7 @@ Không log raw request/response body trên production.
 - Rate-limit repeated interactive login attempts in UX; do not defeat server controls.
 - SSO uses system browser/deep-link flow only according to DLU contract; validate redirect/state parameters where protocol requires.
 - Do not embed a WebView to capture password or scrape authenticated pages.
-- Production Login không hiển thị trường username/password trong khi `AUTHENTICATION_METHOD_UNCONFIRMED`; credential form chỉ tồn tại ở DEV fixture.
+- Production Login không hiển thị trường username/password trong khi `AUTHENTICATION_METHOD_UNCONFIRMED`; current development/staging runtime entrypoints use a non-secret sample-scope selector rather than an interactive password form. Isolated test fixtures are not a runtime authentication path.
 - Browser session dùng cho discovery không được đọc cookie/session store hoặc chuyển sang Flutter.
 
 ## 7. Authorization controls
@@ -132,6 +174,9 @@ Không log raw request/response body trên production.
 - Release signing key ownership, storage and rotation policy belong to an authorized DLU/project owner; key is never committed.
 - Use unique production application ID after ownership approval.
 - Review exported Android components, deep links and intent validation.
+- Request notification permission only as a direct learner action; confirm local
+  reminder scheduling/cancellation and generic notification copy on a real
+  Android runtime before release.
 - Minification/obfuscation is defense-in-depth, not secret protection.
 
 ## 9. Repository controls

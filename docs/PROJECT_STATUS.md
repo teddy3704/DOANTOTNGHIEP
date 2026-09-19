@@ -1,5 +1,90 @@
 # Project Status
 
+## 2026-09-19 — Council alignment and current result
+
+**PARTIAL overall.** Student runtime PASS; Teacher read-only fixture runtime
+PASS, Teacher API not deployed. Active worktree remains
+`D:\DoAnTotNghiep-flutter-student-support` / `flutter-student-support-v1`.
+
+- Final format/analyze PASS; 150 tests PASS. APK/runtime evidence:
+  `FLUTTER_TEST_RESULT.md`. Original C: and D: source checkouts preserved.
+- User granted Android notification permission. Save/restore across role change
+  and restart, enable/disable, and Android scheduling verified. Delivery at the
+  future reminder time is not claimed. Both roles opened the official LMS.
+- Catalog checked once: **lms only; 22 tables; 10 views; 22 PK; 35 FK; 135 columns**.
+  Group report's 3-schema/39-table model is a different baseline. Word originals
+  unchanged; exact corrections in `REPORT_ALIGNMENT_NOTES.md`.
+- One authoritative backend: Node/Fastify, existing Render health PASS. Student
+  uses Render; Teacher uses explicit scoped fixture, never production fallback.
+- `demo/` contains tested SELECTs, checklist and council script. Local backup:
+  current DDL/seed/OpenAPI and separate auth-disabled group seed copy. No SQL
+  import, academic write, backend replacement or redeployment.
+- Remaining: group schema export; Teacher API/contract integration; DLU-approved
+  auth/Web Services. Obtain the schema and agree a separately tested migration;
+  do not overwrite working Neon to make report counts match.
+
+Entries below are historical; their pending runtime notes are superseded here.
+
+## 2026-09-18 — Current Student + Teacher Support checkpoint
+
+**PARTIAL: code/quality/APK PASS; final runtime walkthrough awaiting Android
+notification permission.** Continue in existing isolated worktree
+`D:\DoAnTotNghiep-flutter-student-support`, branch `flutter-student-support-v1`.
+Original C: and dirty D: source checkouts are preserved. Only requested evidence
+artifacts are added under `D:\DoAnTotNghiep\evidence\mobile`.
+
+- Format/analyze PASS; 150 tests PASS; final staging APK built and installed.
+- Student = verified Render read API. Teacher = explicit canonical Moodle-like
+  read-only fixture with course-context scoping; not a deployed Teacher endpoint.
+- No Mobile academic writes, independent account system or production fallback.
+- Student runtime checked through reminder editor; Android Allow prompt currently
+  needs human input. Teacher runtime and LMS handoff remain pending, not PASS.
+- DLU production auth/Web Services: TO_VERIFY_DLU. Render/Neon/Postman gates
+  remain unchanged; not recreated or retested unnecessarily.
+- Exact evidence and next step: `FLUTTER_TEST_RESULT.md`. No final commit yet.
+
+The entries below record earlier checkpoints; this section is current.
+
+## 2026-09-18 — Student Support staging UI extension
+
+**STATUS: IN PROGRESS — local read-only implementation; analysis and the full
+test suite pass, while the final APK/emulator gate is pending.** This extension stays inside the explicit
+`main_staging.dart` composition root. It does not alter `main.dart`, add DLU
+authentication, or claim a production Moodle contract.
+
+- The staging Login now selects one approved sample student scope instead of
+  rendering password controls. Only the non-secret sample student code is kept
+  in platform-backed storage; it is neither a DLU account nor an authorization
+  grant. Invalid or rejected staging identity responses clear that local scope
+  and return the app to its selection state.
+- Student Support navigation now exposes **Trang chủ**, **Khóa học**, **Bài
+  tập**, **Tiến độ** and **Hồ sơ**. Calendar remains a contextual route from
+  the Dashboard, not a hidden sixth primary destination.
+- The new Assignment list uses only the documented read endpoints for status,
+  deadlines and published grades. It has no submit, upload, grading or other
+  mutation control. Assignment Detail can hand the user to the canonical
+  official LMS home through the platform external-browser mechanism; it does
+  not synthesize an activity URL or fabricate a DLU deep link.
+- The Progress screen is a read-only course summary using server-supplied
+  progress values; it has no completion-update control or locally inferred GPA.
+- SV-10 is now an **app-owned local reminder** extension. Assignment Detail can
+  create or edit a reminder before its due time, while Profile links to the
+  owner-scoped reminder manager for enable/disable and deletion. The local record
+  contains only opaque owner/course/assignment references, due/reminder times and
+  the enabled setting; it does not persist assignment text, grades, submissions,
+  credentials or a Moodle payload.
+- A user-enabled reminder is scheduled as a generic Android local notification
+  after the platform permission request. It is not a Moodle notification and does
+  not send a Render, Neon or Moodle write request. Device delivery and the final
+  APK/emulator walkthrough remain pending, so this is not yet claimed as an
+  emulator-verified notification feature.
+- Focused unit/widget coverage has been added for selection/invalidation,
+  read-only navigation, assignment/progress states, official-LMS origin
+  allowlisting and local reminder persistence/scheduling/editor/list behavior.
+  `flutter analyze` reports no issues and `flutter test` passes all 137 tests.
+  `dart format .`, Android build and emulator re-verification must still run
+  together before this extension is promoted to `PASS`.
+
 ## 2026-09-18 — Render staging verification
 
 **STATUS: PASS — development/staging deployment only.** The dedicated branch
@@ -181,6 +266,10 @@ Toolchain được cài user-local, không dùng Android Studio. Hướng dẫn/
 ## IN PROGRESS
 
 - Product UI polish + schema/synthetic Student DEV milestone đã hoàn tất và quality-gated ở code/test/emulator.
+- Hoàn thiện extension Student Support staging chỉ đọc: sample identity selector,
+  invalidation khi API trả 401, Bài tập, Tiến độ, Calendar contextual và safe
+  handoff sang LMS chính thức. Đã thêm nhắc việc cục bộ do người học quản lý từ
+  Bài tập/Hồ sơ; chờ format, APK và combined emulator gate của code hiện tại.
 - Live Flutter authentication/current-user/courses integration vẫn cố ý chưa triển khai cho đến khi DLU bật/phê duyệt application-layer service/auth flow.
 - Supabase local foundation đã code/test nhưng chưa được remote-enable hoặc nối UI; project selection và one-login identity mapping vẫn là external gate.
 

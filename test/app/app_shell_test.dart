@@ -8,7 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
 void main() {
-  testWidgets('compact shell exposes four student destinations', (
+  testWidgets('compact shell exposes five student destinations', (
     tester,
   ) async {
     tester.view.physicalSize = const Size(390, 844);
@@ -31,21 +31,31 @@ void main() {
     final navigationBar = tester.widget<NavigationBar>(
       find.byType(NavigationBar),
     );
-    expect(navigationBar.destinations, hasLength(4));
+    expect(navigationBar.destinations, hasLength(5));
     expect(find.text('Trang chủ'), findsOneWidget);
     expect(find.text('Khóa học'), findsOneWidget);
-    expect(find.text('Lịch'), findsOneWidget);
+    expect(find.text('Bài tập'), findsOneWidget);
+    expect(find.text('Tiến độ'), findsOneWidget);
     expect(find.text('Hồ sơ'), findsOneWidget);
     expect(find.text('Tổng quan'), findsNothing);
     expect(find.text('Cá nhân'), findsNothing);
 
-    await tester.tap(find.text('Lịch'));
+    await tester.tap(find.text('Bài tập'));
     await tester.pumpAndSettle();
 
-    expect(find.text('calendar-page'), findsOneWidget);
+    expect(find.text('assignments-page'), findsOneWidget);
     expect(
       tester.widget<NavigationBar>(find.byType(NavigationBar)).selectedIndex,
       2,
+    );
+
+    await tester.tap(find.text('Tiến độ'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('progress-page'), findsOneWidget);
+    expect(
+      tester.widget<NavigationBar>(find.byType(NavigationBar)).selectedIndex,
+      3,
     );
 
     await tester.tap(find.text('Hồ sơ'));
@@ -54,7 +64,7 @@ void main() {
     expect(find.text('profile-page'), findsOneWidget);
     expect(
       tester.widget<NavigationBar>(find.byType(NavigationBar)).selectedIndex,
-      3,
+      4,
     );
   });
 
@@ -66,7 +76,7 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    final router = _testRouter(initialLocation: AppRoutes.calendar);
+    final router = _testRouter(initialLocation: AppRoutes.progress);
     addTearDown(router.dispose);
     await tester.pumpWidget(
       ProviderScope(
@@ -79,11 +89,12 @@ void main() {
     await tester.pumpAndSettle();
 
     final rail = tester.widget<NavigationRail>(find.byType(NavigationRail));
-    expect(rail.destinations, hasLength(4));
-    expect(rail.selectedIndex, 2);
+    expect(rail.destinations, hasLength(5));
+    expect(rail.selectedIndex, 3);
     expect(find.text('Trang chủ'), findsOneWidget);
     expect(find.text('Khóa học'), findsOneWidget);
-    expect(find.text('Lịch'), findsOneWidget);
+    expect(find.text('Bài tập'), findsOneWidget);
+    expect(find.text('Tiến độ'), findsOneWidget);
     expect(find.text('Hồ sơ'), findsOneWidget);
   });
 
@@ -103,7 +114,10 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Bản xem trước dữ liệu mẫu · Chỉ đọc'), findsOneWidget);
+    expect(
+      find.text('Dữ liệu mô phỏng phục vụ phát triển · Chỉ đọc'),
+      findsOneWidget,
+    );
     expect(tester.takeException(), isNull);
   });
 
@@ -128,7 +142,7 @@ void main() {
     await tester.pumpAndSettle();
 
     final label = tester.widget<Text>(
-      find.text('Bản xem trước dữ liệu mẫu · Chỉ đọc'),
+      find.text('Dữ liệu mô phỏng phục vụ phát triển · Chỉ đọc'),
     );
     expect(label.maxLines, 1);
     expect(label.overflow, TextOverflow.ellipsis);
@@ -143,7 +157,8 @@ GoRouter _testRouter({String initialLocation = AppRoutes.dashboard}) =>
       routes: [
         _shellRoute(AppRoutes.dashboard, 'dashboard-page'),
         _shellRoute(AppRoutes.courses, 'courses-page'),
-        _shellRoute(AppRoutes.calendar, 'calendar-page'),
+        _shellRoute(AppRoutes.assignments, 'assignments-page'),
+        _shellRoute(AppRoutes.progress, 'progress-page'),
         _shellRoute(AppRoutes.profile, 'profile-page'),
       ],
     );

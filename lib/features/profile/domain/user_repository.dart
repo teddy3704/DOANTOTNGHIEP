@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/errors/app_failure.dart';
 import 'app_user.dart';
+import '../../auth/presentation/controllers/auth_controller.dart';
 
 abstract interface class UserRepository {
   Future<AppUser> getCurrentUser();
@@ -23,6 +24,7 @@ final userRepositoryProvider = Provider<UserRepository>(
   (ref) => const UnconfiguredUserRepository(),
 );
 
-final currentUserProvider = FutureProvider.autoDispose<AppUser>(
-  (ref) => ref.watch(userRepositoryProvider).getCurrentUser(),
-);
+final currentUserProvider = FutureProvider.autoDispose<AppUser>((ref) {
+  ref.watch(authControllerProvider.select((state) => state.session?.userId));
+  return ref.watch(userRepositoryProvider).getCurrentUser();
+});

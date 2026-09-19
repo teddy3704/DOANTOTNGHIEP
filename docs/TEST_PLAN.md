@@ -1,5 +1,15 @@
 # Test Plan
 
+## Final support gate — 19/09/2026
+
+Format/analyze and 150 tests PASS; staging APK build/install PASS. Runtime covers
+Student Render and Teacher scoped read-only fixture, role switching, reminder
+persistence/toggle/scheduling and HTTPS official-LMS handoff. Future notification
+delivery, DLU production API and Teacher deployed API are not claimed verified.
+SQL catalog checked once; seven council demo SELECTs execute read-only. Word
+claim alignment and offline demo artifacts are separate from production gates.
+Exact commands, artifact hash and evidence: `FLUTTER_TEST_RESULT.md`.
+
 **Status:** Production-polished synthetic Student DEV milestone and secure local Supabase foundation executable; live Moodle/Supabase connected tests blocked externally.
 
 **Current executable test result:** `PASS — Moodle fixture validator, Supabase foundation validator, dart format 80 files/0 changed, analyze 0 issues, 73 tests, final production/DEV debug APK builds and Android 15 smoke tests`.
@@ -22,6 +32,37 @@
 - This consumer remains deliberately read-only. It does not provide DLU password
   login, upload, submission, grading or another write workflow, and `main.dart`
   does not select it as a production fallback.
+
+## Student Support staging UI extension — pending combined gate
+
+The following focused coverage is part of the current read-only extension. These
+tests describe the code under review; final counts and PASS/FAIL are recorded
+only after one combined format/analyze/test/build/emulator run.
+
+1. `StagingStudentIdentityProvider` restores only an allowlisted sample scope,
+   clears stale data and broadcasts invalidation; it stores no password or token.
+2. A staging 401 invalidates the selected scope, and `AuthController` returns to
+   the unauthenticated selector state. The staging Login regression asserts that
+   no password controls are rendered.
+3. Assignment list widget tests cover loading, filtering/state copy, detail-route
+   navigation, retry and compact-phone layout. They do not exercise a mutation.
+4. Progress widget tests cover accessible course summaries plus loading, empty,
+   error and retry states from `CourseRepository` data.
+5. App-shell tests cover five Student Support destinations and Calendar as a
+   contextual route from Dashboard rather than an additional primary destination.
+6. `OfficialLmsLauncher` tests permit only the canonical HTTPS official LMS
+   origin, reject arbitrary/non-HTTPS targets and surface a safe failure when the
+   platform cannot open the handoff. No activity URL is synthesized.
+7. Local reminder tests cover secure minimal persistence, owner isolation,
+   immutable academic references, duplicate/time validation and scheduler rollback.
+   Scheduler tests cover runtime notification permission, generic copy,
+   deterministic cancellation and safe error mapping. Editor and manager widget
+   tests cover create/update, loading, enable/disable and confirmed deletion.
+
+`flutter analyze` currently reports no issues and the complete `flutter test`
+suite passes **137 tests**. The extension remains pending its final `dart format`,
+debug APK and Android emulator walkthrough; notification delivery is not inferred
+from unit/widget tests.
 
 ## Product UI polish gate — 2026-08-16
 
@@ -104,6 +145,21 @@ Default tests chạy offline, không dùng DLU session, token, credential, priva
 - Permission and partial-data cases.
 - Production repository never falls back silently to mock.
 
+### App-owned local reminders
+
+- Persist and restore only opaque owner/course/assignment references, timestamps
+  and enabled state; assert academic title/grade/submission/password fields are
+  absent.
+- Reject cross-owner enable/update/delete, changing an academic reference,
+  duplicate reminders, reminder times at/after a due time, and enabled reminders
+  in the past.
+- On persistence failure, restore the previous device scheduler state where the
+  platform permits it; map storage/scheduler failures to a safe Vietnamese
+  message.
+- Request Android notification permission only when an enabled reminder is
+  scheduled. Assert the scheduled copy is generic and never includes an
+  assignment/course/file/grade value.
+
 ## 4. Widget test matrix
 
 Mỗi critical screen phải kiểm thử:
@@ -117,6 +173,11 @@ Mỗi critical screen phải kiểm thử:
 | Success | Data formatting, navigation và capability-aware actions đúng |
 
 Critical student presentation flow hiện đã được tự động hóa: Splash, Login, Dashboard, Courses, Course Detail, Assignment Detail, Grades, Calendar và Profile. Teacher-only screens vẫn là backlog và chỉ được test sau capability/environment approval.
+
+The current extension adds widget coverage for the local reminder editor and
+manager. Manual Android verification must still prove the permission prompt,
+scheduled delivery, enable/disable and deletion behavior without claiming a
+Moodle notification.
 
 ## 5. API contract verification
 

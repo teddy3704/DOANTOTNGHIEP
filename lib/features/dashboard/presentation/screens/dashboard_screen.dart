@@ -81,6 +81,10 @@ class DashboardScreen extends ConsumerWidget {
                   child: SectionHeader(
                     title: 'Việc cần ưu tiên',
                     subtitle: 'Theo dõi các bài tập gần hạn nộp.',
+                    action: TextButton(
+                      onPressed: () => context.go(AppRoutes.assignments),
+                      child: const Text('Xem tất cả'),
+                    ),
                   ),
                 ),
               ),
@@ -205,6 +209,10 @@ class DashboardScreen extends ConsumerWidget {
                   child: SectionHeader(
                     title: 'Lịch sắp tới',
                     subtitle: 'Những mốc học tập trong thời gian gần nhất.',
+                    action: TextButton(
+                      onPressed: () => context.push(AppRoutes.calendar),
+                      child: const Text('Xem lịch'),
+                    ),
                   ),
                 ),
               ),
