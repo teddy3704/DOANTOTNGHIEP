@@ -1,5 +1,32 @@
 # Project Status
 
+## Candidate restore and local Student/Teacher API — PASS
+
+Actual candidate catalog matches 3 schemas / 39 tables / 20 views / 39 PK /
+38 FK / 548 columns. All views and four app tables queried; 11 scope/duplicate/
+bounds checks PASS. NULL auth fields verified. Node/Fastify GROUP_39_20 adapter
+preserves Student contracts and adds minimum scoped read-only Teacher API.
+Real local HTTP positive/negative checks PASS after correcting one erroneous
+negative-course fixture; backend **54 tests PASS**, typecheck/build/format PASS.
+
+Target development model: GROUP_39_20. Current Render/current Neon: **22/10,
+unchanged**. Teacher API local PASS, public deployment pending. Flutter remains
+unchanged (Student Render + Teacher fixture); prior 150 Flutter tests/APK retained.
+Next: backward-compatible backend deployment and gated secret switch according
+to `STAGING_DATABASE_SWITCH_PLAN.md`, then deployed Teacher verification before
+Flutter injection changes. Details: `DATABASE_MODEL_RECONCILIATION.md`.
+
+## Candidate continuation — credential remediation confirmed
+
+**ACTION_REQUIRED_CANDIDATE_DATABASE:** user confirmed credential remediation;
+created `lms_mobile_learning_candidate` on the existing isolated candidate branch.
+SQL Editor verified its exact name and zero target schemas. Prepared ignored,
+sanitized seed/transactional restore files; no import yet. CLI requires candidate
+connection in ignored `integration-api/.env.candidate`; current `.env` is not used.
+Browser loopback file transport was blocked, so no bypass was attempted.
+Render/current Neon/Flutter/main unchanged. Catalog/smoke/Teacher API gates remain
+pending. See `DATABASE_MODEL_RECONCILIATION.md`; prior blocker details are history.
+
 ## 2026-09-19 — Group schema received; isolated candidate checkpoint
 
 **PARTIAL / ACTION_REQUIRED_CANDIDATE_DATABASE.** Offline group DDL verification

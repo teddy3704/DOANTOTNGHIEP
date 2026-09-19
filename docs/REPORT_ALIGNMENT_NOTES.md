@@ -1,6 +1,21 @@
 # Đối chiếu báo cáo nhóm với hệ thống đang chạy
 
+## Kết quả mới nhất — candidate đã chạy thật
+
+Candidate đã restore và catalog xác nhận **3 schema, 39 bảng, 20 views, 39 PK,
+38 FK, 548 cột**; các view Student/Teacher và app.* được truy vấn thật. Đây là
+**mô hình Moodle-oriented development**, không phải CSDL production DLU.
+Node/Fastify đã có adapter Student giữ contract và API Teacher chỉ đọc, kiểm thử
+HTTP local cùng candidate PASS; backend 54 tests PASS. Render vẫn 22/10, chưa
+switch; Flutter Teacher vẫn fixture cho đến khi API Teacher đã deploy được xác
+minh. Không gọi API local là API DLU hay Teacher Mobile tích hợp hoàn tất.
+
 ## Cập nhật 19/09 — đã nhận schema nhóm
+
+Candidate đã có database rỗng riêng `lms_mobile_learning_candidate` và bản SQL
+sanitized local; **chưa restore**. Các số 39/20 bên dưới vẫn chỉ là bằng chứng DDL,
+không phải catalog runtime candidate. Cần cấu hình connection candidate riêng
+cho CLI; không thay connection Render/current Neon.
 
 DDL tại `D:\DoAnTotNghiep-group` xác nhận offline **3 schema, 39 bảng (35 lms +
 4 app), 20 derived views, 39 PK, 38 FK, 548 cột**. `lms.user.password` cho phép

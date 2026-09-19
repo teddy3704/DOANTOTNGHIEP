@@ -1,5 +1,20 @@
 # Test Plan
 
+## Candidate backend gate
+
+- `node tool/restore_candidate.mjs`: one guarded, transactional import PASS.
+- `node tool/verify_candidate.mjs`: catalog counts, 20 views, four app tables and
+  NULL auth fields PASS; `node tool/smoke_candidate.mjs`: 11 ownership/duplicate/
+  aggregate-bounds checks PASS.
+- `node --env-file=.env.candidate --experimental-strip-types scripts/candidate-smoke.ts`
+  (inside integration-api): real local HTTP Student/Teacher endpoints and negative
+  controls. Initial bad unauthorized-course expectation corrected against actual
+  enrolments; `--isolation-only` rerun PASS. No academic writes performed.
+- Backend final formatting/typecheck/build PASS, full suite **54 tests PASS**.
+  Candidate OpenAPI/Postman exported; Postman execution is not claimed here.
+- Flutter unchanged: do not repeat its 150-test/APK gate until actual Teacher API
+  integration changes Flutter source. Public candidate deployment not yet verified.
+
 ## Final support gate — 19/09/2026
 
 Format/analyze and 150 tests PASS; staging APK build/install PASS. Runtime covers

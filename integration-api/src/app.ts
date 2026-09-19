@@ -9,6 +9,8 @@ import type {
 } from "./domain/student-learning.ts";
 import { ApiFailure, LearningService } from "./domain/learning-service.ts";
 import * as s from "./http/schemas.ts";
+import type { TeacherSupportDataSource } from "./domain/teacher-support.ts";
+import { registerTeacherRoutes } from "./http/teacher-routes.ts";
 
 declare module "fastify" {
   interface FastifyRequest {
@@ -33,6 +35,7 @@ export async function buildApp(
   config: AppConfig,
   source: StudentLearningDataSource,
   logger: FastifyServerOptions["logger"] = true,
+  teacherSource?: TeacherSupportDataSource,
 ) {
   const app = Fastify({
     logger,
@@ -122,6 +125,13 @@ export async function buildApp(
       ],
       components: {
         securitySchemes: {
+          DemoTeacher: {
+            type: "apiKey",
+            in: "header",
+            name: "X-Demo-Teacher-Code",
+            description:
+              "Synthetic staging identity only; not DLU authentication.",
+          },
           DemoStudent: {
             type: "apiKey",
             in: "header",
@@ -167,6 +177,12 @@ export async function buildApp(
   await app.register(
     async (api) => {
       api.addHook("onRequest", async (request) => {
+        if (request.headers["x-demo-teacher-code"] !== undefined)
+          throw new ApiFailure(
+            401,
+            "DEVELOPMENT_IDENTITY_INVALID",
+            "Hồ sơ không hợp lệ.",
+          );
         request.principal = await service.identify(
           request.headers["x-demo-student-code"],
           config.demoAuthEnabled,
@@ -323,5 +339,7 @@ export async function buildApp(
     },
     { prefix: "/api/v1" },
   );
+  if (teacherSource)
+    await registerTeacherRoutes(app, teacherSource, config.demoAuthEnabled);
   return app;
 }

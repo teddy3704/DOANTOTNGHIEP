@@ -1,7 +1,14 @@
 import pg from "pg";
 import type { QueryResultRow } from "pg";
 
-export function createPool(databaseUrl: string): pg.Pool {
+export function createPool(
+  databaseUrl: string,
+  model: "current_22_10" | "group_39_20" = "current_22_10",
+): pg.Pool {
+  const databaseName =
+    model === "group_39_20"
+      ? "lms_mobile_learning_candidate"
+      : "lms_mobile_learning";
   // Explicit allowlist: URI query options cannot override TLS or session settings.
   let url: URL;
   try {
@@ -12,7 +19,9 @@ export function createPool(databaseUrl: string): pg.Pool {
   if (
     !["postgres:", "postgresql:"].includes(url.protocol) ||
     !url.hostname.endsWith(".neon.tech") ||
-    url.pathname !== "/lms_mobile_learning" ||
+    url.pathname !== "/" + databaseName ||
+    (model === "group_39_20" &&
+      !/^ep-soft-waterfall-b32kjeu0(?:-pooler)?\./.test(url.hostname)) ||
     !url.username ||
     !url.password ||
     (url.port && url.port !== "5432")
@@ -32,7 +41,7 @@ export function createPool(databaseUrl: string): pg.Pool {
     port: 5432,
     user,
     password,
-    database: "lms_mobile_learning",
+    database: databaseName,
     ssl: { rejectUnauthorized: true },
     enableChannelBinding: true,
     max: 4,

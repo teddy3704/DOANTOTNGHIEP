@@ -2,14 +2,22 @@ import { loadConfig } from "./config.ts";
 import { createPool, PostgresReadDatabase } from "./data/database.ts";
 import { PostgresDevelopmentDataSource } from "./data/postgres-development-data-source.ts";
 import { buildApp } from "./app.ts";
+import { GroupStudentDataSource } from "./data/group-student-data-source.ts";
+import { GroupTeacherDataSource } from "./data/group-teacher-data-source.ts";
 
 let pool: ReturnType<typeof createPool> | undefined;
 try {
   const config = loadConfig();
-  pool = createPool(config.databaseUrl);
+  pool = createPool(config.databaseUrl, config.databaseModel);
+  const database = new PostgresReadDatabase(pool);
+  const group = config.databaseModel === "group_39_20";
   const app = await buildApp(
     config,
-    new PostgresDevelopmentDataSource(new PostgresReadDatabase(pool)),
+    group
+      ? new GroupStudentDataSource(database)
+      : new PostgresDevelopmentDataSource(database),
+    true,
+    group ? new GroupTeacherDataSource(database) : undefined,
   );
   app.addHook("onClose", async () => {
     await pool?.end();

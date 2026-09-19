@@ -1,5 +1,17 @@
 # DLU Moodle API Matrix
 
+## GROUP_39_20 local integration API (not DLU Web Services)
+
+Student's existing GET routes/DTOs passed candidate HTTP smoke through the new
+adapter; there is no direct Flutter SQL access. Added opt-in read-only Teacher:
+`GET /api/v1/me/teacher`, `/overview`, `/courses`, `/assignments` under that prefix,
+and `/api/v1/me/teacher/courses/:courseId/students`. Header `X-Demo-Teacher-Code`
+accepts only mapped staging GV001/GV002 identities. Own scope 200; forbidden scope
+404; absent/unknown/raw/mixed identity 401; academic POST 404, verified locally.
+Contract: `integration-api/openapi.group-39-20.json`; candidate Postman exports
+are separate from the currently deployed Student collection. Render Teacher
+deployment and Flutter Teacher API integration remain pending.
+
 ## Current support boundary — 19/09/2026
 
 No additional official DLU API function verified in this continuation. Current

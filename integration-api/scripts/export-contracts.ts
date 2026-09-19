@@ -28,11 +28,18 @@ const app = await buildApp(
   },
   source,
   false,
+  process.argv.includes("--candidate")
+    ? { teacher: unavailable, courses: unavailable, students: unavailable }
+    : undefined,
 );
 await app.ready();
 try {
   const spec = app.swagger();
-  await writeFile("openapi.json", JSON.stringify(spec, null, 2) + "\n");
+  const candidate = process.argv.includes("--candidate");
+  await writeFile(
+    candidate ? "openapi.group-39-20.json" : "openapi.json",
+    JSON.stringify(spec, null, 2) + "\n",
+  );
   const item = (
     name: string,
     path: string,
@@ -143,13 +150,47 @@ try {
       ],
     },
   ];
+  if (candidate) {
+    folders.push({
+      name: "11 Teacher read-only support",
+      item: [
+        item("Teacher profile", "/api/v1/me/teacher"),
+        item("Teacher overview", "/api/v1/me/teacher/overview"),
+        item("Teaching courses", "/api/v1/me/teacher/courses"),
+        item("Teaching work", "/api/v1/me/teacher/assignments"),
+        item("Own course students", "/api/v1/me/teacher/courses/11/students"),
+        item(
+          "Other teacher course denied",
+          "/api/v1/me/teacher/courses/13/students",
+          404,
+        ),
+      ].map((i) => ({
+        ...i,
+        request: {
+          ...i.request,
+          header: [
+            { key: "X-Demo-Teacher-Code", value: "GV001", type: "text" },
+          ],
+        },
+      })),
+    });
+    for (const folder of folders)
+      for (const i of folder.item) {
+        i.request.url = i.request.url
+          .replace("/courses/1/content", "/courses/11/content")
+          .replace("/courses/3/content", "/courses/13/content");
+      }
+  }
   const collection = {
     info: {
-      name: "DLU LMS Student Support — Development API",
+      name: candidate
+        ? "DLU LMS Student + Teacher — GROUP_39_20 Candidate"
+        : "DLU LMS Student Support — Development API",
       schema:
         "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-      description:
-        "Synthetic development model, student support only. SV001 enrollment verified in courses 1 and 2. No production DLU authentication or write endpoints.",
+      description: candidate
+        ? "Isolated GROUP_39_20 candidate only. Synthetic identities. No DLU authentication or academic writes."
+        : "Synthetic development model, student support only. SV001 enrollment verified in courses 1 and 2. No production DLU authentication or write endpoints.",
     },
     item: folders,
   };
@@ -158,7 +199,7 @@ try {
     values: [
       {
         key: "base_url",
-        value: "http://localhost:3000",
+        value: candidate ? "http://localhost:3001" : "http://localhost:3000",
         enabled: true,
         type: "default",
       },
@@ -173,11 +214,15 @@ try {
   };
   await mkdir("postman", { recursive: true });
   await writeFile(
-    "postman/DLU_LMS_Student_Support.postman_collection.json",
+    candidate
+      ? "postman/DLU_LMS_GROUP_39_20.postman_collection.json"
+      : "postman/DLU_LMS_Student_Support.postman_collection.json",
     JSON.stringify(collection, null, 2) + "\n",
   );
   await writeFile(
-    "postman/DLU_LMS_Development.postman_environment.json",
+    candidate
+      ? "postman/DLU_LMS_Candidate.postman_environment.json"
+      : "postman/DLU_LMS_Development.postman_environment.json",
     JSON.stringify(environment, null, 2) + "\n",
   );
   console.log("OPENAPI_AND_POSTMAN_EXPORT=PASS");

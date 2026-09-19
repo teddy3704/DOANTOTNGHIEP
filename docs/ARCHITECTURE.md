@@ -1,5 +1,15 @@
 # Architecture
 
+## Candidate adapter boundary (local, not switched)
+
+`DATABASE_MODEL=group_39_20` selects GroupStudentDataSource and GroupTeacherDataSource
+behind the existing Fastify DTO boundary. Legacy 22/10 remains the default. Both
+use the same verified-TLS, read-only transaction layer. Fixed staging aliases map
+to reviewed synthetic users; query scope enforces role/context/enrolment. The
+minimum Teacher API returns overview/courses/work/student monitoring, no writes.
+Candidate catalog and local HTTP gates PASS; Render and Flutter remain on their
+previous sources until `STAGING_DATABASE_SWITCH_PLAN.md` gates are executed.
+
 ## Current deployed boundary — 19/09/2026
 
 Student staging: Flutter → HTTPS Render → Node/Fastify read API → Neon `lms`

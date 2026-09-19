@@ -1,5 +1,27 @@
 # Progress Report
 
+## Candidate runtime and read-only API milestone
+
+Restored sanitized schema/data transactionally into the isolated candidate only.
+Catalog exactly 3/39/20, 39 PK, 38 FK, 548 columns. All 20 views, four app tables
+and 11 focused data-scope/duplication/bounds checks PASS. No auth values retained.
+Implemented opt-in GROUP_39_20 Student adapter with stable contract and scoped
+Teacher GET API. Real HTTP validates Student SV001/SV002 and Teacher GV001/GV002,
+denies cross-course access and raw/unknown/mixed identity. Corrected a test that
+mistook a legitimately shared course for unauthorized access; targeted rerun PASS.
+Backend 54 tests, format, typecheck/build PASS. Exported candidate-only contracts.
+No Flutter source or current Neon/Render change; deployment/switch pending.
+
+## Candidate continuation — empty target and sanitized import prepared
+
+User confirmed credential remediation. Created only the empty candidate database;
+SQL Editor proved target name and zero application schemas. Prepared sanitized
+copies with 18 user and 10 enrolment auth fields cleared. Transactional restore
+guards the target name/empty schemas and orders constraints after data loading.
+No restore sent: browser loopback transport was blocked, and no candidate CLI
+secret is configured. Await private `.env.candidate` entry; no credential exposed,
+no current Neon/Render mutation, no repeated offline analysis or Flutter gates.
+
 ## 2026-09-19 — Offline group model verified; candidate isolated
 
 Received and checked the actual group schema once: 3 schemas / 39 tables / 20

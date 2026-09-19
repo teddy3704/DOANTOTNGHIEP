@@ -1,5 +1,32 @@
 # Security Baseline
 
+## GROUP_39_20 runtime controls
+
+Private candidate configuration is now populated and consumed silently by CLI.
+Restore guard checks exact candidate endpoint/database and an empty schema set;
+transaction applies constraints after data without disabling them permanently.
+Catalog/smoke confirms zero non-NULL user password/secret and enrol passwords.
+Source originals and current runtime database were not modified.
+
+API selection requires explicit `DATABASE_MODEL=group_39_20`; the default retains
+22/10. All runtime queries use existing read-only transactions and verified TLS.
+Candidate aliases are allowlisted, not arbitrary request user IDs. Student access
+checks active user/enrolment, course context role and visible modules/sections;
+Teacher access checks active user and assigned course-context roles. Mixed role
+headers are rejected. Teacher A/B forbidden courses return indistinguishable 404.
+Public profile emails are reserved `example.test` aliases; raw group-seed emails,
+password/secret fields and private file paths are not API projections. Staging
+aliases are **not authentication suitable for real DLU data**. No academic writes.
+
+## Candidate continuation
+
+User confirmed remediation of the prior exposed candidate credential. No
+credential dialog was reopened. New ignored candidate seed clears password/secret
+fields to NULL; original group files stay read-only. A separate ignored
+`.env.candidate` is required for CLI use; never reuse the current runtime `.env`.
+No secret has been entered/read for this new connection yet. Temporary loopback
+SQL transport was blocked by the browser and stopped; no bypass was attempted.
+
 ## 2026-09-19 candidate connection UI incident
 
 After creation of the isolated Free candidate branch, Neon automatically opened
