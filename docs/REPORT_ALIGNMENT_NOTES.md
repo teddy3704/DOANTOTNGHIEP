@@ -1,5 +1,15 @@
 # Đối chiếu báo cáo nhóm với hệ thống đang chạy
 
+## Cập nhật 19/09 — đã nhận schema nhóm
+
+DDL tại `D:\DoAnTotNghiep-group` xác nhận offline **3 schema, 39 bảng (35 lms +
+4 app), 20 derived views, 39 PK, 38 FK, 548 cột**. `lms.user.password` cho phép
+NULL. Các ghi chú “thiếu schema/chưa rõ nullability” bên dưới là lịch sử.
+Candidate branch đã tạo nhưng **chưa restore/kiểm chứng runtime**; chưa chọn
+39/20 làm baseline triển khai. Student vẫn dùng Render/22 bảng; Teacher vẫn dùng
+fixture; backend vẫn Node/Fastify. Không sửa Word gốc. Xem
+`DATABASE_MODEL_RECONCILIATION.md` để phân biệt bằng chứng offline và runtime.
+
 Kiểm tra 18–19/09/2026, worktree `flutter-student-support-v1`. Hai Word gốc
 trong Downloads được đọc để đối chiếu nội dung, không chỉnh sửa. Bộ 39 bảng trong
 báo cáo là **đầu vào khác baseline đang phục vụ app**, không tự động thay Neon.

@@ -13,7 +13,10 @@ Các dấu chọn phải dựa trên lần mở máy trước buổi báo cáo, 
 - [ ] pgAdmin dùng kết nối Neon hiện hữu; không tạo database mới.
 - [ ] Chạy `01_verify_database_baseline.sql`: số liệu đúng phiên bản báo cáo.
 - [ ] Giải thích baseline staging hiện tại 22 bảng khác mô hình nhóm 39 bảng.
-- [ ] Có schema export nhóm `lms_mobile_learning_schema.sql` (**đang thiếu**).
+- [x] Schema nhóm tại `D:\DoAnTotNghiep-group\lms_mobile_learning_schema.sql`;
+  offline 39/20 đã xác minh, candidate runtime chưa PASS.
+- [ ] Xử lý credential candidate trực tiếp trên Neon; không thay Render hoặc
+  nhập schema nhóm vào database 22/10 đang hoạt động.
 - [ ] Có mock SQL backup (**không import bản nhóm vào Neon hiện tại**).
 - [ ] Có ảnh runtime, APK và OpenAPI local.
 
@@ -22,7 +25,8 @@ Các dấu chọn phải dựa trên lần mở máy trước buổi báo cáo, 
 - APK và ảnh: `D:\DoAnTotNghiep\evidence\mobile\`.
 - DDL/seed baseline hiện tại và OpenAPI: `D:\DoAnTotNghiep\evidence\council-backup\`.
 - Mock nhóm: `group_mock_data_AUTH_DISABLED.sql` trong thư mục backup; khác schema
-  hiện tại, chỉ dùng đọc/đối chiếu. Word gốc và SQL gốc vẫn ở Downloads.
+  hiện tại, chỉ dùng đọc/đối chiếu. Bộ đầu vào nhóm mới ở
+  `D:\DoAnTotNghiep-group`; các bản gốc trước đó trong Downloads giữ nguyên.
 - SQL demo/script: thư mục `demo/` trong worktree hiện tại.
 - Không có video; không yêu cầu cài phần mềm mới. Khi offline, Student hiển thị
   lỗi/thử lại thật; dùng ảnh và contract, không tự đổi Student sang dữ liệu giả.

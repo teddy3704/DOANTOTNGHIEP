@@ -1,5 +1,16 @@
 # Security Baseline
 
+## 2026-09-19 candidate connection UI incident
+
+After creation of the isolated Free candidate branch, Neon automatically opened
+a connection dialog whose accessibility output contained an unmasked credential.
+The dialog was immediately hidden and closed. The value was not used for a
+connection, copied into project files or captured in a screenshot. Database work
+is paused for human rotation on the affected candidate branch. Do not reproduce
+the tool output, reuse that credential, rotate the current runtime automatically,
+or change Render configuration. No claim is made that existing tool output can
+be erased. Future connection forms require human handoff before inspection.
+
 ## 2026-09-19 council alignment
 
 Current Neon `lms.users` has no password column. Group SQL was not imported or

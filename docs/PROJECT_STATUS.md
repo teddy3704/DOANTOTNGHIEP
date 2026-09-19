@@ -1,5 +1,21 @@
 # Project Status
 
+## 2026-09-19 — Group schema received; isolated candidate checkpoint
+
+**PARTIAL / ACTION_REQUIRED_CANDIDATE_DATABASE.** Offline group DDL verification
+PASS: 3 schemas, 35 LMS + 4 app tables, 20 derived views, 39 PK, 38 FK, 548 columns.
+The missing schema is now available in read-only `D:\DoAnTotNghiep-group`.
+Created Free Neon branch `candidate-group-39-20`; no restore/import or switch.
+Candidate runtime verification is BLOCKED pending human credential rotation
+after an automatically opened connection dialog exposed a secret in tool output.
+No secret is reproduced in project files. Current Neon and Render are untouched.
+
+Student compatibility with the group model: NEEDS_ADAPTER. Teacher API remains
+NOT_IMPLEMENTED; Student Render / Teacher scoped fixture and the previous 150
+tests/analyze/APK PASS are preserved, not rerun. No Flutter/backend source changed.
+Details and exact continuation: `DATABASE_MODEL_RECONCILIATION.md`.
+Older “group schema missing” entries below are historical and superseded.
+
 ## 2026-09-19 — Council alignment and current result
 
 **PARTIAL overall.** Student runtime PASS; Teacher read-only fixture runtime

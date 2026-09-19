@@ -1,5 +1,18 @@
 # Progress Report
 
+## 2026-09-19 — Offline group model verified; candidate isolated
+
+Received and checked the actual group schema once: 3 schemas / 39 tables / 20
+views / 39 PK / 38 FK / 548 columns. All requested Student/Teacher read-model
+definitions and four app-owned tables exist. Originals unchanged; existing Word
+analysis reused after matching hashes. Added a read-only DDL inspection tool.
+
+Created a Free Neon candidate branch without changing the working 22/10 database
+or Render. Restore and compatibility checks remain pending: provider connection
+UI unexpectedly exposed a credential in tool output, then was hidden/closed.
+Human rotation is required; no secret is repeated in this repository. Checkpoint:
+`DATABASE_MODEL_RECONCILIATION.md`. No Flutter/API changes or redundant full gates.
+
 ## 2026-09-19 — Council alignment and runtime verification
 
 Continued the current worktree without restarting passed gates. Student Render
