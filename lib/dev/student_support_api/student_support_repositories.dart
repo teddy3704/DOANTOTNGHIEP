@@ -117,7 +117,7 @@ class StagingUserRepository implements UserRepository {
       email: _requiredString(profile, 'email'),
       idNumber: _requiredString(profile, 'studentCode'),
       roleLabel: 'Sinh viên',
-      faculty: _requiredString(profile, 'department'),
+      faculty: _nullableNonEmptyString(profile, 'department'),
     );
   }
 }
@@ -324,7 +324,15 @@ class StagingCourseContentRepository implements CourseContentRepository {
         visible: true,
       );
     }
-    if (activityType != 'resource') {
+    final otherKind = switch (activityType) {
+      'resource' => CourseActivityKind.resource,
+      'quiz' => CourseActivityKind.quiz,
+      'folder' => CourseActivityKind.folder,
+      'forum' => CourseActivityKind.forum,
+      'attendance' => CourseActivityKind.attendance,
+      _ => null,
+    };
+    if (otherKind == null) {
       throw const ParsingFailure(
         'Loại nội dung khóa học chưa được hỗ trợ.',
         code: 'STAGING_ACTIVITY_TYPE_UNSUPPORTED',
@@ -334,7 +342,7 @@ class StagingCourseContentRepository implements CourseContentRepository {
     return CourseActivity(
       id: _requiredPositiveId(item, 'courseModuleId'),
       instanceId: _requiredPositiveId(item, 'courseModuleId'),
-      kind: CourseActivityKind.resource,
+      kind: otherKind,
       name: name,
       description: _nullableNonEmptyString(item, 'description'),
       visible: true,
@@ -420,7 +428,7 @@ class StagingAssignmentRepository implements AssignmentRepository {
                 id: key.assignmentCode,
                 courseId: itemCourseId,
                 name: _requiredString(item, 'assignmentName'),
-                description: _requiredString(item, 'description'),
+                description: _nullableNonEmptyString(item, 'description') ?? '',
                 dueAt: _requiredDate(item, 'dueAt'),
                 allowsSubmissionsFrom: _requiredDate(item, 'opensAt'),
                 cutoffAt: null,

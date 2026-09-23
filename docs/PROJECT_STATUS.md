@@ -1,5 +1,57 @@
 # Project Status
 
+## GROUP_39_20 staging and Mobile read-only demo — PASS (23/09/2026)
+
+User privately saved the candidate connection in Render. Deployment
+`dep-danalep42hec73drngpg` / `f9d3ff6` is Live. Public Student SV001/SV002 and
+Teacher GV001/GV002, overview/courses/content/monitoring and 401/404/query-scope
+controls PASS (`scripts/staging-group-smoke.ts`, 131 checks). Health/docs/OpenAPI
+200; all five Teacher GET routes published. Visible deploy logs have no obvious
+credential pattern. Current staging target is GROUP_39_20; old 22/10 database and
+previous deploy remain available for rollback. DLU production is not involved.
+
+Teacher staging composition now injects `TeacherSupportApiRepository`, not a
+fixture. Shared HTTPS GET-only transport enforces role headers and drops late
+responses after scope changes. Added course-scoped Student Monitoring with
+search, expandable progress/support counts, loading/error/retry. Official grading
+stays on LMS. Flutter format/analyze PASS, **167 tests PASS** (22/09); the
+separate opt-in live payload test PASS. Final APK installed and Student/Teacher
+runtime verified on `DLU_LMS_Pixel`. Student Profile, courses, assignment/detail,
+grades/progress and official LMS handoff PASS. Teacher courses, Work, Calendar,
+course-scoped Student Monitoring, Profile and official LMS handoff PASS. GV001 →
+SV001 role/context switch changed identity/navigation/data correctly. Evidence:
+`evidence/mobile/group39-20-final/`; APK/hash and limits in
+`FLUTTER_TEST_RESULT.md`. No remaining Render secret action is needed.
+
+Student profile compatibility fixed: the actual API's empty department is
+optional, not a fatal identity error. Blank/null/absent department tests and
+320/390px Profile rendering PASS. Opt-in test of real Render payloads, including
+both Student identities/profile/session, all course content and Teacher monitoring,
+PASS separately. No backend contract or database change was needed.
+
+`NOTIFICATION_RUNTIME = NOT_VERIFIED`: the current synthetic staging dataset has
+no future assignment deadline. Android permission is granted; a live delivery
+was not fabricated. Render Free cold start can exceed the Mobile restore timeout;
+warm the service before council demo. DLU Authentication/Web Services remain
+`TO_VERIFY_DLU`; academic submission/grading remain LMS ONLY.
+
+The entries below are historical checkpoints, superseded by this section.
+
+## Render backward-compatible code deployment — PASS; database switch pending
+
+**ACTION_REQUIRED_RENDER_DATABASE_SECRET.** Existing Render environment editor
+is open with an unsaved `DATABASE_MODEL=group_39_20` row and the database value
+field selected. User must privately replace that value with the configured
+candidate connection, then save/rebuild/deploy both changes together. No secret
+was transferred or displayed; no environment change was saved by the agent.
+
+`f9d3ff6` committed on `flutter-student-support-v1`, pushed only to the existing
+`integration-api-render-staging` deployment branch (fast-forward, main unchanged).
+Render deploy `dep-dan6e93tqb8s73a8qd8g` is Live. Public health/docs/OpenAPI 200,
+Student SV001 courses 200/count 2, missing identity 401. Current database remains
+22/10 and Teacher routes remain disabled until the atomic candidate environment
+switch. No Flutter changes or redundant Flutter gate/APK runs. See switch plan.
+
 ## Candidate restore and local Student/Teacher API — PASS
 
 Actual candidate catalog matches 3 schemas / 39 tables / 20 views / 39 PK /

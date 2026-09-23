@@ -1,5 +1,25 @@
 # Đối chiếu báo cáo nhóm với hệ thống đang chạy
 
+## Trạng thái hiện hành — 22/09/2026 (thay thế các checkpoint cũ bên dưới)
+
+- Render đã dùng GROUP_39_20: **3 schema, 39 bảng vật lý (35 lms + 4 app),
+  20 derived views, 39 PK, 38 FK, 548 cột vật lý**. Không còn phục vụ baseline 22/10.
+- Backend hiện hành: **Node.js / TypeScript / Fastify / PostgreSQL / Render**,
+  không Spring Boot hay JdbcTemplate. Backend 54 tests PASS ở checkpoint đã duyệt.
+- Student và Teacher đều đọc API thật từ cùng database staging. Teacher Flutter
+  dùng `TeacherSupportApiRepository`, không fixture hay fallback khi lỗi.
+- Database vẫn là **Moodle-oriented PostgreSQL development/staging model** với
+  dữ liệu mẫu, không phải database production hoặc hồ sơ thật DLU.
+- Chỉ báo hỗ trợ là **rule-based heuristic**, không dự báo AI, không quyết định học vụ.
+- DLU Authentication / Web Services = **TO_VERIFY_DLU**. Nộp bài, quiz, chấm điểm,
+  phản hồi học vụ và quản trị chỉ thực hiện trên LMS. Link Mobile chỉ mở host
+  chính thức; không ghép Moodle ID từ ID staging.
+- Nhắc việc là dữ liệu cục bộ thuộc ứng dụng, chưa đồng bộ qua app.* của Neon.
+- Kết quả Mobile cuối và giới hạn thông báo: `FLUTTER_TEST_RESULT.md`.
+  Word gốc được giữ nguyên; dùng mục này để sửa nội dung báo cáo khi biên tập.
+
+Các mục bên dưới ghi lại lịch sử đối chiếu, không mô tả bản staging hiện tại.
+
 ## Kết quả mới nhất — candidate đã chạy thật
 
 Candidate đã restore và catalog xác nhận **3 schema, 39 bảng, 20 views, 39 PK,

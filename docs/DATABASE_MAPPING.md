@@ -1,11 +1,11 @@
 # Database Mapping
 
-## Restored group candidate (separate from current runtime)
+## GROUP_39_20 — current development/staging runtime
 
 Actual candidate catalog: lms/app/derived; 35+4 physical tables; 20 derived views;
 39 PK; 38 FK; 548 columns. Runtime proof and differences are recorded in
-`DATABASE_MODEL_RECONCILIATION.md`. GROUP_39_20 is the development target, not yet
-the database serving Render. Student adapter projects Moodle-style course/module/
+`DATABASE_MODEL_RECONCILIATION.md`. GROUP_39_20 now serves Render after the verified
+candidate switch. Student adapter projects Moodle-style course/module/
 assignment/grade/completion entities into the existing DTOs; unknown file metadata
 stays NULL. Teacher adapter uses teacher_course_overview,
 teacher_assignment_monitoring and teacher_student_monitoring behind course-context

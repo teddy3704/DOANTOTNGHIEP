@@ -1,4 +1,50 @@
-# Flutter verification — 19/09/2026
+# Flutter verification — current GROUP_39_20 staging, 22–23/09/2026
+
+## Final checkpoint — PASS for read-only staging demo
+
+- `dart format .`: PASS, 123 files, 0 further changes; `flutter analyze`: PASS.
+- `flutter test`: **167 PASS**, one opt-in live test skipped by default. The
+  separate opt-in real Render payload test PASS for SV001/SV002 profiles, overview,
+  courses, content, assignments, grades, calendar and GV001 monitoring.
+- Existing backend suite: **54 PASS** before this Flutter-only continuation;
+  backend runtime source did not change.
+- `flutter build apk --debug -t lib/main_staging.dart`: PASS. APK installed with
+  `adb install -r` on existing `DLU_LMS_Pixel` (Android 15 x86_64).
+- APK: `D:\DoAnTotNghiep\evidence\mobile\DLU_LMS_Support_staging_final_debug.apk`,
+  221142809 bytes, `vn.edu.dlu.lmsmobile`, minSdk24, targetSdk36, SHA256
+  `CD8F6F80E9FE5E9747DA02AC134C37E06863E56AC938476FB78992CE8A03EF93`.
+  This is a staging debug APK, not a signed production release.
+
+Emulator Student runtime PASS: SV002 session restore and Profile (empty department
+handled), Home, three Courses, Course Detail with assignment/quiz, Assignment
+Detail/status, Grades, Progress and empty upcoming/reminder states. Student
+assignment CTA opened the official `https://lms.dlu.edu.vn/` in Chrome. SV001
+was then selected and loaded its own Home/Profile.
+
+Emulator Teacher runtime PASS: GV001 Home, two own Courses, course detail, four
+course-scoped Student monitoring records and expanded progress, Work/assignment
+counts, Calendar, Profile and official LMS grading CTA. Switching GV001 → SV001
+changed identity, course/progress content and navigation to Student-only; no
+Teacher work remained in the Student shell. Public scope tests also cover GV002,
+cross-course 404, missing/mixed identity 401 and query override 400.
+
+`NOTIFICATION_RUNTIME = NOT_VERIFIED`: Android notification permission is granted,
+but current read-only staging assignments have no future due dates and the app
+has no eligible reminder to schedule 1–2 minutes ahead. No synthetic future date,
+clock shift or notification screenshot was introduced. Render Free cold start
+exceeded a restore timeout once after emulator restart; explicit role selection
+then loaded the real API and completed QA. This limitation belongs in the demo
+warm-up checklist.
+
+Real screenshots: `evidence/mobile/group39-20-final/` (15 PNGs; no fake
+notification image). Offline council backup: `evidence/council-backup/group39-20-final/`
+(ignored by Git), 9 reviewed inputs and 15 screenshots; old 22/10 backup retained.
+Storage after backup: C 38.72 GB, D 87.19 GB. No Android Studio or new AVD.
+
+DLU Authentication/Web Services remain TO_VERIFY_DLU. The staging development
+database is synthetic; official submission and grading remain on DLU LMS.
+
+## Historical verification — 19/09/2026
 
 ## Final quality gate
 

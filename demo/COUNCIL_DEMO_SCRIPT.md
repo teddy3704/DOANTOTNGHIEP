@@ -1,31 +1,26 @@
-# Kịch bản báo cáo 6–8 phút
+# Kịch bản báo cáo 6–8 phút — LMS Support
 
 1. **LMS chính thức — 40 giây.** Mở https://lms.dlu.edu.vn/. “Đây là hệ thống
-   nguồn. Ứng dụng hỗ trợ học tập, không thay thế LMS của trường.” Không yêu cầu
-   trình chiếu password, cookie hoặc thông tin học tập cá nhân.
-2. **Database-first — 90 giây.** pgAdmin kết nối Neon hiện hữu. Chạy
-   `01_verify_database_baseline.sql`. Nêu đúng baseline đang chạy: lms 22 bảng,
-   10 view. Mô hình nhóm 3 schema/39 bảng là đầu vào mở rộng, chưa deploy vào
-   baseline này. Không hiển thị app/derived như thể đã tồn tại.
-3. **Quan hệ và read model — 60 giây.** Chạy các SELECT trong
-   `02_council_database_demo.sql`: role/context khác enrolment; module instance
-   đa hình; Student course/progress và Teacher roster view. Nhấn mạnh view SQL
-   Teacher hiện có không đồng nghĩa đã có Teacher API.
-4. **Một backend — 40 giây.** Mở Render `/health` và `/docs`. Giới thiệu
-   Node/Fastify + PostgreSQL read-only. Xem endpoint courses/assignments/progress
-   với header demo Student được mô tả trong Swagger; không dùng DLU credential.
-5. **Student — 90 giây.** Chọn SV001 → Home → Courses → Course Detail →
-   Assignment → nhắc việc → Progress → Profile. Thử “Nộp bài trên LMS”, chỉ mở
-   trang chính thức; chưa có mapping deep link hoạt động cụ thể.
-6. **Teacher — 70 giây.** Đổi dữ liệu mô phỏng → GV001 → Home → Courses →
-   Work → Calendar → Profile → “Chấm bài trên LMS”. Dữ liệu giảng viên là fixture
-   chỉ đọc có phạm vi course/context, chưa đồng bộ với Student API. Không nhập điểm.
-7. **Ranh giới và bước tiếp — 40 giây.** “Ứng dụng không xây dựng lại LMS của
-   Trường Đại học Đà Lạt. Nhóm phân tích dữ liệu Moodle trước, xây dựng lớp dữ liệu
-   và API phục vụ Mobile, sau đó cung cấp trải nghiệm hỗ trợ sinh viên và giảng
-   viên. Nộp bài, làm bài kiểm tra, chấm điểm và quản lý học phần vẫn trên LMS.”
-   Production cần DLU xác nhận cơ chế đăng nhập/Web Services và dữ liệu kiểm thử.
+   nguồn và nơi thực hiện nghiệp vụ chính thức; Mobile không thay thế LMS.”
+2. **Database-first — 90 giây.** Trên kết nối Neon candidate đã lưu trong pgAdmin,
+   chạy 01_verify_database_baseline.sql. Giới thiệu lms/app/derived, 39 bảng và 20 view.
+   Đây là mô hình Moodle-oriented phát triển/staging từ schema nhóm, không phải
+   database production hay hồ sơ thật của DLU.
+3. **Quan hệ/read model — 60 giây.** Chạy 02_council_database_demo.sql: role gắn
+   context khác enrolment; module instance đa hình; Student overview và Teacher
+   monitoring. Chỉ báo hỗ trợ dựa trên quy tắc, không AI hoặc quyết định học vụ.
+4. **Backend — 40 giây.** Render /health và /docs: Node.js/TypeScript/Fastify,
+   PostgreSQL và GET-only API. Hai vai trò dùng cùng nguồn staging, có lọc phạm vi.
+5. **Student — 90 giây.** SV001 → Home → Courses → Detail → Assignment →
+   nhắc việc → Progress → Profile. “Nộp bài trên LMS” mở LMS, không nộp bài.
+6. **Teacher — 80 giây.** GV001 → Home → Teaching Course → Theo dõi sinh viên
+   (tìm tên, mở thẻ tiến độ) → Work → Calendar → Profile.
+   Teacher đọc API Render, không fixture; “Chấm bài trên LMS” chỉ mở hệ thống nguồn.
+7. **Ranh giới — 40 giây.** Nộp bài, quiz, chấm điểm, phản hồi học vụ và quản trị
+   học phần vẫn thuộc LMS. Mobile chỉ hỗ trợ theo dõi và lời nhắc cá nhân.
+   DLU cần xác nhận cơ chế định danh/Web Services trước tích hợp production.
 
-Nếu mạng chậm: mở bộ ảnh runtime và OpenAPI local, không tuyên bố Student đang
-online. Không giới thiệu AI, grading Mobile, Teacher API hoặc 39-table deployment
-chưa có. Xem `docs/REPORT_ALIGNMENT_NOTES.md` trước khi chỉnh Word/slide.
+Khi mạng yếu: dùng ảnh runtime/contract offline, không tuyên bố đang truy cập live.
+Deep link chỉ dùng đích đã xác minh hoặc trang LMS chung; không bịa Moodle ID.
+Không trình chiếu secret. Bản Word cũ Spring Boot/JdbcTemplate cần sửa theo
+docs/REPORT_ALIGNMENT_NOTES.md; bản gốc nhóm được giữ nguyên.

@@ -19,6 +19,7 @@ import '../../features/splash/presentation/splash_screen.dart';
 import '../../core/widgets/staging_read_only_notice.dart';
 import '../../features/auth/domain/auth_session.dart';
 import '../../features/teacher/presentation/teacher_support_screen.dart';
+import '../../features/teacher/presentation/teacher_students_screen.dart';
 import 'app_routes.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -104,6 +105,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const ProfileScreen(),
           ),
         ],
+      ),
+      GoRoute(
+        path: '/teacher/course/:courseId/students',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => StagingReadOnlyFrame(
+          child: TeacherStudentsScreen(
+            courseId: state.pathParameters['courseId']!,
+          ),
+        ),
       ),
       GoRoute(
         path: '/teacher/course/:courseId',

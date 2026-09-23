@@ -87,3 +87,12 @@ A function row can become `VERIFIED_API` only after all conditions are met:
 5. A sanitized typed DTO/mapper, production repository wiring and deterministic tests exist.
 
 No WRITE function will be probed on production. Teacher write features remain blocked until a test/staging environment and explicit authorization exist.
+# GROUP_39_20 public staging verification
+
+Existing Student routes retain their contracts; actual public tests PASS for
+SV001/SV002. Teacher GET routes `/api/v1/me/teacher`, `/overview`, `/courses`,
+`/assignments` (the latter three under `/api/v1/me/teacher`) and
+`/api/v1/me/teacher/courses/{courseId}/students` PASS for GV001/GV002.
+Wrong/missing/mixed role scopes return 401; foreign courses return 404; identity
+query overrides return 400. No POST/PUT/PATCH academic route. These aliases select
+public synthetic staging scopes, not secure production DLU authentication.

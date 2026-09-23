@@ -1,14 +1,16 @@
 # Architecture
 
-## Candidate adapter boundary (local, not switched)
+## Current GROUP_39_20 adapter boundary — 22/09/2026
 
 `DATABASE_MODEL=group_39_20` selects GroupStudentDataSource and GroupTeacherDataSource
 behind the existing Fastify DTO boundary. Legacy 22/10 remains the default. Both
 use the same verified-TLS, read-only transaction layer. Fixed staging aliases map
 to reviewed synthetic users; query scope enforces role/context/enrolment. The
 minimum Teacher API returns overview/courses/work/student monitoring, no writes.
-Candidate catalog and local HTTP gates PASS; Render and Flutter remain on their
-previous sources until `STAGING_DATABASE_SWITCH_PLAN.md` gates are executed.
+Candidate catalog, local HTTP and public Render gates PASS. Render now selects
+GROUP_39_20; main_staging.dart injects Student and Teacher API repositories.
+Teacher fixture is not a runtime fallback. The switch plan records the completed
+deployment, not an outstanding secret action. Earlier sections below are historical.
 
 ## Current deployed boundary — 19/09/2026
 
@@ -461,3 +463,11 @@ Release signing/CI/CD chưa được thiết kế chi tiết vì application ide
 | ADR-011 | Supabase chỉ lưu app-owned `mobile_preferences`; Moodle tiếp tục là LMS source of truth | ACCEPTED/IMPLEMENTED LOCALLY |
 | ADR-012 | Supabase authenticated session phải dùng verified one-login UUID `sub`; anonymous/second login bị cấm | BLOCKED — project + identity mapping |
 | ADR-013 | Student Support development API được tiêu thụ qua `main_staging.dart` explicit read-only boundary, không là production fallback | IMPLEMENTED / staging quality gate PASS |
+# Current GROUP_39_20 staging composition
+
+Student + Teacher Flutter -> HTTPS GET-only Fastify on Render -> role/course-scoped
+GROUP_39_20 repositories -> Neon lms/app/derived development model. Teacher staging
+now uses `TeacherSupportApiRepository`; fixture remains test-only, never fallback.
+`main.dart` remains fail-closed pending approved DLU integration. Monitoring uses
+rule-based support indicators, not AI or academic decisions. Official operations
+open the central HTTPS DLU LMS launcher. Local reminders remain app-owned.

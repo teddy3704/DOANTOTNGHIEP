@@ -310,3 +310,21 @@ Không gọi phase `PASS` nếu bất kỳ required gate nào fail.
 - Final offline gate: format 80 files/0 changes, analyze 0 issues, Flutter tests 73/73, static Supabase validator PASS.
 - Production + development debug APK build PASS sau dependency update; emulator production fail-closed và DEV Dashboard smoke đều có 0 runtime error match/0 user-visible technical string.
 - Remote gate còn BLOCKED: apply migration trên non-production project, pgTAP connected run, Security/Performance Advisors và one-login identity isolation tests.
+# GROUP_39_20 final integration scope
+
+Public staging checks cover both Student and Teacher profiles/courses/overview,
+resources/status/grades/progress and course monitoring; 401/404/query override,
+safe responses and GET-only OpenAPI. New Flutter tests cover Teacher mapping,
+exclusive role headers, malformed data, no fallback, stale response/401 safety,
+production/staging composition and monitoring search/expand/error/retry at
+320/390px with text scale 1.3. Final Flutter suite (22/09): 167 PASS; analyze/format PASS.
+One opt-in public-payload test is skipped in offline suite and PASS separately
+with RUN_STAGING_LIVE=true. Profile blank/null/absent department regressions and
+malformed metadata rejection added; backend unchanged, prior 54 PASS retained.
+Final emulator/API-backed screen evidence must additionally PASS before council
+readiness is claimed. Notification delivery needs actual OS evidence.
+
+**Final 23/09 update:** Student/Teacher emulator walkthrough and role switch PASS;
+15 actual screenshots archived. Notification delivery remains NOT_VERIFIED due to
+no eligible future deadline. Final APK/debug gate and secret scan PASS; details
+and SHA256 are in `FLUTTER_TEST_RESULT.md`.

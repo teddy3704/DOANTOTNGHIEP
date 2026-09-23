@@ -1,5 +1,16 @@
 # Database model reconciliation — 2026-09-19
 
+## Current checkpoint — 22/09/2026
+
+Render now uses the verified GROUP_39_20 candidate: **3 schemas / 39 physical
+tables (35 lms + 4 app) / 20 derived views / 39 PK / 38 FK / 548 physical columns**.
+Student and Teacher public read-only API verification PASS (131 checks).
+Flutter staging injects both API repositories; Teacher fixture is not a runtime
+fallback. Student optional department/description and additional activity types
+are handled without inventing data. DLU production is untouched. No restore,
+credential change or backend reimplementation was performed in this continuation.
+The remaining sections are historical evidence, including pre-switch states.
+
 **GROUP_SCHEMA_VERIFICATION = PASS. CANDIDATE_DATABASE = PASS.**
 **DATABASE_TARGET = GROUP_39_20 (development target only).**
 
@@ -142,3 +153,10 @@ DDL and sanitized seed, verify catalog and targeted Student/Teacher views, then
 implement and test the minimum read-only adapter. Do not switch Render until all
 candidate, Student compatibility and backend gates pass. A final staging switch
 plan is not yet authorized by those gates.
+# Current staging decision — GROUP_39_20 applied
+
+Render post-switch verification PASS: deployment `dep-danalep42hec73drngpg`,
+Student SV001/SV002, Teacher GV001/GV002, 401/404 scope controls, docs/OpenAPI and
+health. Candidate is now the development/staging target, not DLU production.
+Counts remain the restored catalog evidence below. Old 22/10 database is retained
+for rollback, not the active Render source. No new restore or schema redesign.

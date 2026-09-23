@@ -1,45 +1,42 @@
-# Checklist trình diễn LMS Support
+# Checklist trình diễn LMS Support — GROUP_39_20
 
-Các dấu chọn phải dựa trên lần mở máy trước buổi báo cáo, không kế thừa máy móc.
+Kiểm tra lại trước buổi báo cáo; dữ liệu phát triển là dữ liệu mẫu, không phải hồ sơ DLU.
 
-- [ ] Có Internet; mở được https://lms.dlu.edu.vn/.
-- [ ] Render `/health` trả `ok`; chờ cold start Free instance nếu cần.
-- [ ] `adb devices -l`: DLU_LMS_Pixel / emulator-5554 online.
-- [ ] Cài APK cuối theo `docs/FLUTTER_TEST_RESULT.md`; không cài Android Studio.
-- [ ] Chọn SV001: Home, Courses, Assignment, Progress, Profile có dữ liệu.
-- [ ] Chọn GV001: Teacher Home, Courses, Work, Calendar, Profile đúng vai trò.
-- [ ] Quyền thông báo đã cấp; lời nhắc lưu được và bật/tắt được.
-- [ ] Chỉ bấm “Mở LMS”, “Nộp bài trên LMS”, “Chấm bài trên LMS”; **không nộp/chấm**.
-- [ ] pgAdmin dùng kết nối Neon hiện hữu; không tạo database mới.
-- [ ] Chạy `01_verify_database_baseline.sql`: số liệu đúng phiên bản báo cáo.
-- [ ] Giải thích baseline staging hiện tại 22 bảng khác mô hình nhóm 39 bảng.
-- [x] Schema nhóm tại `D:\DoAnTotNghiep-group\lms_mobile_learning_schema.sql`;
-  offline 39/20 đã xác minh, candidate runtime chưa PASS.
-- [ ] Xử lý credential candidate trực tiếp trên Neon; không thay Render hoặc
-  nhập schema nhóm vào database 22/10 đang hoạt động.
-- [ ] Có mock SQL backup (**không import bản nhóm vào Neon hiện tại**).
-- [ ] Có ảnh runtime, APK và OpenAPI local.
+QA 23/09: Student/Teacher/API/APK/screenshots PASS. Render Free cold start từng
+vượt timeout một lần sau khởi động emulator: mở `/health` trước khi lên sân khấu,
+sau đó chọn lại hồ sơ mẫu nếu cần. Dữ liệu hiện không có hạn nộp tương lai, nên
+không trình bày thông báo Android là đã được kiểm chứng; dùng màn hình nhắc việc
+và test tự động làm bằng chứng phạm vi hiện có.
 
-## Dự phòng khi mạng yếu
+- [ ] Mở được https://lms.dlu.edu.vn/; không trình chiếu credential/cookie.
+- [ ] Render /health trả ok; dự phòng thời gian cold start Free instance.
+- [ ] Student và Teacher API hoạt động (script staging-group-smoke.ts).
+- [ ] AVD DLU_LMS_Pixel / emulator-5554 online; dùng APK cuối trong FLUTTER_TEST_RESULT.md.
+- [ ] SV001: Home → Courses → Course Detail → Assignment → Progress → Profile.
+- [ ] GV001: Home → Courses → Theo dõi sinh viên → Work → Calendar → Profile.
+- [ ] Quyền thông báo đã cấp; tạo/bật/tắt lời nhắc và kiểm tra một thông báo thật.
+- [ ] Mở LMS từ Student/Teacher; không nộp bài, nhập điểm hay thay đổi học phần.
+- [ ] pgAdmin chọn database candidate đã lưu, không tạo database local mới.
+- [ ] Chạy 01_verify_database_baseline.sql: 3 schema, 39 bảng (35 lms + 4 app),
+      20 view, 39 PK, 38 FK, 548 cột.
+- [ ] Chạy 02_council_database_demo.sql: role/context, enrolment, module,
+      Student/Teacher read model và app-owned data.
+- [ ] Có APK, ảnh thật, schema gốc, sanitized seed, SQL demo, OpenAPI và kịch bản offline.
+- [ ] Không giới thiệu Neon là database production DLU, hoặc chỉ báo quy tắc là AI.
 
-- APK và ảnh: `D:\DoAnTotNghiep\evidence\mobile\`.
-- DDL/seed baseline hiện tại và OpenAPI: `D:\DoAnTotNghiep\evidence\council-backup\`.
-- Mock nhóm: `group_mock_data_AUTH_DISABLED.sql` trong thư mục backup; khác schema
-  hiện tại, chỉ dùng đọc/đối chiếu. Bộ đầu vào nhóm mới ở
-  `D:\DoAnTotNghiep-group`; các bản gốc trước đó trong Downloads giữ nguyên.
-- SQL demo/script: thư mục `demo/` trong worktree hiện tại.
-- Không có video; không yêu cầu cài phần mềm mới. Khi offline, Student hiển thị
-  lỗi/thử lại thật; dùng ảnh và contract, không tự đổi Student sang dữ liệu giả.
-- Dữ liệu mô phỏng đã chọn được khôi phục khi mở lại. Không có mật khẩu demo hay
-  nút reset phá dữ liệu. Đổi hồ sơ bằng “Đổi dữ liệu mô phỏng” trong Profile.
-
-## Lệnh sử dụng
+## Lệnh xác minh không cần secret
 
 ```powershell
 & D:\DLU-LMS\Android\Sdk\platform-tools\adb.exe devices -l
-Invoke-RestMethod https://dlu-lms-student-support-staging.onrender.com/health
-# Mở hai file SQL trong pgAdmin bằng kết nối đã lưu; chỉ chạy SELECT/READ ONLY.
+node --experimental-strip-types integration-api/scripts/staging-group-smoke.ts
+# Trong pgAdmin, chạy hai file SQL demo trên candidate; chỉ SELECT/READ ONLY.
 ```
 
-Không đưa connection string vào slide, terminal, Postman hay ảnh. Không đổi
-database/seed để làm số liệu báo cáo “khớp”.
+## Dự phòng
+
+Bộ GROUP_39_20 ở evidence/council-backup/group39-20-final trong worktree.
+APK ở D:\DoAnTotNghiep\evidence\mobile và ảnh mới ở evidence/mobile/group39-20-final.
+Giữ nguyên backup 22/10 cũ để rollback. Không restore lại candidate đã có dữ liệu.
+Khi mất mạng, dùng APK để giải thích điều hướng và bộ ảnh/contract đã lưu;
+ứng dụng phải báo lỗi/thử lại, không silently đổi sang fixture.
+Đổi hồ sơ bằng thao tác trong Profile; không có mật khẩu demo hoặc reset phá dữ liệu.

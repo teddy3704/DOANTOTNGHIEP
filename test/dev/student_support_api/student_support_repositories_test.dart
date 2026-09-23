@@ -13,6 +13,49 @@ void main() {
     client = _FixtureClient.standard();
   });
 
+  test(
+    'group profile maps identity with blank, null or absent department',
+    () async {
+      for (final value in ['', '   ', null]) {
+        client.profile['department'] = value;
+        final user = await StagingUserRepository(client).getCurrentUser();
+        expect(user.id, 'SV001');
+        expect(user.idNumber, 'SV001');
+        expect(user.displayName, 'Nguyễn Minh Anh');
+        expect(user.email, 'minh.anh@example.test');
+        expect(user.roleLabel, 'Sinh viên');
+        expect(user.faculty, isNull);
+      }
+      client.profile.remove('department');
+      expect(
+        (await StagingUserRepository(client).getCurrentUser()).faculty,
+        isNull,
+      );
+      client.profile['department'] = ' Khoa mẫu ';
+      expect(
+        (await StagingUserRepository(client).getCurrentUser()).faculty,
+        'Khoa mẫu',
+      );
+    },
+  );
+
+  test(
+    'profile still rejects malformed metadata and missing identity',
+    () async {
+      client.profile['department'] = 42;
+      await expectLater(
+        StagingUserRepository(client).getCurrentUser(),
+        throwsA(isA<ParsingFailure>()),
+      );
+      client.profile.remove('department');
+      client.profile.remove('studentCode');
+      await expectLater(
+        StagingUserRepository(client).getCurrentUser(),
+        throwsA(isA<ParsingFailure>()),
+      );
+    },
+  );
+
   test('maps course progress and only future deadline previews', () async {
     final courses = await StagingCourseRepository(client).getMyCourses();
 
@@ -21,6 +64,39 @@ void main() {
     expect(mobile.nextActivity, contains('Bài tập ứng dụng'));
     expect(mobile.nextActivity, isNot(contains('Hạn cũ')));
   });
+
+  test(
+    'group model allows empty assignment description without hiding assignments',
+    () async {
+      client.assignments.first['description'] = '';
+      final result = await StagingAssignmentRepository(client).getAssignments();
+      expect(result, hasLength(client.assignments.length));
+      expect(result.any((a) => a.description.isEmpty), isTrue);
+    },
+  );
+
+  test(
+    'group course activities preserve types and use read-only LMS handoff',
+    () async {
+      final content = client.contentByCourseId['101']!;
+      for (final type in ['quiz', 'folder', 'forum', 'attendance']) {
+        content.add({
+          ...content.first,
+          'courseModuleId': '${900 + content.length}',
+          'activityType': type,
+          'activityName': 'Nội dung $type',
+          'assignmentCode': null,
+        });
+      }
+      final sections = await StagingCourseContentRepository(
+        client,
+      ).getSections('101');
+      expect(
+        sections.single.activities.map((a) => a.kind.name),
+        containsAll(['quiz', 'folder', 'forum', 'attendance']),
+      );
+    },
+  );
 
   test('maps content joins without fabricating file or cutoff data', () async {
     final sections = await StagingCourseContentRepository(
@@ -144,7 +220,7 @@ final class _FixtureClient extends StudentSupportApiClient {
     final future = DateTime.now().add(const Duration(days: 7)).toUtc();
     final past = DateTime.now().subtract(const Duration(days: 2)).toUtc();
     return _FixtureClient(
-      profile: const <String, Object?>{
+      profile: <String, Object?>{
         'studentCode': 'SV001',
         'fullName': 'Nguyễn Minh Anh',
         'email': 'minh.anh@example.test',
@@ -242,7 +318,7 @@ final class _FixtureClient extends StudentSupportApiClient {
           'feedback': 'Trình bày rõ ràng.',
         },
       ],
-      contentByCourseId: const <String, List<StudentSupportJson>>{
+      contentByCourseId: <String, List<StudentSupportJson>>{
         '101': <StudentSupportJson>[
           <String, Object?>{
             'courseModuleId': '1',

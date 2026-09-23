@@ -1,5 +1,13 @@
 # Moodle Integration Plan
 
+## Current 22/09/2026 boundary
+
+Both Student and Teacher Mobile staging repositories now consume the verified
+GET-only Render GROUP_39_20 API. This is development infrastructure with synthetic
+data, not Moodle Web Services. Official DLU Authentication/Web Services remain
+TO_VERIFY_DLU. The exact-host HTTPS launcher opens the official LMS home only;
+submission/grading remain LMS ONLY, with no fabricated activity IDs.
+
 ## Continuation evidence — 19/09/2026
 
 Both Mobile roles can open the official HTTPS LMS through the shared safe

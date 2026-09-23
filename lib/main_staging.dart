@@ -14,7 +14,7 @@ import 'features/courses/domain/course_content_repository.dart';
 import 'features/courses/domain/course_repository.dart';
 import 'features/grades/domain/grade_repository.dart';
 import 'features/profile/domain/user_repository.dart';
-import 'dev/fixtures/staging_teacher_support_repository.dart';
+import 'dev/student_support_api/teacher_support_api_repository.dart';
 import 'features/teacher/domain/teacher_support_repository.dart';
 
 /// Explicit, read-only entrypoint for the verified Student Support staging API.
@@ -24,11 +24,11 @@ import 'features/teacher/domain/teacher_support_repository.dart';
 void main() {
   final stagingConfig = StudentSupportStagingConfig.fromEnvironment();
   final identityProvider = StagingStudentIdentityProvider(includeTeacher: true);
-  final teacherRepository = StagingTeacherSupportRepository(identityProvider);
   final client = StudentSupportApiClient(
     config: stagingConfig,
     identityProvider: identityProvider,
   );
+  final teacherRepository = TeacherSupportApiRepository(client);
 
   runDluLmsApp(
     overrides: <Override>[

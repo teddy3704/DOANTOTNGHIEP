@@ -16,6 +16,13 @@ class StagingTeacherSupportRepository implements TeacherSupportRepository {
   final SyntheticFixtureDataSource _data;
 
   @override
+  Future<List<StudentMonitoring>> getStudents(String courseId) async =>
+      throw const ConfigurationFailure(
+        'Kết nối thông tin giảng dạy chưa được cấu hình.',
+        code: 'TEACHER_MONITORING_FIXTURE_UNAVAILABLE',
+      );
+
+  @override
   Future<TeacherOverview> getOverview() async {
     final selected = await identity.restore();
     if (selected?.id != 'GV001' || selected?.role != DluRole.teacher) {

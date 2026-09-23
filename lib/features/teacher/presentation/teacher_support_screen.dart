@@ -237,6 +237,13 @@ class _TeacherSupportScreenState extends ConsumerState<TeacherSupportScreen> {
     const SizedBox(height: 16),
     Text('${c.studentCount} sinh viên · ${c.work.length} bài tập'),
     const SizedBox(height: 16),
+    OutlinedButton.icon(
+      onPressed: () =>
+          context.push('/teacher/course/${Uri.encodeComponent(c.id)}/students'),
+      icon: const Icon(Icons.groups_outlined),
+      label: const Text('Theo dõi sinh viên'),
+    ),
+    const SizedBox(height: 16),
     const OfficialLmsButton(label: 'Quản lý khóa học trên LMS'),
     const SizedBox(height: 24),
     _heading('Nội dung & tài liệu'),

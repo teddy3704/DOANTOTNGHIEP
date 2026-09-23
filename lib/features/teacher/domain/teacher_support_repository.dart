@@ -46,13 +46,38 @@ class TeacherOverview {
   final List<TeachingCourse> courses;
 }
 
+enum LearningSupportLevel { low, medium, high }
+
+class StudentMonitoring {
+  const StudentMonitoring({
+    required this.studentId,
+    required this.courseId,
+    required this.name,
+    required this.progressPercent,
+    required this.pendingTasks,
+    required this.overdueTasks,
+    required this.supportLevel,
+  });
+  final String studentId, courseId, name;
+  final double progressPercent;
+  final int pendingTasks, overdueTasks;
+  final LearningSupportLevel supportLevel;
+}
+
 /// Read-only support contract. No grading, feedback or course mutations.
 abstract interface class TeacherSupportRepository {
   Future<TeacherOverview> getOverview();
+  Future<List<StudentMonitoring>> getStudents(String courseId);
 }
 
 class UnconfiguredTeacherSupportRepository implements TeacherSupportRepository {
   const UnconfiguredTeacherSupportRepository();
+  @override
+  Future<List<StudentMonitoring>> getStudents(String courseId) async =>
+      throw const ConfigurationFailure(
+        'Kết nối thông tin giảng dạy chưa được cấu hình.',
+        code: 'TEACHER_SUPPORT_UNCONFIGURED',
+      );
   @override
   Future<TeacherOverview> getOverview() async =>
       throw const ConfigurationFailure(
@@ -75,3 +100,14 @@ final teacherOverviewProvider = FutureProvider.autoDispose<TeacherOverview>((
   }
   return ref.watch(teacherSupportRepositoryProvider).getOverview();
 });
+
+final teacherStudentsProvider = FutureProvider.autoDispose
+    .family<List<StudentMonitoring>, String>((ref, courseId) {
+      if (ref.watch(authControllerProvider).session?.role != DluRole.teacher) {
+        throw const ConfigurationFailure(
+          'Bạn không có quyền xem thông tin này.',
+          code: 'TEACHER_CONTEXT_REQUIRED',
+        );
+      }
+      return ref.watch(teacherSupportRepositoryProvider).getStudents(courseId);
+    });

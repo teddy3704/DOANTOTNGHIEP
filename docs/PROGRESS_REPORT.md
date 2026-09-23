@@ -1,5 +1,42 @@
 # Progress Report
 
+## Final GROUP_39_20 Mobile QA — 23/09/2026
+
+Student Profile parsing fixed for an empty department observed in the real
+Render payload. Empty assignment descriptions and quiz/forum/folder/attendance
+content types are mapped without invented values. Real payload test PASS;
+Flutter format/analyze PASS; **167 tests PASS**. Final staging APK installed and
+Student/Teacher runtime PASS on DLU_LMS_Pixel. Teacher Work/Calendar/Profile,
+monitoring and official LMS handoff were checked after the emulator restart;
+GV001 → SV001 changed identity, data and navigation correctly. Fifteen real
+screenshots and an ignored offline council backup were prepared. No backend,
+Neon or Render configuration changed. Notification delivery remains NOT_VERIFIED
+because the current read-only data has no future due date. DLU auth/Web Services
+need DLU confirmation; official writes remain LMS ONLY.
+
+## GROUP_39_20 Render and Teacher Flutter integration — prior checkpoint
+
+User completed the secret update privately. Verified real Render deployment
+`dep-danalep42hec73drngpg`: health, Student/Teacher GET contracts and cross-scope
+negative cases PASS. Kept old database intact. Teacher fixture replaced in normal
+staging by a typed API repository; added scoped monitoring/search/progress view.
+Late requests cannot display the previous identity or invalidate the new one.
+Focused tests PASS, then interim format/analyze and 161 tests PASS (three lint-only
+brace warnings corrected). This paragraph is historical; final QA is above.
+Council SQL updated for GROUP_39_20 and executed read-only: 8 SELECTs PASS.
+
+## Render code-only deployment checkpoint
+
+Committed verified backend/candidate tooling as `f9d3ff6`; secret/index scan PASS
+(zero secret matches/private configs/forbidden staged files). Pushed non-force
+only to the existing deployment branch. Render built successfully and is Live.
+Post-deploy health/docs/OpenAPI 200; SV001 courses 200/count 2; no identity 401.
+Retained current 22/10 database and prior deploy for rollback. Candidate switch
+and public Teacher verification still pending; Flutter unchanged.
+Prepared unsaved Render model selection and selected the existing database
+secret value field for private human entry. Stopped at
+`ACTION_REQUIRED_RENDER_DATABASE_SECRET`; no secret or model update submitted.
+
 ## Candidate runtime and read-only API milestone
 
 Restored sanitized schema/data transactionally into the isolated candidate only.

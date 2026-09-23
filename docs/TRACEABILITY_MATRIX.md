@@ -1,5 +1,19 @@
 # Traceability — Student + Teacher Support
 
+## Current GROUP_39_20 trace (22/09/2026)
+
+| Feature | Source → API → Mobile | Verification |
+|---|---|---|
+| Student identity/profile | scoped lms user → `/api/v1/me` → StagingUserRepository → ProfileScreen | optional department regression; 320/390px profile widgets; opt-in real payload test |
+| Courses/content/assignments/grades/progress | GROUP_39_20 scoped read models → existing Student GET routes → Staging repositories → Student screens | student_support_repositories_test; staging_live_contract_test |
+| Teacher Home/Courses/Work/Profile | role/course context → GroupTeacherDataSource overview → `/api/v1/me/teacher/overview` → TeacherSupportApiRepository → TeacherSupportScreen/ProfileScreen | teacher_support_api_repository_test; live payload test |
+| Student Monitoring | derived.teacher_student_monitoring + course guard → `/api/v1/me/teacher/courses/{courseId}/students` → StudentMonitoring → TeacherStudentsScreen | scope/duplicate/bounds tests; search/expand/error/retry/layout tests |
+| Context isolation | identity provider → exclusive role headers + stale-response rejection → role router + user-scoped providers | client/teacher adapter/role routing tests; final runtime evidence |
+| Official actions | central OfficialLmsLauncher → HTTPS official LMS home | host allowlist tests; no mobile submission/grading or fabricated deep link |
+
+Teacher fixture is test-only, not the current staging source. Runtime and final
+gate details: `FLUTTER_TEST_RESULT.md`. Earlier baseline tables below are historical.
+
 ## Council baseline alignment — 2026-09-19
 
 Configured Neon: **lms 22 tables, 10 views**, not the group's 39-table model.

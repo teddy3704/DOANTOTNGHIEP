@@ -47,9 +47,13 @@ class StudentSupportApiClient {
     '/api/v1/me/progress',
     '/api/v1/me/deadlines',
     '/api/v1/me/overview',
+    '/api/v1/me/teacher/overview',
   };
   static final _courseContentPath = RegExp(
     r'^/api/v1/me/courses/[1-9][0-9]{0,14}/content$',
+  );
+  static final _teacherStudentsPath = RegExp(
+    r'^/api/v1/me/teacher/courses/[1-9][0-9]{0,14}/students$',
   );
 
   final Dio _dio;
@@ -90,14 +94,31 @@ class StudentSupportApiClient {
 
   Future<StudentSupportJson> getOverview() => _getObject('/api/v1/me/overview');
 
-  Future<StudentSupportJson> _getObject(String path) async {
-    final response = await _get(path);
+  Future<StudentSupportJson> getTeacherOverview() =>
+      _getObject('/api/v1/me/teacher/overview', role: DluRole.teacher);
+
+  Future<List<StudentSupportJson>> getTeacherStudents(String courseId) {
+    _validateCourseId(courseId);
+    return _getList(
+      '/api/v1/me/teacher/courses/$courseId/students',
+      role: DluRole.teacher,
+    );
+  }
+
+  Future<StudentSupportJson> _getObject(
+    String path, {
+    DluRole role = DluRole.student,
+  }) async {
+    final response = await _get(path, role: role);
     final envelope = _expectObject(response.data);
     return _expectObject(envelope['data']);
   }
 
-  Future<List<StudentSupportJson>> _getList(String path) async {
-    final response = await _get(path);
+  Future<List<StudentSupportJson>> _getList(
+    String path, {
+    DluRole role = DluRole.student,
+  }) async {
+    final response = await _get(path, role: role);
     final envelope = _expectObject(response.data);
     final data = envelope['data'];
     final meta = _expectObject(envelope['meta']);
@@ -116,6 +137,7 @@ class StudentSupportApiClient {
   Future<Response<Object?>> _get(
     String path, {
     bool includeStudentCode = true,
+    DluRole role = DluRole.student,
   }) async {
     if (!_isAllowedPath(path)) {
       throw ArgumentError.value(
@@ -125,26 +147,50 @@ class StudentSupportApiClient {
       );
     }
 
-    final studentCode = includeStudentCode
-        ? await _selectedStudentCode()
-        : null;
+    final studentCode = includeStudentCode ? await _selectedCode(role) : null;
     final options = Options(
       method: 'GET',
       followRedirects: false,
       headers: includeStudentCode
-          ? <String, Object>{'X-Demo-Student-Code': studentCode!}
+          ? <String, Object>{
+              role == DluRole.teacher
+                      ? 'X-Demo-Teacher-Code'
+                      : 'X-Demo-Student-Code':
+                  studentCode!,
+            }
           : const <String, Object>{},
     );
     final request = options.compose(_dio.options, path);
+    // Never inherit the other role's identity from an injected transport.
+    request.headers.removeWhere(
+      (key, _) => [
+        'x-demo-student-code',
+        'x-demo-teacher-code',
+      ].contains(key.toLowerCase()),
+    );
+    if (studentCode != null) {
+      request.headers[role == DluRole.teacher
+              ? 'X-Demo-Teacher-Code'
+              : 'X-Demo-Student-Code'] =
+          studentCode;
+    }
     _ensureSameOrigin(request.uri);
 
     try {
       final response = await _dio.fetch<Object?>(request);
       _ensureSameOrigin(response.requestOptions.uri);
+      if (studentCode != null &&
+          (await _identityProvider.restore())?.id != studentCode) {
+        throw const AuthenticationFailure(
+          'Ngữ cảnh xem dữ liệu đã thay đổi.',
+          code: 'STAGING_IDENTITY_CHANGED',
+        );
+      }
       return response;
     } on DioException catch (error) {
       final failure = _mapDioException(error, path);
-      if (failure is AuthenticationFailure) {
+      if (failure is AuthenticationFailure &&
+          (await _identityProvider.restore())?.id == studentCode) {
         await _identityProvider.invalidate();
       }
       throw failure;
@@ -155,7 +201,7 @@ class StudentSupportApiClient {
     }
   }
 
-  Future<String> _selectedStudentCode() async {
+  Future<String> _selectedCode(DluRole role) async {
     final identity = await _identityProvider.restore();
     if (identity == null) {
       throw const AuthenticationFailure(
@@ -163,17 +209,21 @@ class StudentSupportApiClient {
         code: 'STAGING_IDENTITY_REQUIRED',
       );
     }
-    if (identity.role != DluRole.student) {
-      throw const ConfigurationFailure(
-        'Dữ liệu này chỉ dành cho ngữ cảnh sinh viên.',
-        code: 'STUDENT_CONTEXT_REQUIRED',
+    if (identity.role != role) {
+      throw ConfigurationFailure(
+        'Dữ liệu này không thuộc ngữ cảnh đang chọn.',
+        code: role == DluRole.student
+            ? 'STUDENT_CONTEXT_REQUIRED'
+            : 'TEACHER_CONTEXT_REQUIRED',
       );
     }
     return identity.studentCode;
   }
 
   bool _isAllowedPath(String path) =>
-      _staticPaths.contains(path) || _courseContentPath.hasMatch(path);
+      _staticPaths.contains(path) ||
+      _courseContentPath.hasMatch(path) ||
+      _teacherStudentsPath.hasMatch(path);
 
   void _validateCourseId(String courseId) {
     if (!RegExp(r'^[1-9][0-9]{0,14}$').hasMatch(courseId)) {
@@ -255,6 +305,9 @@ class StudentSupportApiClient {
   }
 
   String _safePath(String path) {
+    if (_teacherStudentsPath.hasMatch(path)) {
+      return '/api/v1/me/teacher/courses/<id>/students';
+    }
     if (_courseContentPath.hasMatch(path)) {
       return '/api/v1/me/courses/<id>/content';
     }

@@ -278,7 +278,7 @@ class _ActivityTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final assignment = activity.kind == CourseActivityKind.assignment;
-    final subtitle = <String>[assignment ? 'Bài tập' : 'Tài liệu'];
+    final subtitle = <String>[activity.kind.label];
     final status = activity.statusLabel;
     if (status != null) subtitle.add(status);
     final dueAt = activity.dueAt;
@@ -289,7 +289,7 @@ class _ActivityTile extends ConsumerWidget {
     if (!assignment && fileName != null) subtitle.add(fileName);
     return Semantics(
       button: true,
-      label: '${assignment ? 'Mở bài tập' : 'Xem tài liệu'} ${activity.name}',
+      label: 'Mở ${activity.kind.label.toLowerCase()} ${activity.name}',
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
         leading: CircleAvatar(
@@ -395,32 +395,36 @@ class _ActivityTile extends ConsumerWidget {
                         label: 'Dung lượng',
                         value: _formatBytes(fileSize),
                       ),
-                    const SizedBox(height: 24),
-                    SizedBox(
-                      width: double.infinity,
-                      child: FilledButton.tonalIcon(
-                        onPressed: () async {
-                          try {
-                            await lmsLauncher.openHome();
-                          } catch (error) {
-                            if (!context.mounted) return;
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text(userMessageFor(error))),
-                            );
-                          }
-                        },
-                        icon: const Icon(Icons.open_in_new_rounded),
-                        label: const Text('Mở LMS'),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Tài liệu chính thức được mở an toàn trên DLU LMS.',
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                    ),
                   ],
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton.tonalIcon(
+                      onPressed: () async {
+                        try {
+                          await lmsLauncher.openHome();
+                        } catch (error) {
+                          if (!context.mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(userMessageFor(error))),
+                          );
+                        }
+                      },
+                      icon: const Icon(Icons.open_in_new_rounded),
+                      label: Text(
+                        activity.kind == CourseActivityKind.quiz
+                            ? 'Làm bài trên LMS'
+                            : 'Mở LMS',
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Nội dung chính thức được mở trên LMS. Chọn học phần tương ứng sau khi đăng nhập.',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
                 ],
               ),
             ),

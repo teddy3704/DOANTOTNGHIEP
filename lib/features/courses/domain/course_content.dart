@@ -1,4 +1,22 @@
-enum CourseActivityKind { assignment, resource }
+enum CourseActivityKind {
+  assignment,
+  resource,
+  quiz,
+  folder,
+  forum,
+  attendance,
+}
+
+extension CourseActivityKindLabel on CourseActivityKind {
+  String get label => switch (this) {
+    CourseActivityKind.assignment => 'Bài tập',
+    CourseActivityKind.resource => 'Tài liệu',
+    CourseActivityKind.quiz => 'Bài kiểm tra',
+    CourseActivityKind.folder => 'Thư mục tài liệu',
+    CourseActivityKind.forum => 'Diễn đàn',
+    CourseActivityKind.attendance => 'Điểm danh',
+  };
+}
 
 class CourseActivity {
   const CourseActivity({

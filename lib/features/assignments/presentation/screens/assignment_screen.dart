@@ -107,7 +107,9 @@ class _AssignmentContent extends ConsumerWidget {
                         ),
                         const SizedBox(height: 10),
                         Text(
-                          assignment.description,
+                          assignment.description.isEmpty
+                              ? 'Bài tập này chưa có mô tả.'
+                              : assignment.description,
                           style: TextStyle(
                             color: colors.onPrimaryContainer,
                             height: 1.45,

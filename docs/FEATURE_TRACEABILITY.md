@@ -1,5 +1,9 @@
 # Production Feature Traceability
 
+Current staging Student/Teacher GROUP_39_20 implementation is traced separately
+in `TRACEABILITY_MATRIX.md` (22/09/2026). Staging API PASS does not remove the DLU
+production blockers in this table; official auth/Web Services remain TO_VERIFY_DLU.
+
 **Updated:** 2026-09-18 ICT
 
 | Production Feature | DLU Evidence | Moodle API/Data Source | DTO/Domain Model | Repository | Provider | Screen | Tests | Status / Gap |

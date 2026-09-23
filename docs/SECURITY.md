@@ -266,3 +266,11 @@ Current `.gitignore` blocks common env, credential, key and database dump patter
 - Supabase/PostgREST raw message không được giữ trong `AppFailure`; auth, RLS, timeout, unavailable, rate-limit và malformed response được map sang stable sanitized code.
 - Edge Function hiện contract-only: không generic proxy, không arbitrary upstream/function/method và chưa có server secret/deployment.
 - Remote migration/RLS verification chưa được tuyên bố PASS; cần project non-production được chọn và identity mapping DLU → stable UUID `sub` được xác minh.
+# Current Teacher API/mobile boundary
+
+Render candidate secret was entered privately by the user. Mobile contains no
+database credential and performs only allowlisted HTTPS GET requests. Student and
+Teacher headers are mutually exclusive; inherited role headers are removed.
+Responses arriving after an identity switch are rejected; a late 401 cannot clear
+a newly selected identity. Typed monitoring validates course ID, duplicates,
+progress/count bounds. No fixture fallback, grading write or DLU auth claim.

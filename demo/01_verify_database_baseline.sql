@@ -1,5 +1,6 @@
 -- Read-only. Counts are observations, not hard-coded assertions.
 -- Scope: the project's lms/app/derived schemas, not PostgreSQL system schemas.
+-- Current verified staging target: GROUP_39_20 (3/39/20, 39 PK, 38 FK, 548 columns).
 WITH physical AS (
   SELECT c.oid, n.nspname
   FROM pg_catalog.pg_class c

@@ -1,56 +1,51 @@
--- Verified against the currently configured Neon development database.
--- This is the 22-table lms baseline, NOT the group's 39-table export.
--- Run 01_verify_database_baseline.sql first for catalog counts.
+-- GROUP_39_20 development/staging, synthetic data. NOT DLU production records.
+-- Run 01_verify_database_baseline.sql first. No academic or app writes.
 BEGIN READ ONLY;
 SET LOCAL statement_timeout = '10s';
 
--- Role is scoped to a context; enrolment is a separate relationship.
-SELECT u.user_code, r.shortname AS role, ctx.context_level, c.course_code
-FROM lms.users u
-JOIN lms.role_assignments ra ON ra.user_id = u.id
-JOIN lms.roles r ON r.id = ra.role_id
-JOIN lms.contexts ctx ON ctx.id = ra.context_id
-LEFT JOIN lms.courses c ON ctx.context_level = 50 AND c.id = ctx.instance_id
-WHERE u.active AND u.user_code IN ('SV001', 'GV001')
-ORDER BY u.user_code, c.course_code, r.shortname;
+-- Identity -> role -> course context (separate from enrolment).
+SELECT u.id AS synthetic_user_id, r.shortname AS role, ctx.contextlevel,
+       c.shortname AS course_code
+FROM lms."user" u JOIN lms.role_assignments ra ON ra.userid=u.id
+JOIN lms.role r ON r.id=ra.roleid JOIN lms.context ctx ON ctx.id=ra.contextid
+LEFT JOIN lms.course c ON ctx.contextlevel=50 AND c.id=ctx.instanceid
+WHERE u.id IN (201,101) AND u.deleted=0 AND u.suspended=0
+ORDER BY u.id,c.shortname,r.shortname;
 
-SELECT u.user_code, c.course_code, c.name AS course_name, ue.active
-FROM lms.users u
-JOIN lms.user_enrolments ue ON ue.user_id = u.id
-JOIN lms.enrolments e ON e.id = ue.enrolment_id
-JOIN lms.courses c ON c.id = e.course_id
-WHERE u.user_code = 'SV001' AND ue.active AND e.active
-ORDER BY c.course_code;
+SELECT ue.userid AS synthetic_user_id, c.shortname,c.fullname
+FROM lms.user_enrolments ue JOIN lms.enrol e ON e.id=ue.enrolid
+JOIN lms.course c ON c.id=e.courseid
+WHERE ue.userid=201 AND ue.status=0 AND e.status=0 AND c.visible=1
+ORDER BY c.shortname;
 
--- instance_id is polymorphic: interpret with modules.name, not a universal FK.
-SELECT c.course_code, s.section_number, s.name AS section_name,
-       m.name AS module_type, cm.instance_id
-FROM lms.courses c
-JOIN lms.course_sections s ON s.course_id = c.id
-JOIN lms.course_modules cm ON cm.section_id = s.id AND cm.course_id = c.id
-JOIN lms.modules m ON m.id = cm.module_id
-WHERE c.visible AND s.visible AND cm.visible
-ORDER BY c.course_code, s.section_number, cm.position LIMIT 12;
+-- A course module's instance is polymorphic, interpreted via modules.name.
+SELECT c.shortname,s.section,s.name,m.name AS module_type,cm.instance
+FROM lms.course c JOIN lms.course_sections s ON s.course=c.id
+JOIN lms.course_modules cm ON cm.course=c.id AND cm.section=s.id
+JOIN lms.modules m ON m.id=cm.module
+WHERE c.id=11 AND s.visible=1 AND cm.visible=1 AND cm.deletioninprogress=0
+ORDER BY s.section,cm.id;
 
-SELECT student_code, course_code, course_name, teacher_names
-FROM lms.vw_student_courses WHERE student_code = 'SV001'
-ORDER BY course_code;
+SELECT course_shortname,course_name,completed_activities,total_tracked_activities,
+       progress_percentage,pending_tasks,overdue_tasks
+FROM derived.student_course_overview WHERE userid=201 ORDER BY courseid;
 
--- These Teacher views exist in SQL; there is currently NO deployed Teacher API.
-SELECT teacher_code, course_code, student_code, progress_percent,
-       submitted_count, missing_or_draft_count
-FROM lms.vw_teacher_roster WHERE teacher_code = 'GV001'
-ORDER BY course_code, student_code LIMIT 12;
+SELECT course_name,task_type,title,due_time,task_status
+FROM derived.unified_tasks WHERE userid=201 ORDER BY due_time,title LIMIT 12;
 
-SELECT teacher_code, course_code, assignment_code, submission_status,
-       count(*) AS student_count
-FROM lms.vw_teacher_submission_overview WHERE teacher_code = 'GV001'
-GROUP BY teacher_code, course_code, assignment_code, submission_status
-ORDER BY course_code, assignment_code, submission_status;
+-- Rule-based support indicator, NOT AI or an automatic academic decision.
+SELECT course_name,student_name,progress_percentage,pending_tasks,overdue_tasks,risk_level
+FROM derived.teacher_student_monitoring WHERE teacherid=101 AND courseid=11
+ORDER BY studentid;
 
--- No unified_tasks view in this baseline. Use its verified progress read model.
-SELECT student_code, course_code, completed_activities, total_activities,
-       progress_percent
-FROM lms.vw_student_progress WHERE student_code = 'SV001'
-ORDER BY course_code;
+SELECT course_name,assignment_name,student_count,submitted_count,
+       not_submitted_count,needs_grading_count,overdue_missing_count
+FROM derived.teacher_assignment_monitoring WHERE teacherid=101
+ORDER BY courseid,assignment_id;
+
+-- Mobile-owned support records; no authentication fields or message content.
+SELECT 'learning_reminders' AS model,count(*) AS own_rows FROM app.learning_reminders WHERE user_id=201
+UNION ALL SELECT 'notifications',count(*) FROM app.notifications WHERE user_id=201
+UNION ALL SELECT 'notification_preferences',count(*) FROM app.notification_preferences WHERE user_id=201
+UNION ALL SELECT 'learning_goals',count(*) FROM app.learning_goals WHERE user_id=201;
 COMMIT;
