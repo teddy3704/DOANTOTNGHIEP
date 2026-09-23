@@ -1,5 +1,12 @@
 # Progress Report
 
+## 23/09/2026 — Đóng băng tính năng và chuẩn bị bảo vệ
+
+- Giữ nguyên source đã xác minh ở `a276ef2`: database GROUP_39_20, Render staging, API Student/Teacher chỉ đọc, Flutter analyze PASS, 167 test PASS, backend 54 test PASS và APK debug staging đã cài.
+- Đối chiếu hai Word nhóm với hệ thống hiện hành; giữ bản gốc chỉ đọc, tạo ma trận chỉnh và bản DOCX sửa kỹ thuật. Cập nhật README, trạng thái, traceability, kịch bản 5/10/15 phút, Q&A, tài liệu Database First và bộ offline theo bằng chứng thật.
+- 15 ảnh runtime và APK đúng SHA256 được đóng gói ngoài Git. Không đổi Neon/Render, không rebuild APK, không chạy lại test Flutter vì source không đổi.
+- Giới hạn công bố: DLU Authentication/Web Services `TO_VERIFY_DLU`; Android notification fire `NOT_VERIFIED`; bài nộp/điểm chính thức chỉ ở LMS. Việc tiếp theo: DLU phê duyệt integration và nhóm duyệt bản Word sửa trước nộp báo cáo.
+
 ## Final GROUP_39_20 Mobile QA — 23/09/2026
 
 Student Profile parsing fixed for an empty department observed in the real

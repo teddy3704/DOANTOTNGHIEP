@@ -14,7 +14,7 @@ và test tự động làm bằng chứng phạm vi hiện có.
 - [ ] AVD DLU_LMS_Pixel / emulator-5554 online; dùng APK cuối trong FLUTTER_TEST_RESULT.md.
 - [ ] SV001: Home → Courses → Course Detail → Assignment → Progress → Profile.
 - [ ] GV001: Home → Courses → Theo dõi sinh viên → Work → Calendar → Profile.
-- [ ] Quyền thông báo đã cấp; tạo/bật/tắt lời nhắc và kiểm tra một thông báo thật.
+- [ ] Quyền thông báo đã cấp; kiểm tra tạo/bật/tắt lời nhắc. Không tuyên bố notification fire PASS: dữ liệu cuối không có hạn tương lai phù hợp để quan sát.
 - [ ] Mở LMS từ Student/Teacher; không nộp bài, nhập điểm hay thay đổi học phần.
 - [ ] pgAdmin chọn database candidate đã lưu, không tạo database local mới.
 - [ ] Chạy 01_verify_database_baseline.sql: 3 schema, 39 bảng (35 lms + 4 app),
@@ -40,3 +40,22 @@ Giữ nguyên backup 22/10 cũ để rollback. Không restore lại candidate đ
 Khi mất mạng, dùng APK để giải thích điều hướng và bộ ảnh/contract đã lưu;
 ứng dụng phải báo lỗi/thử lại, không silently đổi sang fixture.
 Đổi hồ sơ bằng thao tác trong Profile; không có mật khẩu demo hoặc reset phá dữ liệu.
+
+## Ngày trước buổi bảo vệ
+
+- [ ] Sạc laptop, mang sạc; kiểm tra điện thoại Android nếu có.
+- [ ] Mở thử AVD `DLU_LMS_Pixel`, APK debug staging và ảnh runtime cuối.
+- [ ] Lưu APK, 15 ảnh, schema/sanitized seed, hai SQL chỉ đọc, OpenAPI và các file demo trong `D:\DLU-LMS-FINAL-DEMO` và bản ZIP.
+- [ ] Chuẩn bị slide, hotspot và bản script offline; không lưu credential trong bộ backup.
+
+## Trước 30 phút
+
+- [ ] Kiểm tra Internet và `https://lms.dlu.edu.vn/`; mở Render `/health` trước 5–10 phút để vượt cold start, không spam request.
+- [ ] Khởi động emulator, mở app, thử Student và Teacher identity mẫu, link LMS và quay lại app.
+- [ ] Kiểm tra pgAdmin đang chọn đúng database candidate đã lưu; hai SQL demo chỉ SELECT, không đổi Render/database.
+- [ ] Chuẩn bị tab kiến trúc, API `/docs`, SQL demo và ảnh. Đóng tab credential/kết nối riêng tư.
+
+## Trước 5 phút
+
+- [ ] Đóng tab riêng tư, ẩn notification và credential, kiểm tra âm lượng, phóng to cửa sổ cần dùng.
+- [ ] Đưa app về Student Home. Nếu `/health` timeout lần đầu, chờ rồi thử lại một lần; chuẩn bị ảnh/contract offline.

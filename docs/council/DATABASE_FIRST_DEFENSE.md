@@ -1,0 +1,17 @@
+# Giải thích Database First khi bảo vệ
+
+1. **Vì sao Database First?** Nhu cầu Mobile phụ thuộc quan hệ học phần, vai trò, tiến độ và hạn nộp. Phân tích schema Moodle-oriented trước giúp tránh màn hình tự đặt nghĩa dữ liệu và phân biệt rõ `null`, chưa có dữ liệu, với `0`, có dữ liệu nhưng giá trị bằng không.
+2. **Phân tích theo use case.** Nhóm đi từ user/course/enrolment và role/context; sau đó course sections/modules, assignment/quiz, gradebook, completion, attendance và engagement. Từ quan hệ đó mới chọn read model cho Student và Teacher.
+3. **Vì sao Flutter không query DB?** Credential, quyền truy cập và SQL phải ở server. API chuẩn hóa dữ liệu, lọc theo principal/context và cho phép sau này thay nguồn bằng tích hợp được DLU phê duyệt mà không đưa DB vào APK.
+4. **Ba schema.** `lms` là dữ liệu học tập tham chiếu; `app` là dữ liệu hỗ trợ do Mobile sở hữu; `derived` là 20 view phục vụ đọc/tổng hợp. Cách tách này không ngụ ý `app` là nguồn điểm hay bài nộp chính thức.
+5. **Một user, nhiều vai trò.** `lms."user"` giữ danh tính; `role_assignments` gắn `role` với `context`. Cùng một người có thể là giảng viên ở học phần này và học viên ở ngữ cảnh khác. Không tách bảng Student và Teacher cứng.
+6. **Ghi danh khác phân quyền.** `enrol` mô tả phương thức ghi danh của course; `user_enrolments` là người được ghi danh. `role_assignments` + `context` diễn đạt vai trò/quyền ở ngữ cảnh. Đã ghi danh không tự suy ra quyền chấm điểm.
+7. **Module đa hình.** `course_modules` liên hệ course và `modules`; `instance` chỉ sang bản ghi hoạt động tương ứng như assign/quiz/resource theo loại module, không phải FK vật lý duy nhất tới mọi bảng. Khi mở link LMS, dùng ID Moodle đã xác minh; không biến ID staging thành URL Moodle.
+8. **Bốn loại quan hệ.** FK vật lý được DB ràng buộc; quan hệ logic suy từ quy ước/schema; `instance` là đa hình theo module; application mapping là phép chuyển DTO/read model tại API. Không được gọi tất cả là FK.
+9. **Vì sao view?** `derived.unified_tasks` chuẩn hóa Assignment và Quiz thành danh sách việc học; `student_course_progress` tóm tắt completion; `student_course_overview` kết hợp học phần và trạng thái. Teacher views gom các chỉ số lớp/sinh viên để API không lặp nhiều phép nối trên client.
+10. **Tiến độ.** Dựa trên `course_modules_completion`, `course_completions` và logic view của mô hình; completion không tự đồng nghĩa đã nộp assignment. Không quảng bá phần trăm là điểm tổng kết.
+11. **Điểm và chuyên cần.** `grade_items`/`grade_grades`/`grade_categories` và `assign_grades`/`quiz_grades` được đọc thành summary; Mobile không ghi điểm. `attendance`, `attendance_sessions`, `attendance_statuses`, `attendance_log` hỗ trợ tổng hợp chuyên cần. Điểm hiển thị từ staging không phải điểm chính thức DLU.
+12. **Chỉ báo hỗ trợ.** `student_risk_indicator` là heuristic theo quy tắc từ tiến độ/việc quá hạn/hoạt động; không phải AI, không quyết định học vụ. Teacher dùng để ưu tiên quan sát, không thay đánh giá chuyên môn.
+13. **Đường tới DLU thật.** Cần DLU xác minh identity, Web Services, quyền và mapping. Khi được phép, backend adapter lấy nguồn chính thức và áp dụng capability; giữ contract Mobile khi thích hợp. Không copy production DB hoặc tự bịa endpoint.
+
+Minh chứng: `lms_mobile_learning_schema.sql`, `demo/01_verify_database_baseline.sql`, `demo/02_council_database_demo.sql`, `integration-api/openapi.group-39-20.json` và ảnh runtime cuối. Đây là mô hình **development/staging**, không phải export CSDL thật của DLU.

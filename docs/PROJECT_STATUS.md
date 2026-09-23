@@ -1,5 +1,27 @@
 # Project Status
 
+## Final council-demo checkpoint — 23/09/2026
+
+This matrix supersedes the historical phase/backlog text below. Feature code is frozen at `a276ef2`; the present handoff only updates documentation and off-repository backups.
+
+| Hạng mục | Trạng thái | Bằng chứng / ranh giới |
+|---|---|---|
+| Database GROUP_39_20 | PASS | 3 schema, 39 bảng vật lý (35 `lms`, 4 `app`), 20 view, 39 PK, 38 FK, 548 cột; synthetic staging, không phải DB DLU |
+| Render staging | PASS | `/health`, `/docs`, `/openapi.json`; không thay secret trong giai đoạn chốt |
+| Student API | PASS | API GET thật, phạm vi hồ sơ và payload Render đã test |
+| Teacher API | PASS | 5 route GET thật; course-scoped, không fixture ở runtime cuối |
+| Student runtime | PASS | Courses/assignment/grades/progress/profile và link LMS trên emulator |
+| Teacher runtime | PASS | Courses/Work/Monitoring/Calendar/Profile và link LMS trên emulator |
+| Role isolation | PASS | GV001 → SV001 đổi identity/data/navigation; negative 401/404/400 |
+| Flutter analyze / tests | PASS | analyze 0 issue; 167/167 test |
+| Backend tests | PASS | 54 test ở checkpoint nguồn đã duyệt |
+| APK / evidence | PASS | debug staging đã cài, SHA256 trong `FLUTTER_TEST_RESULT.md`, 15 PNG thật |
+| LMS generic/assignment/grading links | PASS | Mở host LMS chính thức; không thực hiện academic write trên Mobile |
+| Android notification fire | NOT_VERIFIED | Dataset cuối không có deadline tương lai phù hợp để quan sát fire |
+| DLU Authentication / Web Services | TO_VERIFY_DLU | Chờ contract/quyền và test identity từ Nhà trường |
+
+Báo cáo, demo và vấn đáp: `docs/council/README.md`, `docs/council/REPORT_CORRECTION_MATRIX.md`, `demo/DEMO_CHECKLIST.md`. **Staging demo PASS; production DLU integration PARTIAL.** Không dùng phần “IN PROGRESS/BLOCKED” lịch sử phía dưới làm mô tả runtime cuối.
+
 ## GROUP_39_20 staging and Mobile read-only demo — PASS (23/09/2026)
 
 User privately saved the candidate connection in Render. Deployment

@@ -11,9 +11,9 @@
    monitoring. Chỉ báo hỗ trợ dựa trên quy tắc, không AI hoặc quyết định học vụ.
 4. **Backend — 40 giây.** Render /health và /docs: Node.js/TypeScript/Fastify,
    PostgreSQL và GET-only API. Hai vai trò dùng cùng nguồn staging, có lọc phạm vi.
-5. **Student — 90 giây.** SV001 → Home → Courses → Detail → Assignment →
-   nhắc việc → Progress → Profile. “Nộp bài trên LMS” mở LMS, không nộp bài.
-6. **Teacher — 80 giây.** GV001 → Home → Teaching Course → Theo dõi sinh viên
+5. **Student — 90 giây.** Hồ sơ mẫu SV001 → Home → Courses → Detail → Assignment →
+   Progress → Grades → Profile. “Nộp bài trên LMS” mở LMS, không nộp bài.
+6. **Teacher — 80 giây.** Hồ sơ mẫu GV001 → Home → Teaching Course → Theo dõi sinh viên
    (tìm tên, mở thẻ tiến độ) → Work → Calendar → Profile.
    Teacher đọc API Render, không fixture; “Chấm bài trên LMS” chỉ mở hệ thống nguồn.
 7. **Ranh giới — 40 giây.** Nộp bài, quiz, chấm điểm, phản hồi học vụ và quản trị

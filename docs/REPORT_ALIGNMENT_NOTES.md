@@ -1,5 +1,11 @@
 # Đối chiếu báo cáo nhóm với hệ thống đang chạy
 
+## Bản chốt hội đồng — 23/09/2026
+
+Hai Word nguồn được giữ nguyên. Ma trận vị trí/câu thay thế nằm ở `docs/council/REPORT_CORRECTION_MATRIX.md`; bản sao DOCX đã sửa kỹ thuật ở `D:\DLU-LMS-FINAL-DEMO\05_REPORT\revised`. Số liệu hiện hành: GROUP_39_20 (3 schema, 39 bảng gồm 35 `lms` + 4 `app`, 20 view, 39 PK, 38 FK, 548 cột); backend Node.js/TypeScript/Fastify trên Render; Student và Teacher API thật chỉ đọc; Flutter 167 test và backend 54 test PASS. Word gốc từng nêu Spring Boot/JdbcTemplate/localhost:8080 và ảnh MVP cũ; các nội dung đó **không** mô tả runtime cuối. Bản Word sửa giữ ảnh MVP cũ nhưng gắn nhãn lịch sử; ảnh runtime cuối ở `evidence/mobile/group39-20-final/`.
+
+DLU Auth/Web Services = `TO_VERIFY_DLU`; thông báo Android fire = `NOT_VERIFIED`; nộp bài, quiz, chấm điểm, quản trị = LMS ONLY. Các section phía dưới là nhật ký các checkpoint cũ, không được trích làm hiện trạng.
+
 ## Trạng thái hiện hành — 22/09/2026 (thay thế các checkpoint cũ bên dưới)
 
 - Render đã dùng GROUP_39_20: **3 schema, 39 bảng vật lý (35 lms + 4 app),

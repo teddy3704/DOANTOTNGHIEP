@@ -1,75 +1,52 @@
-# DLU LMS Mobile
+# DLU LMS Support
 
-Đồ án tốt nghiệp: **Xây dựng ứng dụng di động và hỗ trợ học tập trên nền tảng LMS** cho Trường Đại học Đà Lạt.
+Đồ án “Xây dựng ứng dụng di động và hỗ trợ học tập trên nền tảng LMS” của nhóm Đại học Đà Lạt. Ứng dụng Flutter giúp sinh viên xem học phần, bài cần làm, tiến độ, điểm và lời nhắc; giúp giảng viên theo dõi lớp, công việc và sinh viên cần hỗ trợ. [DLU LMS](https://lms.dlu.edu.vn/) vẫn là hệ thống chính thức cho xác thực, nộp bài, quiz, chấm điểm và quản trị học phần.
 
-Repository đã hoàn thành Flutter foundation, Moodle subset/schema reference, canonical synthetic dataset, milestone **production product UI polish** cho Student V1 và Supabase backend foundation cho dữ liệu do ứng dụng sở hữu. Tích hợp thật với `https://lms.dlu.edu.vn/` vẫn bị chặn cho đến khi DLU xác nhận authentication, Web Services và cấp quyền test phù hợp.
+## Bản đã xác minh ngày 23/09/2026
 
-## Trạng thái nhanh
+| Thành phần | Trạng thái |
+|---|---|
+| Database First | PostgreSQL development/staging dữ liệu mẫu: 3 schema `lms`/`app`/`derived`, 39 bảng vật lý (35 + 4), 20 view, 39 PK, 38 FK, 548 cột. **Không phải database production DLU.** |
+| Backend | Node.js, TypeScript, Fastify, PostgreSQL; Render staging; Student + Teacher GET API với scope server-side; 54 test PASS |
+| Flutter | Android, Material 3, Riverpod, go_router và repository tách production/staging; `flutter analyze` PASS, 167/167 test PASS; runtime Student/Teacher và đổi role PASS |
+| Bằng chứng | APK debug staging `D:\DoAnTotNghiep\evidence\mobile\DLU_LMS_Support_staging_final_debug.apk`, 15 ảnh `evidence/mobile/group39-20-final/` |
+| Chưa xác minh | DLU Authentication/Web Services `TO_VERIFY_DLU`; Android notification fire `NOT_VERIFIED` vì dataset cuối không có deadline tương lai phù hợp |
 
-- Flutter 3.44.9, Dart 3.12.2, JDK 17 và Android SDK CLI đã được kiểm chứng.
-- Android application ID: `vn.edu.dlu.lmsmobile`.
-- Material 3, Riverpod, go_router, Dio boundary, secure-storage abstraction và feature-first repositories đã tồn tại.
-- Student flow: Splash → Login → Trang chủ → Khóa học → Chi tiết/Tài liệu/Bài tập/Điểm → Lịch → Hồ sơ.
-- Primary navigation gồm bốn mục `Trang chủ` / `Khóa học` / `Lịch` / `Hồ sơ`; màn hình dữ liệu có loading/empty/error/retry phù hợp.
-- Database analysis dùng `MOODLE_SUBSET_V1` gồm 20 bảng từ teacher-provided Moodle LMS 3.9 SchemaSpy, cùng dữ liệu AI-generated synthetic; đây không phải schema/data production DLU.
-- Supabase foundation chỉ có `mobile_preferences`, migration + RLS + typed repository; chưa link/deploy project thật và không sao chép course/assignment/grade từ Moodle.
-- Moodle version, cơ chế xác thực, Web Services và test account/token chưa được DLU cung cấp/xác nhận. Database thật không cần cho phase hiện tại theo chỉ đạo GVHD.
-- Không có dữ liệu giả nào được coi là dữ liệu production.
+Luồng hiện chạy: `Flutter → HTTPS → Render staging → Fastify API → PostgreSQL lms/app/derived`. Identity mẫu của staging **không phải** tài khoản DLU. Production entrypoint `lib/main.dart` không tự fallback sang dữ liệu mẫu. Mobile chỉ mở link LMS chính thức khi người dùng muốn nộp bài hoặc chấm điểm; không có Mobile academic write.
 
-Xem [Project Status](docs/PROJECT_STATUS.md), [Architecture](docs/ARCHITECTURE.md), [Supabase Architecture](docs/supabase/ARCHITECTURE.md), [Selected Moodle Tables](docs/database/SELECTED_TABLES.md), [Feature/Data Traceability](docs/FEATURE_DATA_TRACEABILITY.md) và [Environment Setup](docs/ENVIRONMENT_SETUP.md).
+## Chạy lại khi cần
 
-## Nguyên tắc bắt buộc
-
-- Flutter + Dart, target đầu tiên là Android, editor chính là Visual Studio Code.
-- Không cài đặt hoặc sử dụng Android Studio; Android được build bằng SDK Command-line Tools.
-- Flutter không kết nối trực tiếp production database của Moodle.
-- Không commit secret, token, password, private key hoặc dữ liệu cá nhân thật.
-- Không tuyên bố API hoạt động trước khi kiểm chứng trên môi trường được DLU cho phép.
-
-Các quy tắc làm việc đầy đủ nằm trong [AGENTS.md](AGENTS.md).
-
-## Chạy ứng dụng
-
-Production entrypoint không tự fallback sang dữ liệu mẫu. Khi DLU auth/API chưa được phê duyệt, app đóng an toàn và hiển thị thông báo thân thiện:
+Không dùng Android Studio. SDK/JDK/cache/build đã đặt trên D theo `tool/flutter_dlu.ps1`. Emulator hiện có: `DLU_LMS_Pixel`; không tạo AVD mới để xem demo.
 
 ```powershell
-.\tool\flutter_dlu.ps1 run -t lib/main.dart --dart-define=MOODLE_BASE_URL=https://lms.dlu.edu.vn
-```
+# Từ worktree Flutter này; cần emulator online và mạng để gọi Render staging.
+.\tool\flutter_dlu.ps1 run -t lib/main_staging.dart
 
-Sinh lại và kiểm tra canonical synthetic dataset (offline, seed `202608`):
-
-```powershell
-dart run tool/generate_moodle_sample_data.dart
-dart run tool/validate_moodle_sample_data.dart
-```
-
-Demo UI dùng generated synthetic asset qua composition root riêng; giao diện vẫn giống sản phẩm và không hiển thị nhãn development:
-
-```powershell
-.\tool\flutter_dlu.ps1 run -t lib/main_development.dart
-```
-
-Nếu chưa có Android device:
-
-```powershell
-.\tool\flutter_dlu.ps1 build apk --debug -t lib/main.dart
-.\tool\flutter_dlu.ps1 build apk --debug -t lib/main_development.dart
-```
-
-Quality gate:
-
-```powershell
-dart format .
+# Quality gate chỉ chạy lại khi có thay đổi Flutter hoặc cần xác minh mới.
 .\tool\flutter_dlu.ps1 analyze
 .\tool\flutter_dlu.ps1 test
 ```
 
-Kiểm tra Supabase migration/RLS contract hoàn toàn offline:
+API local cần Node 24 và cấu hình `.env` riêng trong `integration-api/` (không commit, không in giá trị). Chỉ dùng database development/staging được cấp quyền; không tự tạo DB production hoặc đổi Render.
 
 ```powershell
-.\tool\validate_supabase_foundation.ps1
+Set-Location integration-api
+npm ci --cache D:\DLU-LMS\Cache\npm
+npm run build
+npm test
+npm run dev
+# API local: http://localhost:3000/health và /docs
 ```
 
-`SUPABASE_URL` và `SUPABASE_PUBLISHABLE_KEY` chỉ được cấp qua runtime/build configuration sau khi một project non-production được chọn. Không dùng secret/service-role key trong Flutter. Runtime Supabase hiện fail closed vì DLU-to-Supabase identity mapping chưa được xác minh.
+Để xem API staging đã deploy, mở `https://dlu-lms-student-support-staging.onrender.com/health` và `/docs`; Render Free có thể cold start. Không đặt Neon credential trong URL, Postman export hay source.
 
-Wrapper giữ generated build trên `D:\DLU-LMS\Build\DoAnTotNghiep`, tạm dừng OneDrive trong lúc Flutter chạy và tháo junction `build\` trước khi bật sync lại. Hai VS Code launch profiles đã tự động dùng cùng workflow; không tạo junction thủ công trong thư mục OneDrive.
+## Đọc và trình diễn
+
+- [Trạng thái cuối](docs/PROJECT_STATUS.md), [kết quả Flutter](docs/FLUTTER_TEST_RESULT.md), [đối chiếu báo cáo](docs/REPORT_ALIGNMENT_NOTES.md).
+- [Kịch bản hội đồng](demo/COUNCIL_DEMO_SCRIPT.md), [checklist](demo/DEMO_CHECKLIST.md), [Q&A và kiến trúc](docs/council/README.md).
+- SQL demo chỉ đọc: `demo/01_verify_database_baseline.sql`, `demo/02_council_database_demo.sql`.
+- `docs/FINAL_TRACEABILITY_MATRIX.md` nối yêu cầu → bảng/view → API → màn → hành động LMS.
+
+Phần Supabase foundation lịch sử chỉ dành dữ liệu app-owned (theme preference), chưa thay Moodle hay được bật làm nguồn học vụ. `main_development.dart` là đường dữ liệu synthetic riêng; không nhầm với staging cuối hoặc production.
+
+Quy tắc kỹ thuật/bảo mật của repository: [AGENTS.md](AGENTS.md). Không commit `.env`, credential, dữ liệu DLU thật hoặc APK.

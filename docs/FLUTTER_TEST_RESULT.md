@@ -1,5 +1,7 @@
 # Flutter verification — current GROUP_39_20 staging, 22–23/09/2026
 
+Current evidence is the 23/09 final checkpoint immediately below, not the historical 19/09 section. No Flutter source changed during council-pack preparation; the 167-test/analyze/APK gates were therefore **not rerun**. Existing 320/390px and text-scale checks are documented in the historical section; final Profile nullable-department coverage and role switch are recorded below. Staging debug APK is not a signed DLU production release.
+
 ## Final checkpoint — PASS for read-only staging demo
 
 - `dart format .`: PASS, 123 files, 0 further changes; `flutter analyze`: PASS.
