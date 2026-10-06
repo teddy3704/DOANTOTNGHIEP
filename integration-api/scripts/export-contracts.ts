@@ -1,6 +1,7 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { buildApp } from "../src/app.ts";
 import type { StudentLearningDataSource } from "../src/domain/student-learning.ts";
+import type { InnovationStore } from "../src/domain/innovation.ts";
 
 // Contract generation cannot connect to any data source or read a secret file.
 const unavailable = async (): Promise<never> => {
@@ -18,6 +19,16 @@ const source: StudentLearningDataSource = {
   progress: unavailable,
   deadlines: unavailable,
 };
+const candidateStore: InnovationStore = {
+  plans: unavailable,
+  createPlan: unavailable,
+  updatePlan: unavailable,
+  deletePlan: unavailable,
+  interventions: unavailable,
+  createIntervention: unavailable,
+  updateIntervention: unavailable,
+  addFollowup: unavailable,
+};
 const app = await buildApp(
   {
     environment: "development",
@@ -31,6 +42,7 @@ const app = await buildApp(
   process.argv.includes("--candidate")
     ? { teacher: unavailable, courses: unavailable, students: unavailable }
     : undefined,
+  process.argv.includes("--candidate") ? candidateStore : undefined,
 );
 await app.ready();
 try {
@@ -152,12 +164,22 @@ try {
   ];
   if (candidate) {
     folders.push({
+      name: "12 Student study planner",
+      item: [
+        item("Explainable priorities", "/api/v1/me/recommendations"),
+        item("Own study plan", "/api/v1/me/study-plan"),
+      ],
+    });
+    folders.push({
       name: "11 Teacher read-only support",
       item: [
         item("Teacher profile", "/api/v1/me/teacher"),
         item("Teacher overview", "/api/v1/me/teacher/overview"),
         item("Teaching courses", "/api/v1/me/teacher/courses"),
         item("Teaching work", "/api/v1/me/teacher/assignments"),
+        item("Scoped attention", "/api/v1/me/teacher/attention"),
+        item("Own interventions", "/api/v1/me/teacher/interventions"),
+        item("Due follow-ups", "/api/v1/me/teacher/followups"),
         item("Own course students", "/api/v1/me/teacher/courses/11/students"),
         item(
           "Other teacher course denied",

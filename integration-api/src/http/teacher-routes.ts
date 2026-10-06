@@ -5,6 +5,8 @@ import type {
 } from "../domain/teacher-support.ts";
 import { ApiFailure } from "../domain/learning-service.ts";
 import { object, list, single, errorResponses, noQuery } from "./schemas.ts";
+import type { InnovationService } from "../domain/innovation.ts";
+import { registerTeacherInnovationRoutes } from "./innovation-routes.ts";
 declare module "fastify" {
   interface FastifyRequest {
     teacherPrincipal: TeacherProfile | null;
@@ -51,6 +53,7 @@ export async function registerTeacherRoutes(
   app: FastifyInstance,
   source: TeacherSupportDataSource,
   enabled: boolean,
+  innovation?: InnovationService,
 ) {
   const read = async <T>(fn: () => Promise<T>) => {
     try {
@@ -100,6 +103,7 @@ export async function registerTeacherRoutes(
           },
         },
       };
+      if (innovation) registerTeacherInnovationRoutes(api, innovation, common);
       api.get(
         "/me/teacher",
         {

@@ -4,6 +4,10 @@ import { PostgresDevelopmentDataSource } from "./data/postgres-development-data-
 import { buildApp } from "./app.ts";
 import { GroupStudentDataSource } from "./data/group-student-data-source.ts";
 import { GroupTeacherDataSource } from "./data/group-teacher-data-source.ts";
+import {
+  PostgresAppDatabase,
+  PostgresInnovationStore,
+} from "./data/innovation-store.ts";
 
 let pool: ReturnType<typeof createPool> | undefined;
 try {
@@ -18,6 +22,9 @@ try {
       : new PostgresDevelopmentDataSource(database),
     true,
     group ? new GroupTeacherDataSource(database) : undefined,
+    group
+      ? new PostgresInnovationStore(new PostgresAppDatabase(pool))
+      : undefined,
   );
   app.addHook("onClose", async () => {
     await pool?.end();

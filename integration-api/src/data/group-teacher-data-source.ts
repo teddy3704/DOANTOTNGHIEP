@@ -111,4 +111,21 @@ export class GroupTeacherDataSource implements TeacherSupportDataSource {
       [courseId],
     );
   }
+  async attention(
+    code: string,
+  ): Promise<(StudentMonitoring & { courseName: string })[]> {
+    return this.read(
+      code,
+      `SELECT v.courseid::text AS "courseId",c.fullname AS "courseName",v.studentid::text AS "studentId",v.student_name AS "studentName",
+      v.progress_percentage::float8 AS "progressPercent",v.pending_tasks::int AS "pendingTasks",v.overdue_tasks::int AS "overdueTasks",v.risk_level AS "riskLevel"
+      FROM derived.teacher_student_monitoring v JOIN scoped_courses c ON c.id=v.courseid
+      JOIN lms."user" u ON u.id=v.studentid AND u.deleted=0 AND u.suspended=0
+      WHERE v.teacherid=$1::bigint AND EXISTS(SELECT 1 FROM lms.user_enrolments ue JOIN lms.enrol e ON e.id=ue.enrolid AND e.courseid=c.id AND e.status=0
+      JOIN lms.context ctx ON ctx.contextlevel=50 AND ctx.instanceid=c.id
+      JOIN lms.role_assignments ra ON ra.userid=u.id AND ra.contextid=ctx.id
+      JOIN lms.role r ON r.id=ra.roleid AND (r.shortname='student' OR r.archetype='student')
+      WHERE ue.userid=u.id AND ue.status=0 AND (ue.timestart=0 OR ue.timestart<=extract(epoch FROM now())) AND (ue.timeend=0 OR ue.timeend>extract(epoch FROM now())))
+      ORDER BY c.id,v.studentid`,
+    );
+  }
 }

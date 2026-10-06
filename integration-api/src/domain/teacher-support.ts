@@ -35,6 +35,9 @@ export interface StudentMonitoring {
   riskLevel: string;
 }
 export interface TeacherSupportDataSource {
+  attention?(
+    code: string,
+  ): Promise<(StudentMonitoring & { courseName: string })[]>;
   teacher(code: string): Promise<TeacherProfile | null>;
   courses(code: string): Promise<TeachingCourse[]>;
   students(code: string, courseId: string): Promise<StudentMonitoring[] | null>;

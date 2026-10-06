@@ -11,6 +11,11 @@ import { ApiFailure, LearningService } from "./domain/learning-service.ts";
 import * as s from "./http/schemas.ts";
 import type { TeacherSupportDataSource } from "./domain/teacher-support.ts";
 import { registerTeacherRoutes } from "./http/teacher-routes.ts";
+import {
+  InnovationService,
+  type InnovationStore,
+} from "./domain/innovation.ts";
+import { registerStudentInnovationRoutes } from "./http/innovation-routes.ts";
 
 declare module "fastify" {
   interface FastifyRequest {
@@ -36,6 +41,7 @@ export async function buildApp(
   source: StudentLearningDataSource,
   logger: FastifyServerOptions["logger"] = true,
   teacherSource?: TeacherSupportDataSource,
+  innovationStore?: InnovationStore,
 ) {
   const app = Fastify({
     logger,
@@ -51,12 +57,28 @@ export async function buildApp(
     },
   });
   const service = new LearningService(source);
+  const innovation =
+    teacherSource && innovationStore
+      ? new InnovationService(source, teacherSource, innovationStore)
+      : undefined;
   app.decorateRequest("principal", null);
   app.setErrorHandler((error, _request, reply) => {
     if (error instanceof ApiFailure)
       return reply
         .code(error.statusCode)
         .send({ error: { code: error.code, message: error.message } });
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "statusCode" in error &&
+      error.statusCode === 413
+    )
+      return reply.code(413).send({
+        error: {
+          code: "REQUEST_TOO_LARGE",
+          message: "Nội dung yêu cầu quá dài.",
+        },
+      });
     if (
       typeof error === "object" &&
       error !== null &&
@@ -194,6 +216,7 @@ export async function buildApp(
         security: [{ DemoStudent: [] }],
         tags: ["Student support"],
       };
+      if (innovation) registerStudentInnovationRoutes(api, innovation, common);
       api.get(
         "/me",
         {
@@ -340,6 +363,11 @@ export async function buildApp(
     { prefix: "/api/v1" },
   );
   if (teacherSource)
-    await registerTeacherRoutes(app, teacherSource, config.demoAuthEnabled);
+    await registerTeacherRoutes(
+      app,
+      teacherSource,
+      config.demoAuthEnabled,
+      innovation,
+    );
   return app;
 }

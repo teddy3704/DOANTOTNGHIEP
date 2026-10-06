@@ -1,0 +1,1069 @@
+{
+  "status": "PASS",
+  "mode": "local",
+  "checkedAt": "2026-10-06T10:03:53.882Z",
+  "checks": [
+    {
+      "name": "GET /health => 200",
+      "pass": true
+    },
+    {
+      "name": "sanitized response",
+      "pass": true
+    },
+    {
+      "name": "actual database reachable",
+      "pass": true
+    },
+    {
+      "name": "GET /openapi.json => 200",
+      "pass": true
+    },
+    {
+      "name": "sanitized response",
+      "pass": true
+    },
+    {
+      "name": "published plan + intervention contracts",
+      "pass": true
+    },
+    {
+      "name": "GET /api/v1/me => 200",
+      "pass": true
+    },
+    {
+      "name": "sanitized response",
+      "pass": true
+    },
+    {
+      "name": "GET /api/v1/me/courses => 200",
+      "pass": true
+    },
+    {
+      "name": "sanitized response",
+      "pass": true
+    },
+    {
+      "name": "collection envelope",
+      "pass": true
+    },
+    {
+      "name": "GET /api/v1/me/assignments => 200",
+      "pass": true
+    },
+    {
+      "name": "sanitized response",
+      "pass": true
+    },
+    {
+      "name": "collection envelope",
+      "pass": true
+    },
+    {
+      "name": "GET /api/v1/me/assignment-status => 200",
+      "pass": true
+    },
+    {
+      "name": "sanitized response",
+      "pass": true
+    },
+    {
+      "name": "collection envelope",
+      "pass": true
+    },
+    {
+      "name": "GET /api/v1/me/grades => 200",
+      "pass": true
+    },
+    {
+      "name": "sanitized response",
+      "pass": true
+    },
+    {
+      "name": "collection envelope",
+      "pass": true
+    },
+    {
+      "name": "GET /api/v1/me/progress => 200",
+      "pass": true
+    },
+    {
+      "name": "sanitized response",
+      "pass": true
+    },
+    {
+      "name": "collection envelope",
+      "pass": true
+    },
+    {
+      "name": "GET /api/v1/me/overview => 200",
+      "pass": true
+    },
+    {
+      "name": "sanitized response",
+      "pass": true
+    },
+    {
+      "name": "GET /api/v1/me/recommendations => 200",
+      "pass": true
+    },
+    {
+      "name": "sanitized response",
+      "pass": true
+    },
+    {
+      "name": "collection envelope",
+      "pass": true
+    },
+    {
+      "name": "GET /api/v1/me/study-plan => 200",
+      "pass": true
+    },
+    {
+      "name": "sanitized response",
+      "pass": true
+    },
+    {
+      "name": "collection envelope",
+      "pass": true
+    },
+    {
+      "name": "GET /api/v1/me => 200",
+      "pass": true
+    },
+    {
+      "name": "sanitized response",
+      "pass": true
+    },
+    {
+      "name": "GET /api/v1/me/courses => 200",
+      "pass": true
+    },
+    {
+      "name": "sanitized response",
+      "pass": true
+    },
+    {
+      "name": "collection envelope",
+      "pass": true
+    },
+    {
+      "name": "GET /api/v1/me/assignments => 200",
+      "pass": true
+    },
+    {
+      "name": "sanitized response",
+      "pass": true
+    },
+    {
+      "name": "collection envelope",
+      "pass": true
+    },
+    {
+      "name": "GET /api/v1/me/assignment-status => 200",
+      "pass": true
+    },
+    {
+      "name": "sanitized response",
+      "pass": true
+    },
+    {
+      "name": "collection envelope",
+      "pass": true
+    },
+    {
+      "name": "GET /api/v1/me/grades => 200",
+      "pass": true
+    },
+    {
+      "name": "sanitized response",
+      "pass": true
+    },
+    {
+      "name": "collection envelope",
+      "pass": true
+    },
+    {
+      "name": "GET /api/v1/me/progress => 200",
+      "pass": true
+    },
+    {
+      "name": "sanitized response",
+      "pass": true
+    },
+    {
+      "name": "collection envelope",
+      "pass": true
+    },
+    {
+      "name": "GET /api/v1/me/overview => 200",
+      "pass": true
+    },
+    {
+      "name": "sanitized response",
+      "pass": true
+    },
+    {
+      "name": "GET /api/v1/me/recommendations => 200",
+      "pass": true
+    },
+    {
+      "name": "sanitized response",
+      "pass": true
+    },
+    {
+      "name": "collection envelope",
+      "pass": true
+    },
+    {
+      "name": "GET /api/v1/me/study-plan => 200",
+      "pass": true
+    },
+    {
+      "name": "sanitized response",
+      "pass": true
+    },
+    {
+      "name": "collection envelope",
+      "pass": true
+    },
+    {
+      "name": "GET /api/v1/me/teacher => 200",
+      "pass": true
+    },
+    {
+      "name": "sanitized response",
+      "pass": true
+    },
+    {
+      "name": "GET /api/v1/me/teacher/courses => 200",
+      "pass": true
+    },
+    {
+      "name": "sanitized response",
+      "pass": true
+    },
+    {
+      "name": "collection envelope",
+      "pass": true
+    },
+    {
+      "name": "GET /api/v1/me/teacher/overview => 200",
+      "pass": true
+    },
+    {
+      "name": "sanitized response",
+      "pass": true
+    },
+    {
+      "name": "GET /api/v1/me/teacher/attention => 200",
+      "pass": true
+    },
+    {
+      "name": "sanitized response",
+      "pass": true
+    },
+    {
+      "name": "collection envelope",
+      "pass": true
+    },
+    {
+      "name": "GET /api/v1/me/teacher/interventions => 200",
+      "pass": true
+    },
+    {
+      "name": "sanitized response",
+      "pass": true
+    },
+    {
+      "name": "collection envelope",
+      "pass": true
+    },
+    {
+      "name": "GET /api/v1/me/teacher/followups => 200",
+      "pass": true
+    },
+    {
+      "name": "sanitized response",
+      "pass": true
+    },
+    {
+      "name": "collection envelope",
+      "pass": true
+    },
+    {
+      "name": "GET /api/v1/me/teacher => 200",
+      "pass": true
+    },
+    {
+      "name": "sanitized response",
+      "pass": true
+    },
+    {
+      "name": "GET /api/v1/me/teacher/courses => 200",
+      "pass": true
+    },
+    {
+      "name": "sanitized response",
+      "pass": true
+    },
+    {
+      "name": "collection envelope",
+      "pass": true
+    },
+    {
+      "name": "GET /api/v1/me/teacher/overview => 200",
+      "pass": true
+    },
+    {
+      "name": "sanitized response",
+      "pass": true
+    },
+    {
+      "name": "GET /api/v1/me/teacher/attention => 200",
+      "pass": true
+    },
+    {
+      "name": "sanitized response",
+      "pass": true
+    },
+    {
+      "name": "collection envelope",
+      "pass": true
+    },
+    {
+      "name": "GET /api/v1/me/teacher/interventions => 200",
+      "pass": true
+    },
+    {
+      "name": "sanitized response",
+      "pass": true
+    },
+    {
+      "name": "collection envelope",
+      "pass": true
+    },
+    {
+      "name": "GET /api/v1/me/teacher/followups => 200",
+      "pass": true
+    },
+    {
+      "name": "sanitized response",
+      "pass": true
+    },
+    {
+      "name": "collection envelope",
+      "pass": true
+    },
+    {
+      "name": "GET /api/v1/me/recommendations => 401",
+      "pass": true
+    },
+    {
+      "name": "sanitized response",
+      "pass": true
+    },
+    {
+      "name": "GET /api/v1/me/study-plan => 401",
+      "pass": true
+    },
+    {
+      "name": "sanitized response",
+      "pass": true
+    },
+    {
+      "name": "GET /api/v1/me/teacher/interventions => 401",
+      "pass": true
+    },
+    {
+      "name": "sanitized response",
+      "pass": true
+    },
+    {
+      "name": "GET /api/v1/me/study-plan?userId=202 => 400",
+      "pass": true
+    },
+    {
+      "name": "sanitized response",
+      "pass": true
+    },
+    {
+      "name": "GET /api/v1/me/recommendations => 200",
+      "pass": true
+    },
+    {
+      "name": "sanitized response",
+      "pass": true
+    },
+    {
+      "name": "collection envelope",
+      "pass": true
+    },
+    {
+      "name": "GET /api/v1/me/recommendations => 200",
+      "pass": true
+    },
+    {
+      "name": "sanitized response",
+      "pass": true
+    },
+    {
+      "name": "collection envelope",
+      "pass": true
+    },
+    {
+      "name": "deterministic ranking",
+      "pass": true
+    },
+    {
+      "name": "explainable + bounded recommendations",
+      "pass": true
+    },
+    {
+      "name": "POST /api/v1/me/study-plan/items => 201",
+      "pass": true
+    },
+    {
+      "name": "sanitized response",
+      "pass": true
+    },
+    {
+      "name": "PATCH /api/v1/me/study-plan/items/4f7d0ee9-dbf6-4498-bb95-b04ce2c1193f => 404",
+      "pass": true
+    },
+    {
+      "name": "sanitized response",
+      "pass": true
+    },
+    {
+      "name": "DELETE /api/v1/me/study-plan/items/4f7d0ee9-dbf6-4498-bb95-b04ce2c1193f => 404",
+      "pass": true
+    },
+    {
+      "name": "sanitized response",
+      "pass": true
+    },
+    {
+      "name": "GET /api/v1/me/study-plan => 200",
+      "pass": true
+    },
+    {
+      "name": "sanitized response",
+      "pass": true
+    },
+    {
+      "name": "collection envelope",
+      "pass": true
+    },
+    {
+      "name": "student isolation",
+      "pass": true
+    },
+    {
+      "name": "PATCH /api/v1/me/study-plan/items/4f7d0ee9-dbf6-4498-bb95-b04ce2c1193f => 400",
+      "pass": true
+    },
+    {
+      "name": "sanitized response",
+      "pass": true
+    },
+    {
+      "name": "PATCH /api/v1/me/study-plan/items/4f7d0ee9-dbf6-4498-bb95-b04ce2c1193f => 400",
+      "pass": true
+    },
+    {
+      "name": "sanitized response",
+      "pass": true
+    },
+    {
+      "name": "POST /api/v1/me/study-plan/items => 409",
+      "pass": true
+    },
+    {
+      "name": "sanitized response",
+      "pass": true
+    },
+    {
+      "name": "PATCH /api/v1/me/study-plan/items/4f7d0ee9-dbf6-4498-bb95-b04ce2c1193f => 200",
+      "pass": true
+    },
+    {
+      "name": "sanitized response",
+      "pass": true
+    },
+    {
+      "name": "GET /api/v1/me/study-plan => 200",
+      "pass": true
+    },
+    {
+      "name": "sanitized response",
+      "pass": true
+    },
+    {
+      "name": "collection envelope",
+      "pass": true
+    },
+    {
+      "name": "plan edit persisted",
+      "pass": true
+    },
+    {
+      "name": "PATCH /api/v1/me/study-plan/items/4f7d0ee9-dbf6-4498-bb95-b04ce2c1193f => 200",
+      "pass": true
+    },
+    {
+      "name": "sanitized response",
+      "pass": true
+    },
+    {
+      "name": "GET /api/v1/me/recommendations => 200",
+      "pass": true
+    },
+    {
+      "name": "sanitized response",
+      "pass": true
+    },
+    {
+      "name": "collection envelope",
+      "pass": true
+    },
+    {
+      "name": "handled hides recommendation, not academic source",
+      "pass": true
+    },
+    {
+      "name": "GET /api/v1/me/assignments => 200",
+      "pass": true
+    },
+    {
+      "name": "sanitized response",
+      "pass": true
+    },
+    {
+      "name": "collection envelope",
+      "pass": true
+    },
+    {
+      "name": "official assignment still exists",
+      "pass": true
+    },
+    {
+      "name": "DELETE /api/v1/me/study-plan/items/4f7d0ee9-dbf6-4498-bb95-b04ce2c1193f => 200",
+      "pass": true
+    },
+    {
+      "name": "sanitized response",
+      "pass": true
+    },
+    {
+      "name": "GET /api/v1/me/study-plan => 200",
+      "pass": true
+    },
+    {
+      "name": "sanitized response",
+      "pass": true
+    },
+    {
+      "name": "collection envelope",
+      "pass": true
+    },
+    {
+      "name": "removed plan persisted",
+      "pass": true
+    },
+    {
+      "name": "GET /api/v1/me/teacher/attention => 200",
+      "pass": true
+    },
+    {
+      "name": "sanitized response",
+      "pass": true
+    },
+    {
+      "name": "collection envelope",
+      "pass": true
+    },
+    {
+      "name": "GET /api/v1/me/teacher/interventions => 200",
+      "pass": true
+    },
+    {
+      "name": "sanitized response",
+      "pass": true
+    },
+    {
+      "name": "collection envelope",
+      "pass": true
+    },
+    {
+      "name": "POST /api/v1/me/teacher/interventions => 201",
+      "pass": true
+    },
+    {
+      "name": "sanitized response",
+      "pass": true
+    },
+    {
+      "name": "GET /api/v1/me/teacher/interventions/8d3b04eb-8a32-45d9-bfd5-f408a0c56922 => 404",
+      "pass": true
+    },
+    {
+      "name": "sanitized response",
+      "pass": true
+    },
+    {
+      "name": "PATCH /api/v1/me/teacher/interventions/8d3b04eb-8a32-45d9-bfd5-f408a0c56922 => 404",
+      "pass": true
+    },
+    {
+      "name": "sanitized response",
+      "pass": true
+    },
+    {
+      "name": "POST /api/v1/me/teacher/interventions/8d3b04eb-8a32-45d9-bfd5-f408a0c56922/followups => 404",
+      "pass": true
+    },
+    {
+      "name": "sanitized response",
+      "pass": true
+    },
+    {
+      "name": "GET /api/v1/me/teacher/interventions => 200",
+      "pass": true
+    },
+    {
+      "name": "sanitized response",
+      "pass": true
+    },
+    {
+      "name": "collection envelope",
+      "pass": true
+    },
+    {
+      "name": "teacher isolation",
+      "pass": true
+    },
+    {
+      "name": "GET /api/v1/me/teacher/attention => 200",
+      "pass": true
+    },
+    {
+      "name": "sanitized response",
+      "pass": true
+    },
+    {
+      "name": "collection envelope",
+      "pass": true
+    },
+    {
+      "name": "POST /api/v1/me/teacher/interventions => 404",
+      "pass": true
+    },
+    {
+      "name": "sanitized response",
+      "pass": true
+    },
+    {
+      "name": "GET /api/v1/me/teacher/followups => 200",
+      "pass": true
+    },
+    {
+      "name": "sanitized response",
+      "pass": true
+    },
+    {
+      "name": "collection envelope",
+      "pass": true
+    },
+    {
+      "name": "due follow-up persisted",
+      "pass": true
+    },
+    {
+      "name": "POST /api/v1/me/teacher/interventions/8d3b04eb-8a32-45d9-bfd5-f408a0c56922/followups => 201",
+      "pass": true
+    },
+    {
+      "name": "sanitized response",
+      "pass": true
+    },
+    {
+      "name": "actual source snapshot + history",
+      "pass": true
+    },
+    {
+      "name": "POST /api/v1/me/teacher/interventions/8d3b04eb-8a32-45d9-bfd5-f408a0c56922/followups => 201",
+      "pass": true
+    },
+    {
+      "name": "sanitized response",
+      "pass": true
+    },
+    {
+      "name": "GET /api/v1/me/teacher/interventions/8d3b04eb-8a32-45d9-bfd5-f408a0c56922 => 200",
+      "pass": true
+    },
+    {
+      "name": "sanitized response",
+      "pass": true
+    },
+    {
+      "name": "closure persisted without fabricated improvement",
+      "pass": true
+    },
+    {
+      "name": "POST /api/v1/me/teacher/interventions/8d3b04eb-8a32-45d9-bfd5-f408a0c56922/followups => 409",
+      "pass": true
+    },
+    {
+      "name": "sanitized response",
+      "pass": true
+    },
+    {
+      "name": "POST /api/v1/me/assignments => 404",
+      "pass": true
+    },
+    {
+      "name": "sanitized response",
+      "pass": true
+    }
+  ],
+  "timings": [
+    {
+      "path": "/health",
+      "method": "GET",
+      "durationMs": 1255
+    },
+    {
+      "path": "/openapi.json",
+      "method": "GET",
+      "durationMs": 38
+    },
+    {
+      "path": "/api/v1/me",
+      "method": "GET",
+      "durationMs": 335
+    },
+    {
+      "path": "/api/v1/me/courses",
+      "method": "GET",
+      "durationMs": 635
+    },
+    {
+      "path": "/api/v1/me/assignments",
+      "method": "GET",
+      "durationMs": 641
+    },
+    {
+      "path": "/api/v1/me/assignment-status",
+      "method": "GET",
+      "durationMs": 667
+    },
+    {
+      "path": "/api/v1/me/grades",
+      "method": "GET",
+      "durationMs": 679
+    },
+    {
+      "path": "/api/v1/me/progress",
+      "method": "GET",
+      "durationMs": 630
+    },
+    {
+      "path": "/api/v1/me/overview",
+      "method": "GET",
+      "durationMs": 1150
+    },
+    {
+      "path": "/api/v1/me/recommendations",
+      "method": "GET",
+      "durationMs": 725
+    },
+    {
+      "path": "/api/v1/me/study-plan",
+      "method": "GET",
+      "durationMs": 711
+    },
+    {
+      "path": "/api/v1/me",
+      "method": "GET",
+      "durationMs": 309
+    },
+    {
+      "path": "/api/v1/me/courses",
+      "method": "GET",
+      "durationMs": 647
+    },
+    {
+      "path": "/api/v1/me/assignments",
+      "method": "GET",
+      "durationMs": 636
+    },
+    {
+      "path": "/api/v1/me/assignment-status",
+      "method": "GET",
+      "durationMs": 626
+    },
+    {
+      "path": "/api/v1/me/grades",
+      "method": "GET",
+      "durationMs": 604
+    },
+    {
+      "path": "/api/v1/me/progress",
+      "method": "GET",
+      "durationMs": 617
+    },
+    {
+      "path": "/api/v1/me/overview",
+      "method": "GET",
+      "durationMs": 896
+    },
+    {
+      "path": "/api/v1/me/recommendations",
+      "method": "GET",
+      "durationMs": 704
+    },
+    {
+      "path": "/api/v1/me/study-plan",
+      "method": "GET",
+      "durationMs": 683
+    },
+    {
+      "path": "/api/v1/me/teacher",
+      "method": "GET",
+      "durationMs": 314
+    },
+    {
+      "path": "/api/v1/me/teacher/courses",
+      "method": "GET",
+      "durationMs": 637
+    },
+    {
+      "path": "/api/v1/me/teacher/overview",
+      "method": "GET",
+      "durationMs": 639
+    },
+    {
+      "path": "/api/v1/me/teacher/attention",
+      "method": "GET",
+      "durationMs": 950
+    },
+    {
+      "path": "/api/v1/me/teacher/interventions",
+      "method": "GET",
+      "durationMs": 946
+    },
+    {
+      "path": "/api/v1/me/teacher/followups",
+      "method": "GET",
+      "durationMs": 936
+    },
+    {
+      "path": "/api/v1/me/teacher",
+      "method": "GET",
+      "durationMs": 317
+    },
+    {
+      "path": "/api/v1/me/teacher/courses",
+      "method": "GET",
+      "durationMs": 626
+    },
+    {
+      "path": "/api/v1/me/teacher/overview",
+      "method": "GET",
+      "durationMs": 650
+    },
+    {
+      "path": "/api/v1/me/teacher/attention",
+      "method": "GET",
+      "durationMs": 1800
+    },
+    {
+      "path": "/api/v1/me/teacher/interventions",
+      "method": "GET",
+      "durationMs": 1788
+    },
+    {
+      "path": "/api/v1/me/teacher/followups",
+      "method": "GET",
+      "durationMs": 1782
+    },
+    {
+      "path": "/api/v1/me/recommendations",
+      "method": "GET",
+      "durationMs": 2
+    },
+    {
+      "path": "/api/v1/me/study-plan",
+      "method": "GET",
+      "durationMs": 1
+    },
+    {
+      "path": "/api/v1/me/teacher/interventions",
+      "method": "GET",
+      "durationMs": 1
+    },
+    {
+      "path": "/api/v1/me/study-plan?userId=202",
+      "method": "GET",
+      "durationMs": 307
+    },
+    {
+      "path": "/api/v1/me/recommendations",
+      "method": "GET",
+      "durationMs": 1104
+    },
+    {
+      "path": "/api/v1/me/recommendations",
+      "method": "GET",
+      "durationMs": 682
+    },
+    {
+      "path": "/api/v1/me/study-plan/items",
+      "method": "POST",
+      "durationMs": 1048
+    },
+    {
+      "path": "/api/v1/me/study-plan/items/:id",
+      "method": "PATCH",
+      "durationMs": 653
+    },
+    {
+      "path": "/api/v1/me/study-plan/items/:id",
+      "method": "DELETE",
+      "durationMs": 646
+    },
+    {
+      "path": "/api/v1/me/study-plan",
+      "method": "GET",
+      "durationMs": 646
+    },
+    {
+      "path": "/api/v1/me/study-plan/items/:id",
+      "method": "PATCH",
+      "durationMs": 283
+    },
+    {
+      "path": "/api/v1/me/study-plan/items/:id",
+      "method": "PATCH",
+      "durationMs": 290
+    },
+    {
+      "path": "/api/v1/me/study-plan/items",
+      "method": "POST",
+      "durationMs": 665
+    },
+    {
+      "path": "/api/v1/me/study-plan/items/:id",
+      "method": "PATCH",
+      "durationMs": 1054
+    },
+    {
+      "path": "/api/v1/me/study-plan",
+      "method": "GET",
+      "durationMs": 667
+    },
+    {
+      "path": "/api/v1/me/study-plan/items/:id",
+      "method": "PATCH",
+      "durationMs": 1051
+    },
+    {
+      "path": "/api/v1/me/recommendations",
+      "method": "GET",
+      "durationMs": 649
+    },
+    {
+      "path": "/api/v1/me/assignments",
+      "method": "GET",
+      "durationMs": 579
+    },
+    {
+      "path": "/api/v1/me/study-plan/items/:id",
+      "method": "DELETE",
+      "durationMs": 999
+    },
+    {
+      "path": "/api/v1/me/study-plan",
+      "method": "GET",
+      "durationMs": 647
+    },
+    {
+      "path": "/api/v1/me/teacher/attention",
+      "method": "GET",
+      "durationMs": 852
+    },
+    {
+      "path": "/api/v1/me/teacher/interventions",
+      "method": "GET",
+      "durationMs": 881
+    },
+    {
+      "path": "/api/v1/me/teacher/interventions",
+      "method": "POST",
+      "durationMs": 2008
+    },
+    {
+      "path": "/api/v1/me/teacher/interventions/:id",
+      "method": "GET",
+      "durationMs": 1792
+    },
+    {
+      "path": "/api/v1/me/teacher/interventions/:id",
+      "method": "PATCH",
+      "durationMs": 1790
+    },
+    {
+      "path": "/api/v1/me/teacher/interventions/:id/followups",
+      "method": "POST",
+      "durationMs": 1694
+    },
+    {
+      "path": "/api/v1/me/teacher/interventions",
+      "method": "GET",
+      "durationMs": 1714
+    },
+    {
+      "path": "/api/v1/me/teacher/attention",
+      "method": "GET",
+      "durationMs": 1717
+    },
+    {
+      "path": "/api/v1/me/teacher/interventions",
+      "method": "POST",
+      "durationMs": 891
+    },
+    {
+      "path": "/api/v1/me/teacher/followups",
+      "method": "GET",
+      "durationMs": 898
+    },
+    {
+      "path": "/api/v1/me/teacher/interventions/:id/followups",
+      "method": "POST",
+      "durationMs": 1852
+    },
+    {
+      "path": "/api/v1/me/teacher/interventions/:id/followups",
+      "method": "POST",
+      "durationMs": 1477
+    },
+    {
+      "path": "/api/v1/me/teacher/interventions/:id",
+      "method": "GET",
+      "durationMs": 908
+    },
+    {
+      "path": "/api/v1/me/teacher/interventions/:id/followups",
+      "method": "POST",
+      "durationMs": 908
+    },
+    {
+      "path": "/api/v1/me/assignments",
+      "method": "POST",
+      "durationMs": 2
+    }
+  ],
+  "testData": "Plan item removed; synthetic teacher test record resolved, history retained."
+}

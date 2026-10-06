@@ -44,9 +44,18 @@ try {
   await request("/docs");
   const openapi = await request("/openapi.json");
   verify(
-    "five read-only teacher routes published",
-    Object.entries(openapi.paths).filter(([p]) => p.includes("/teacher"))
-      .length === 5,
+    "baseline teacher reads retained and app-owned support contract published",
+    [
+      "",
+      "/overview",
+      "/courses",
+      "/assignments",
+      "/courses/{courseId}/students",
+      "/attention",
+      "/interventions",
+      "/followups",
+      "/interventions/{id}",
+    ].every((path) => openapi.paths["/api/v1/me/teacher" + path]?.get),
   );
   for (const code of ["SV001", "SV002"]) {
     const headers = { "X-Demo-Student-Code": code };
@@ -73,6 +82,8 @@ try {
       "deadlines",
       "overview",
       "courses/11/content",
+      "recommendations",
+      "study-plan",
     ])
       await request("/api/v1/me/" + route, headers);
     await request("/api/v1/me/courses/13/content", headers, 404);
@@ -97,6 +108,24 @@ try {
     );
     await request("/api/v1/me/teacher/overview", headers);
     await request("/api/v1/me/teacher/assignments", headers);
+    const attention = await request("/api/v1/me/teacher/attention", headers);
+    verify(
+      "attention stays in assigned courses " + code,
+      attention.data.every((row: { courseId: string }) =>
+        expected.includes(row.courseId),
+      ),
+    );
+    const interventions = await request(
+      "/api/v1/me/teacher/interventions",
+      headers,
+    );
+    verify(
+      "interventions stay in assigned courses " + code,
+      interventions.data.every((row: { courseId: string }) =>
+        expected.includes(row.courseId),
+      ),
+    );
+    await request("/api/v1/me/teacher/followups", headers);
     const own = code === "GV001" ? "11" : "13";
     const other = code === "GV001" ? "13" : "11";
     const roster = await request(
@@ -122,9 +151,18 @@ try {
   );
   verify(
     "no academic write routes published",
-    Object.entries(openapi.paths).every(([, value]) =>
-      Object.keys(value as object).every((method) =>
-        ["get", "head", "parameters"].includes(method),
+    Object.entries(openapi.paths).every(([path, value]) =>
+      Object.keys(value as object).every(
+        (method) =>
+          ["get", "head", "parameters"].includes(method) ||
+          (["post", "patch", "delete"].includes(method) &&
+            [
+              "/api/v1/me/study-plan/items",
+              "/api/v1/me/study-plan/items/{id}",
+              "/api/v1/me/teacher/interventions",
+              "/api/v1/me/teacher/interventions/{id}",
+              "/api/v1/me/teacher/interventions/{id}/followups",
+            ].includes(path)),
       ),
     ),
   );
