@@ -1,5 +1,42 @@
 # Checklist trình diễn LMS Support — GROUP_39_20
 
+## Current perfection readiness — 07/10/2026
+
+**PARTIAL** only while visible pgAdmin candidate preparation and final Git receipt
+remain. Code/API/runtime/artifact gates PASS. Preserved innovation `2e04089` is a fallback, not
+the new hardening artifact. Do not reset/import data or replay applied migrations.
+
+- [x] Candidate 002/003 rehearsal/apply and table row/type digests PASS; catalog
+  3 schemas / 42 tables (35+7) / 20 views / 588 columns / 42 PK / 45 FK / 29 CHECK.
+- [x] 94 missing assignment states and 3 completed next-item false candidates fixed;
+  council SQL `database/council_pgadmin_demo.sql` gives 12 read-only resultsets.
+- [x] Flutter targeted 107 PASS; original-owner form, null deadline, timeout and
+  support UI 320/390px at scale 1.3/1.5 covered. Backend targeted subsets PASS.
+- [x] Preflight API diagnostics PASS; dirty worktree is intentionally NOT_READY.
+- [x] Final Flutter format156/0 changes, analyze0 issues,245 tests PASS +1 opt-in
+  skipped/separately PASS; delayed-card runtime regression repaired/verified.
+- [x] Backend96 tests/typecheck/build/format/audit0; local/staging181 checks each.
+- [x] Precommit480-file/index secret scan0 actual matches/private/forbidden files;
+  diff check PASS. Final clean Git/preflight receipt returned at handoff.
+- [x] Existing Render c5231e2 Live from hardening; no database secret change.
+- [ ] Human connects existing approved candidate in pgAdmin; run the bounded
+  SELECT-only demo, do not display credential or create a local database.
+- [x] Existing `DLU_LMS_Pixel`: final APK install and actual Student/Teacher,
+  role/context, app-owned workflow/reminder privacy and LMS handoff smoke.
+- [x] Actual APK metadata/hash for
+  `D:\DLU-LMS\Artifacts\DLU_LMS_Support_Perfection_Final_Debug.apk`; no baseline hash reuse.
+- [x] Actual screens reviewed;01–12 QA before correction,13 onward final artifact;
+  current process log scan0 matched runtime/secret patterns. Continue to
+  keep connection/environment screens out of evidence.
+- [ ] Run `powershell -File scripts/council_preflight.ps1` after freeze. Diagnostics
+  with dirty override do not certify release readiness. Final APK must match
+  reviewed SHA256/package in `evidence/perfection/apk.json` (actual accepted build).
+
+Current gate matrix: `docs/PERFECTION_FINAL_QA.md`. Explain rules as non-AI decision
+support and staging aliases as sample selectors. Production DLU auth/Web Services
+are TO_VERIFY_DLU; submission/quiz/grading remain LMS ONLY, and production needs
+a dedicated least-privilege DB role.
+
 ## Innovation readiness — 06/10/2026
 
 Product/runtime gate PASS: candidate apply/verify, backend 82/82 tests, local

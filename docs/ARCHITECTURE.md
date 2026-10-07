@@ -1,5 +1,33 @@
 # Architecture
 
+## Current hardening delta — 07/10/2026
+
+`innovation-perfection-hardening` preserves the architecture and `2e04089`
+milestone below. Candidate 002/003 change three read-model definitions and add
+five CHECKs, not academic rows/column types. Current catalog remains 42 tables,
+20 views and 588 columns; constraints now include 29 CHECKs.
+
+API and SQL recheck active actors, enrolment/course context and app ownership.
+Teacher roster and Inbox use the same named explainable priority rules; missing
+tracking denominator cannot trigger low-progress weight. Numeric snapshot DTOs
+remain unchanged and do not fully represent unknown progress; no inactivity/AI
+claim is introduced. Academic Assignment/TeachingWork `dueAt` deliberately becomes
+nullable: missing deadlines do not rank as overdue or schedule deadline reminders.
+
+Flutter editor and card retain their original coordinator/owner across network
+await and confirmation/profile changes;
+stale responses and stale writes are rejected. Shared strict timestamp parser
+requires a valid calendar/time and explicit offset; display uses device-local
+time. API requests are bounded at 60 seconds, loading announces slow response
+after eight seconds, and retry never selects fixture or automatically replays
+writes. `/health` is schema-surface readiness; `/health/live` is liveness only.
+
+Code/database checks PASS; final Flutter format/analyze/245 tests PASS
+(1 opt-in live skipped, separately PASS); backend96 tests/audit0, Render c5231e2
+Live, actual181 staging smoke and corrective APK/runtime PASS. pgAdmin UI requires
+human credential handoff. See `PERFECTION_FINAL_QA.md`. Statements below about unchanged views
+and final innovation APK are dated baseline evidence, not this migration/build.
+
 ## Learning decision support extension — 06/10/2026
 
 Branch `innovation-study-planner-intervention` extends the verified `06ad157`

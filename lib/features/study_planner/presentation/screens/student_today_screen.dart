@@ -63,6 +63,8 @@ class StudentTodayScreen extends ConsumerWidget {
                       rows: 1,
                       rowHeight: 96,
                       padding: EdgeInsets.zero,
+                      delayedMessage:
+                          'Máy chủ phản hồi chậm. Vui lòng chờ thêm một chút…',
                     ),
                     error: (error, _) => Card(
                       child: Padding(
@@ -99,6 +101,8 @@ class StudentTodayScreen extends ConsumerWidget {
                       rows: 2,
                       rowHeight: 220,
                       padding: EdgeInsets.zero,
+                      delayedMessage:
+                          'Máy chủ phản hồi chậm. Vui lòng chờ thêm một chút…',
                     ),
                     error: (error, _) => ErrorState(
                       message: userMessageFor(error),

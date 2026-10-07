@@ -1,5 +1,34 @@
 # Security Baseline
 
+## Current hardening controls and limits — 07/10/2026
+
+Branch `innovation-perfection-hardening` retains staging-only selectors and
+production fail-closed composition. Active enrolment/course role/owner is checked
+again per operation; source views alone are not authorization. Flutter pins an
+open Student form to its original owner and drops responses from the old context.
+Transport strips inherited Authorization, proxy authorization, Cookie and API-key
+headers; only the selected staging identity is reapplied. Strict calendar/offset
+parsing and nullable deadlines prevent unknown values becoming fake timestamps.
+
+Resolved/handled state cannot be reopened by stale writes. Short scoped row-lock
+transactions de-duplicate identical follow-up retries within five seconds; this
+is a bounded retry guard, not durable cross-device idempotency. `/health` performs
+read-only schema-surface checks; structured status-only serializers/error codes
+keep raw driver detail, bodies and credentials out of logs. Final existing Render
+c5231e2 startup/request events reviewed; actual local/staging181 negative/scope
+checks each PASS. Final app process log scan160 lines has0 matched secret/runtime
+patterns (bounded scope). Candidate/index scan and clean preflight required at
+handoff; precommit480 files/index scan PASS with0 matches/private/forbidden files.
+pgAdmin credential form excluded from screenshots/automation.
+
+Important retained limitation: candidate owner can write all 35 source tables and
+bypass RLS. Parameterized app-only writer/academic GET checks are verified API
+controls, **not a least-privilege DB role**. Dedicated SELECT-source/WRITE-app role
+and DLU-approved authentication/capabilities are production prerequisites.
+002/003 change only reviewed views/CHECKs; all table row/type digests unchanged.
+No production LMS write, credential rotation or Render secret change occurred.
+Final exact gates: `PERFECTION_FINAL_QA.md`; results below are dated baseline.
+
 ## App-owned workflow controls — 06/10/2026
 
 Academic queries still use the existing read-only database boundary. The new

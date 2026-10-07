@@ -33,8 +33,11 @@ Future<void> mount(
   MemoryStudyRepository repository, {
   MemoryStudyReminders? reminders,
   String location = AppRoutes.dashboard,
+  double textScale = 1.3,
+  String Function()? selectedOwner,
 }) async {
   final localReminders = reminders ?? MemoryStudyReminders();
+  final currentOwner = selectedOwner ?? () => 'student-1';
   final router = GoRouter(
     initialLocation: location,
     routes: [
@@ -60,15 +63,17 @@ Future<void> mount(
         studyPlannerClockProvider.overrideWithValue(() => testNow),
         studyPlannerRepositoryProvider.overrideWithValue(repository),
         reminderRepositoryProvider.overrideWithValue(localReminders),
-        studyPlanCoordinatorProvider.overrideWith(
-          (ref) => StudyPlanCoordinator(
+        studyPlanCoordinatorProvider.overrideWith((ref) {
+          var active = true;
+          ref.onDispose(() => active = false);
+          return StudyPlanCoordinator(
             repository: repository,
             reminders: localReminders,
-            ownerId: 'student-1',
-            currentOwnerId: () => 'student-1',
+            ownerId: currentOwner(),
+            currentOwnerId: () => active ? currentOwner() : null,
             clock: () => testNow,
-          ),
-        ),
+          );
+        }),
       ],
       child: MaterialApp.router(
         theme: AppTheme.light(),
@@ -76,7 +81,7 @@ Future<void> mount(
         builder: (context, child) => MediaQuery(
           data: MediaQuery.of(
             context,
-          ).copyWith(textScaler: const TextScaler.linear(1.3)),
+          ).copyWith(textScaler: TextScaler.linear(textScale)),
           child: child!,
         ),
       ),
@@ -97,53 +102,125 @@ Finder field(String label) =>
 
 void main() {
   for (final width in [320.0, 390.0]) {
-    testWidgets('today reasons and plan card fit $width with text scale 1.3', (
-      tester,
-    ) async {
-      viewport(tester, width);
-      final repository = MemoryStudyRepository();
-      await mount(tester, repository);
-      await tester.pumpAndSettle();
-      expect(find.text('Hôm nay nên học gì?'), findsOneWidget);
-      await press(tester, 'Vì sao việc này được đề xuất?');
-      expect(find.text('Chưa có bài nộp được ghi nhận.'), findsOneWidget);
-      expect(tester.takeException(), isNull);
-      await press(tester, 'Lên kế hoạch');
-      expect(find.byType(StudyPlanEditor), findsOneWidget);
-      final notes = tester.widget<TextField>(
-        find.descendant(
-          of: field('Mục tiêu cho buổi học'),
-          matching: find.byType(TextField),
-        ),
+    for (final scale in [1.3, 1.5]) {
+      testWidgets(
+        'today reasons and plan card fit $width with text scale $scale',
+        (tester) async {
+          viewport(tester, width);
+          final repository = MemoryStudyRepository();
+          await mount(tester, repository, textScale: scale);
+          await tester.pumpAndSettle();
+          expect(find.text('Hôm nay nên học gì?'), findsOneWidget);
+          await press(tester, 'Vì sao việc này được đề xuất?');
+          expect(find.text('Chưa có bài nộp được ghi nhận.'), findsOneWidget);
+          expect(tester.takeException(), isNull);
+          await press(tester, 'Lên kế hoạch');
+          expect(find.byType(StudyPlanEditor), findsOneWidget);
+          final notes = tester.widget<TextField>(
+            find.descendant(
+              of: field('Mục tiêu cho buổi học'),
+              matching: find.byType(TextField),
+            ),
+          );
+          expect(notes.maxLength, 500);
+          await press(tester, 'Lưu kế hoạch');
+          expect(repository.creates, 1);
+          expect(repository.items.single.status, StudyPlanStatus.planned);
+          await press(tester, 'Mở kế hoạch học tập');
+          expect(find.text('Kế hoạch của bạn'), findsOneWidget);
+          await press(tester, 'Vì sao việc này được đề xuất?');
+          expect(find.text('Bài tập sắp đến hạn.'), findsOneWidget);
+          await tester.ensureVisible(find.text('Xóa khỏi kế hoạch'));
+          await tester.pumpAndSettle();
+          expect(tester.takeException(), isNull);
+        },
       );
-      expect(notes.maxLength, 500);
-      await press(tester, 'Lưu kế hoạch');
-      expect(repository.creates, 1);
-      expect(repository.items.single.status, StudyPlanStatus.planned);
-      await press(tester, 'Mở kế hoạch học tập');
-      expect(find.text('Kế hoạch của bạn'), findsOneWidget);
-      await press(tester, 'Vì sao việc này được đề xuất?');
-      expect(find.text('Bài tập sắp đến hạn.'), findsOneWidget);
-      await tester.ensureVisible(find.text('Xóa khỏi kế hoạch'));
-      await tester.pumpAndSettle();
-      expect(tester.takeException(), isNull);
-    });
 
-    testWidgets('editor validation stays scrollable above keyboard at $width', (
-      tester,
-    ) async {
-      viewport(tester, width, keyboard: 300);
-      await mount(tester, MemoryStudyRepository());
-      await tester.pumpAndSettle();
-      await press(tester, 'Lên kế hoạch');
-      await tester.ensureVisible(field('Thời lượng (phút)'));
-      await tester.enterText(field('Thời lượng (phút)'), '4');
-      await press(tester, 'Lưu kế hoạch');
-      expect(find.text('Nhập số phút từ 5 đến 480.'), findsOneWidget);
-      expect(find.byType(StudyPlanEditor), findsOneWidget);
-      expect(tester.takeException(), isNull);
-    });
+      testWidgets(
+        'editor validation stays scrollable above keyboard at $width / $scale',
+        (tester) async {
+          viewport(tester, width, keyboard: 300);
+          await mount(tester, MemoryStudyRepository(), textScale: scale);
+          await tester.pumpAndSettle();
+          await press(tester, 'Lên kế hoạch');
+          await tester.ensureVisible(field('Thời lượng (phút)'));
+          await tester.enterText(field('Thời lượng (phút)'), '4');
+          await press(tester, 'Lưu kế hoạch');
+          expect(find.text('Nhập số phút từ 5 đến 480.'), findsOneWidget);
+          expect(find.byType(StudyPlanEditor), findsOneWidget);
+          await tester.enterText(field('Thời lượng (phút)'), '60');
+          await tester.pumpAndSettle();
+          expect(find.text('Nhập số phút từ 5 đến 480.'), findsNothing);
+          expect(tester.takeException(), isNull);
+        },
+      );
+    }
   }
+
+  testWidgets(
+    'delayed card update keeps original coordinator alive and cancels reminder',
+    (tester) async {
+      final gate = Completer<void>();
+      final repository = MemoryStudyRepository()..items.add(planItem());
+      final reminders = MemoryStudyReminders();
+      await StudyPlanCoordinator(
+        repository: repository,
+        reminders: reminders,
+        ownerId: 'student-1',
+        currentOwnerId: () => 'student-1',
+        clock: () => testNow,
+      ).save(
+        assignmentId: 'assignment-1',
+        scheduledStartAt: planItem().scheduledStartAt,
+        estimatedMinutes: 45,
+        notes: '',
+        remind: true,
+        existing: repository.items.single,
+      );
+      repository.afterWrite = () => gate.future;
+      await mount(
+        tester,
+        repository,
+        reminders: reminders,
+        location: AppRoutes.studyPlan,
+      );
+      await tester.pumpAndSettle();
+      await press(tester, 'Đánh dấu đã xử lý');
+      await tester.pump(const Duration(seconds: 2));
+      expect(reminders.entries, hasLength(1));
+      expect(find.text('Đang cập nhật…'), findsOneWidget);
+      gate.complete();
+      await tester.pumpAndSettle();
+      expect(reminders.entries, isEmpty);
+      expect(find.text('Đã xử lý'), findsOneWidget);
+      expect(find.textContaining('Không thể đăng nhập'), findsNothing);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets('delete confirmation cannot use a newly selected owner', (
+    tester,
+  ) async {
+    var owner = 'student-1';
+    final repository = MemoryStudyRepository()..items.add(planItem());
+    await mount(
+      tester,
+      repository,
+      selectedOwner: () => owner,
+      location: AppRoutes.studyPlan,
+    );
+    await tester.pumpAndSettle();
+    await press(tester, 'Xóa khỏi kế hoạch');
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(StudyPlanScreen)),
+    );
+    owner = 'student-2';
+    container.invalidate(studyPlanCoordinatorProvider);
+    await press(tester, 'Xóa buổi học');
+    expect(repository.deletes, 0);
+    expect(repository.items, hasLength(1));
+    expect(tester.takeException(), isNull);
+  });
 
   testWidgets(
     'create edit postpone handle and confirmed delete persist through screens',
@@ -223,6 +300,8 @@ void main() {
       await tester.pump();
       expect(find.byType(ContentSkeleton), findsWidgets);
       expect(find.text('Lên kế hoạch'), findsNothing);
+      await tester.pump(const Duration(seconds: 8));
+      expect(find.textContaining('Máy chủ phản hồi chậm'), findsOneWidget);
       response.completeError(const NetworkFailure('unreachable'));
       await tester.pumpAndSettle();
       expect(
@@ -282,5 +361,25 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(StudyPlanEditor), findsNothing);
     expect(repository.items, hasLength(1));
+  });
+
+  testWidgets('open editor cannot write using a newly selected profile', (
+    tester,
+  ) async {
+    var owner = 'student-1';
+    final repository = MemoryStudyRepository();
+    await mount(tester, repository, selectedOwner: () => owner);
+    await tester.pumpAndSettle();
+    await press(tester, 'Lên kế hoạch');
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(StudyPlanEditor)),
+    );
+    owner = 'student-2';
+    container.invalidate(studyPlanCoordinatorProvider);
+    await press(tester, 'Lưu kế hoạch');
+    expect(repository.creates, 0);
+    expect(repository.items, isEmpty);
+    expect(find.byType(StudyPlanEditor), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 }

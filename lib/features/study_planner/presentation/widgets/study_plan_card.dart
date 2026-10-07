@@ -22,7 +22,7 @@ class _StudyPlanCardState extends ConsumerState<StudyPlanCard> {
   String? _error;
 
   Future<void> _perform(
-    Future<StudyPlanResult> Function() action,
+    Future<StudyPlanResult?> Function(StudyPlanCoordinator coordinator) action,
     String message,
   ) async {
     if (_busy) return;
@@ -30,9 +30,16 @@ class _StudyPlanCardState extends ConsumerState<StudyPlanCard> {
       _busy = true;
       _error = null;
     });
+    // Hold the original owner's coordinator through the network operation (and
+    // any confirmation dialog). A read alone lets autoDispose invalidate it.
+    final subscription = ref.listenManual(
+      studyPlanCoordinatorProvider,
+      (_, _) {},
+    );
+    final coordinator = subscription.read();
     try {
-      final result = await action();
-      if (!mounted) return;
+      final result = await action(coordinator);
+      if (!mounted || result == null) return;
       refreshStudyPlanner(ref);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(result.reminderWarning ?? message)),
@@ -40,35 +47,35 @@ class _StudyPlanCardState extends ConsumerState<StudyPlanCard> {
     } on Object catch (error) {
       if (mounted) setState(() => _error = userMessageFor(error));
     } finally {
+      subscription.close();
       if (mounted) setState(() => _busy = false);
     }
   }
 
   Future<void> _confirmRemove() async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Xóa buổi học này?'),
-        content: const Text(
-          'Buổi học và nhắc giờ học liên quan sẽ được xóa. Bài tập trên LMS không thay đổi.',
+    await _perform((coordinator) async {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Xóa buổi học này?'),
+          content: const Text(
+            'Buổi học và nhắc giờ học liên quan sẽ được xóa. Bài tập trên LMS không thay đổi.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Giữ lại'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Xóa buổi học'),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Giữ lại'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Xóa buổi học'),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true || !mounted) return;
-    await _perform(
-      () => ref.read(studyPlanCoordinatorProvider).remove(widget.item),
-      'Đã xóa buổi học.',
-    );
+      );
+      if (confirmed != true || !mounted) return null;
+      return coordinator.remove(widget.item);
+    }, 'Đã xóa buổi học.');
   }
 
   @override
@@ -148,9 +155,7 @@ class _StudyPlanCardState extends ConsumerState<StudyPlanCard> {
                 onPressed: _busy
                     ? null
                     : () => _perform(
-                        () => ref
-                            .read(studyPlanCoordinatorProvider)
-                            .markHandled(item),
+                        (coordinator) => coordinator.markHandled(item),
                         'Đã đánh dấu xử lý trong kế hoạch cá nhân.',
                       ),
                 icon: const Icon(Icons.check_rounded),

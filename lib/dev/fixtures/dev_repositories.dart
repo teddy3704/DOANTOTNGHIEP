@@ -234,7 +234,7 @@ class DevAssignmentRepository implements AssignmentRepository {
         rows
             .map((row) => _assignmentFrom(snapshot, row, _fixtureStudentId))
             .toList(growable: false)
-          ..sort((a, b) => a.dueAt.compareTo(b.dueAt));
+          ..sort(compareAssignmentDeadlines);
     return assignments;
   }
 }

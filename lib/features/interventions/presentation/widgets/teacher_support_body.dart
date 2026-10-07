@@ -13,7 +13,15 @@ class TeacherSupportBody extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final data = ref.watch(teacherSupportDataProvider);
-    if (data.isLoading) return const ContentSkeleton(rows: 3, rowHeight: 130);
+    if (data.isLoading) {
+      return const SingleChildScrollView(
+        child: ContentSkeleton(
+          rows: 3,
+          rowHeight: 130,
+          delayedMessage: 'Máy chủ phản hồi chậm. Vui lòng chờ thêm một chút…',
+        ),
+      );
+    }
     if (data.hasError) {
       return ErrorState(
         message: userMessageFor(data.error!),

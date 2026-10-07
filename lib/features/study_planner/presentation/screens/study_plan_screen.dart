@@ -79,6 +79,8 @@ class _StudyPlanScreenState extends ConsumerState<StudyPlanScreen> {
                       rows: 2,
                       rowHeight: 200,
                       padding: EdgeInsets.zero,
+                      delayedMessage:
+                          'Máy chủ phản hồi chậm. Vui lòng chờ thêm một chút…',
                     ),
                     error: (error, _) => ErrorState(
                       message: userMessageFor(error),

@@ -1,5 +1,22 @@
 # Moodle Integration Plan
 
+## Current boundary — 07/10/2026
+
+Perfection hardening changes only the synthetic candidate/read-model and existing
+staging app-owned support workflows; it does not discover or enable DLU Web
+Services. DLU Authentication/Web Services remain **TO_VERIFY_DLU**. No browser
+session/cookie extraction, production token, academic database write or guessed
+activity endpoint was introduced. Production `main.dart` stays fail-closed.
+
+Official submission/quiz/grading/administration remain LMS ONLY via the verified
+exact-host HTTPS launcher. Local reminders and Teacher action/history belong to
+the app, not Moodle outcomes. Candidate002/003 repairs, final code/Render181 smoke,
+corrective APK and core runtime PASS; pgAdmin UI remains a human handoff
+(`PERFECTION_FINAL_QA.md`), not a Moodle production verification.
+The candidate owner currently bypasses RLS and has source write permission;
+production requires a dedicated least-privilege database role, not merely API
+guard assertions. Prior dated integration observations below are preserved.
+
 ## Current 22/09/2026 boundary
 
 Both Student and Teacher Mobile staging repositories now consume the verified

@@ -1,4 +1,5 @@
 import '../../core/errors/app_failure.dart';
+import '../../core/parsing/api_timestamp.dart';
 import '../../features/study_planner/domain/study_plan.dart';
 import '../../features/study_planner/domain/study_planner_repository.dart';
 import 'student_support_api_client.dart';
@@ -114,7 +115,7 @@ String _text(StudentSupportJson json, String key, {bool allowEmpty = false}) {
 
 DateTime? _date(StudentSupportJson json, String key, {bool optional = false}) {
   if (optional && json[key] == null) return null;
-  return DateTime.tryParse(_text(json, key)) ?? _invalid();
+  return tryParseApiTimestamp(json[key]) ?? _invalid();
 }
 
 int _minutes(StudentSupportJson json, String key) {

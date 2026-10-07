@@ -77,6 +77,34 @@ void main() {
     expect(find.text('Bài tập phân tích yêu cầu'), findsOneWidget);
   });
 
+  testWidgets('unknown deadline shows no epoch or academic reminder action', (
+    tester,
+  ) async {
+    final assignment = AssignmentDetail(
+      id: 'assignment-1',
+      courseId: 'course-1',
+      name: 'Bài tập chưa đặt hạn',
+      description: 'Thực hiện theo hướng dẫn học phần.',
+      dueAt: null,
+      allowsSubmissionsFrom: DateTime.utc(2026, 10, 1),
+      cutoffAt: null,
+      timing: AssignmentTiming.noDeadline,
+      submissionState: SubmissionState.notSubmitted,
+    );
+    await tester.pumpWidget(
+      _assignmentApp(
+        _MemoryAssignmentRepository(onGetAssignment: (_) async => assignment),
+        authRepository: const _AuthenticatedAuthRepository(),
+        reminderRepository: _MemoryReminderRepository(),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Chưa đặt hạn'), findsWidgets);
+    expect(find.textContaining('1970'), findsNothing);
+    expect(find.text('Đặt nhắc việc'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('assignment details remain layout-safe on a compact phone', (
     tester,
   ) async {

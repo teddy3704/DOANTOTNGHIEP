@@ -219,7 +219,7 @@ class _AssignmentContent extends ConsumerWidget {
                 _GradeCard(assignment: assignment),
                 if (ownerId != null &&
                     reminders != null &&
-                    assignment.dueAt.isAfter(DateTime.now())) ...[
+                    (assignment.dueAt?.isAfter(DateTime.now()) ?? false)) ...[
                   const SizedBox(height: 24),
                   Text(
                     'Nhắc việc học tập',
@@ -371,6 +371,8 @@ class _AssignmentReminderCard extends ConsumerWidget {
     WidgetRef ref, {
     required LearningReminder? existing,
   }) async {
+    final dueAt = assignment.dueAt;
+    if (dueAt == null) return;
     final saved = await showReminderEditorSheet(
       context,
       repository: ref.read(reminderRepositoryProvider),
@@ -378,7 +380,7 @@ class _AssignmentReminderCard extends ConsumerWidget {
       courseId: assignment.courseId,
       assignmentId: assignment.id,
       assignmentName: assignment.name,
-      dueAt: assignment.dueAt,
+      dueAt: dueAt,
       existing: existing,
     );
     if (saved == null || !context.mounted) return;
@@ -545,8 +547,9 @@ class _AssignmentLoading extends StatelessWidget {
   }
 }
 
-String _formatDateTime(DateTime value) =>
-    '${value.day.toString().padLeft(2, '0')}/${value.month.toString().padLeft(2, '0')}/${value.year} lúc ${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}';
+String _formatDateTime(DateTime? value) => value == null
+    ? 'Chưa đặt hạn'
+    : '${value.day.toString().padLeft(2, '0')}/${value.month.toString().padLeft(2, '0')}/${value.year} lúc ${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}';
 
 String _formatNumber(double value) => value == value.roundToDouble()
     ? value.toStringAsFixed(0)

@@ -13,7 +13,7 @@ class TeachingWork {
     required this.studentCount,
   });
   final String title, description;
-  final DateTime dueAt;
+  final DateTime? dueAt;
   final int submitted, studentCount;
   int get missing => studentCount - submitted;
 }

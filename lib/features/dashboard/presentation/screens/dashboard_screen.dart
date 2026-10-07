@@ -549,7 +549,8 @@ class _DashboardNotice extends StatelessWidget {
   );
 }
 
-String _deadlineLabel(DateTime dueAt) {
+String _deadlineLabel(DateTime? dueAt) {
+  if (dueAt == null) return 'Chưa đặt hạn';
   final now = DateTime.now();
   final today = DateTime(now.year, now.month, now.day);
   final dueDay = DateTime(dueAt.year, dueAt.month, dueAt.day);

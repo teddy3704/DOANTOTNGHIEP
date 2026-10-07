@@ -21,7 +21,11 @@ class StudentSupportApiClient {
     required StudentSupportStagingConfig config,
     StudentIdentityProvider? identityProvider,
     Dio? dio,
+    Duration requestTimeout = const Duration(seconds: 60),
   }) : _origin = config.baseUri,
+       // Keep the public named option while its backing field stays private.
+       // ignore: prefer_initializing_formals
+       _requestTimeout = requestTimeout,
        _identityProvider =
            identityProvider ??
            FixedStagingStudentIdentityProvider(config.studentCode),
@@ -60,6 +64,7 @@ class StudentSupportApiClient {
   final Dio _dio;
   final Uri _origin;
   final StudentIdentityProvider _identityProvider;
+  final Duration _requestTimeout;
 
   Future<void> getHealth() async {
     final response = await _get('/health', includeStudentCode: false);
@@ -105,7 +110,9 @@ class StudentSupportApiClient {
     final envelope = _expectObject(response.data);
     final data = envelope['data'];
     final meta = _expectObject(envelope['meta']);
-    if (data is! List || meta['count'] != data.length) {
+    if (data is! List ||
+        meta['count'] is! int ||
+        meta['count'] != data.length) {
       throw const ParsingFailure('Danh sách hỗ trợ học tập không hợp lệ.');
     }
     return List.unmodifiable(data.map(_expectObject));
@@ -242,6 +249,8 @@ class StudentSupportApiClient {
           : const <String, Object>{},
     );
     final request = options.compose(_dio.options, path, data: data);
+    final cancelToken = CancelToken();
+    request.cancelToken = cancelToken;
     // An injected transport must not attach query credentials or identity.
     request.queryParameters.clear();
     // Never inherit the other role's identity from an injected transport.
@@ -249,6 +258,10 @@ class StudentSupportApiClient {
       (key, _) => [
         'x-demo-student-code',
         'x-demo-teacher-code',
+        'authorization',
+        'proxy-authorization',
+        'cookie',
+        'x-api-key',
       ].contains(key.toLowerCase()),
     );
     if (studentCode != null) {
@@ -260,7 +273,17 @@ class StudentSupportApiClient {
     _ensureSameOrigin(request.uri);
 
     try {
-      final response = await _dio.fetch<Object?>(request);
+      // Socket timeouts do not bound a stalled interceptor or a slow overall
+      // request. Give cold starts a finite window; never retry writes silently.
+      final response = await _dio
+          .fetch<Object?>(request)
+          .timeout(
+            _requestTimeout,
+            onTimeout: () {
+              cancelToken.cancel('request deadline');
+              throw TimeoutException('request deadline');
+            },
+          );
       _ensureSameOrigin(response.requestOptions.uri);
       if (studentCode != null &&
           (await _identityProvider.restore())?.id != studentCode) {

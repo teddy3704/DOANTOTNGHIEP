@@ -122,6 +122,54 @@ void main() {
   });
 
   test(
+    'inherited private headers are never sent to the staging boundary',
+    () async {
+      dio.options.headers.addAll({
+        'Authorization': 'SENTINEL_PRIVATE_VALUE',
+        'cOoKiE': 'SENTINEL_PRIVATE_VALUE',
+        'X-API-Key': 'SENTINEL_PRIVATE_VALUE',
+        'Proxy-Authorization': 'SENTINEL_PRIVATE_VALUE',
+      });
+      await client.getWorkflowList('/api/v1/me/study-plan');
+      expect(
+        requests.single.headers.values,
+        isNot(contains('SENTINEL_PRIVATE_VALUE')),
+      );
+      expect(requests.single.headers['X-Demo-Student-Code'], 'SV001');
+    },
+  );
+
+  test(
+    'a stalled request has a finite deadline and cancels without changing profile',
+    () async {
+      dio.interceptors.clear();
+      late RequestOptions captured;
+      dio.interceptors.add(
+        InterceptorsWrapper(
+          onRequest: (request, handler) {
+            captured = request;
+          },
+        ),
+      );
+      final bounded = StudentSupportApiClient(
+        config: StudentSupportStagingConfig(
+          baseUri: Uri.parse('https://staging.example.test'),
+          studentCode: 'SV001',
+        ),
+        identityProvider: identity,
+        dio: dio,
+        requestTimeout: const Duration(milliseconds: 50),
+      );
+      await expectLater(
+        bounded.getWorkflowList('/api/v1/me/study-plan'),
+        throwsA(isA<TimeoutFailure>()),
+      );
+      expect(captured.cancelToken?.isCancelled, isTrue);
+      expect((await identity.restore())?.id, 'SV001');
+    },
+  );
+
+  test(
     'late mutation response cannot populate another identity view',
     () async {
       final pending = Completer<RequestInterceptorHandler>();

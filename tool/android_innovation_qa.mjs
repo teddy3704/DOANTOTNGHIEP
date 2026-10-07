@@ -22,7 +22,8 @@ function snapshot() {
   }));
 }
 try {
-  const [action, argument] = process.argv.slice(2);
+  const [action, argument, evidenceMode = 'innovation'] = process.argv.slice(2);
+  if (!['innovation', 'perfection'].includes(evidenceMode)) throw new Error('UNSAFE_EVIDENCE_MODE');
   if (action === 'tap') {
     const targets = snapshot().filter((node) => new RegExp(argument, 'u').test(node.label));
     if (targets.length !== 1) throw new Error('AMBIGUOUS_TARGET');
@@ -33,7 +34,7 @@ try {
   else if (action === 'up') run(['shell', 'input', 'swipe', '540', '700', '540', '1850', '450']);
   else if (action === 'capture') {
     if (!/^\d{2}_[a-z_]+\.png$/.test(argument)) throw new Error('UNSAFE_FILENAME');
-    const directory = resolve('evidence/mobile/innovation-final');
+    const directory = resolve(`evidence/mobile/${evidenceMode}-final`);
     await mkdir(directory, { recursive: true });
     const bytes = execFileSync(adb, ['-s', device, 'exec-out', 'screencap', '-p'], {
       stdio: ['ignore', 'pipe', 'pipe'],

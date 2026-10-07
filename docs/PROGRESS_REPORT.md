@@ -1,5 +1,42 @@
 # Progress Report
 
+## 07/10/2026 — Perfection integrity and reliability hardening (PARTIAL)
+
+- Continued on `innovation-perfection-hardening` from `2e04089`; kept main and
+  innovation artifact/evidence. No scaffold, new backend, production write or
+  dependency expansion.
+- Candidate migration 002 recovered 94 missing assignment task states and added
+  five reviewed CHECKs; 003 removed three already-completed next-item candidates.
+  Rehearsal/rollback then reviewed apply PASS. All 42 table row and column/type
+  digests unchanged; three derived definitions intentionally corrected.
+- Backend tightened active enrolment/role checks, unknown-deadline/progress rules,
+  workflow lifecycle/retry guard, readiness and safe structured logs. Targeted
+  subsets trước được thay bằng gate cuối96/96 PASS; typecheck/build/format PASS,
+  audit0; real local/staging181 checks mỗi môi trường PASS.
+- Flutter original-owner forms, strict offset-aware timestamps, null deadlines,
+  slow-loading/finite request timeout and date-picker fix: targeted 107/107 PASS.
+  Support UI tested at 320/390px and scale 1.3/1.5; no fixture fallback.
+- Added read-only `scripts/council_preflight.ps1`; existing public API checks PASS,
+  but dirty worktree/final artifact pending correctly yields NOT_READY. Council
+  SQL 12 resultsets PASS; pgAdmin UI awaits human candidate connection.
+- Actual slow API card write exposed coordinator autoDispose after persistence;
+  fixed original-owner lifetime through await/confirmation and added2 regressions.
+  Final format156/0 changes, analyze0 issues, 245 tests PASS +1 opt-in skipped;
+  live contract separately PASS. Corrective APK21.1s installed, actual handled/
+  cancel/delete/restore and Student/Teacher scope PASS. Rejected QA/old APK retained.
+- Render c5231e2 Live existing service, no environment/database secret change.
+  Teacher action/follow-up/history/restart and network failure/recovery PASS;
+  append-only QA history retained, only own test plan cleanup after evidence.
+  Final secret/Git/preflight receipt and pgAdmin human credential handoff remain;
+  exact scope and artifact digest in `PERFECTION_FINAL_QA.md`.
+- Accepted final APK reminder20:02 delivered20:04; tap launches Today successfully,
+  generic/private text (30/31 screenshots). Inexact lateness documented honestly.
+- Final precommit candidate/index scan480 files PASS:0 matches/indexed secrets/
+  private config/forbidden artifacts, diff check PASS. Commit/push/clean-preflight
+  receipts returned at handoff; visible pgAdmin still requires human credential entry.
+  DLU auth/Web Services still TO_VERIFY_DLU; production DB least-privilege role
+  remains required. No original Word report or credential modified.
+
 ## 06/10/2026 — Learning decision support extension (product/runtime PASS)
 
 - Continued from verified `06ad157` on `innovation-study-planner-intervention`;

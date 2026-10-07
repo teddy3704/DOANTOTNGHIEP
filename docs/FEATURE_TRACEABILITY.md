@@ -1,5 +1,28 @@
 # Production Feature Traceability
 
+## Current staging hardening trace — 07/10/2026
+
+This addition supersedes stale staging extension-pending statements below for
+hardening code/API/runtime gates: Flutter245, backend96 and local/staging181 each
+PASS; production DLU rows do not become PASS. Baseline innovation is `2e04089`.
+pgAdmin visible workspace requires human credential handoff. Complete current
+Feature→UI→API/service→DB/view→tests→evidence→LMS matrix: FINAL_TRACEABILITY_MATRIX.md.
+
+| Correctness feature | Domain → source/repository → presentation | Actual targeted tests |
+| --- | --- | --- |
+| Unknown assignment deadline | `AssignmentDetail`/`AssignmentTiming.noDeadline`, `TeachingWork` → GROUP `nullif(duedate,0)` / staging repositories → Assignment list/detail, Teacher work/calendar; no deadline reminder | `student_support_repositories_test.dart`, `teacher_support_api_repository_test.dart`, `assignment_screen_test.dart` |
+| Strict API instant | `tryParseApiTimestamp` → academic and workflow staging mappers → local date/time labels and pickers | `test/core/api_timestamp_test.dart`, `intervention_models_test.dart` |
+| Original owner while editing | `StudyPlanCoordinator` → owner-scoped API/reminder repositories → `StudyPlanEditor` pinned coordinator/subscription | `study_planner_widget_test.dart`: changed profile produces no write; pending double-save rejected |
+| Card operation lifetime / confirmation | Same coordinator pinned across slow await/confirmation by StudyPlanCard | delayed card update/cancel and changed-owner delete confirmation regressions; actual final markHandled success |
+| Loading/timeout/retry | `AppFailure` → `StudentSupportApiClient` finite deadline/private-header filtering → `ContentSkeleton` slow hint and error/retry screens | `workflow_transport_test.dart`, Student widget suite |
+| Teacher follow-up/lifecycle | `InterventionRepository` → scoped store transaction guard → editor/date picker and history | backend hardening/store tests; `intervention_screens_test.dart`: stale date and owner change |
+| Explainable priority integrity | Backend named rules + active enrolment/known tracking denominator → repositories → Student Today / Teacher Inbox | backend hardening/domain tests; candidate 002/003 semantics evidence |
+
+Flutter targeted suite: 107 PASS, including support UI at 320/390px and scale
+1.3/1.5. Academic writes remain LMS ONLY. Full gates, deployment, runtime, APK and
+pgAdmin UI status: `PERFECTION_FINAL_QA.md`. Source paths in abbreviated test cells
+are under `test/dev/student_support_api/` or their named feature directories.
+
 Current staging Student/Teacher GROUP_39_20 implementation is traced separately
 in `TRACEABILITY_MATRIX.md` (22/09/2026). Staging API PASS does not remove the DLU
 production blockers in this table; official auth/Web Services remain TO_VERIFY_DLU.

@@ -455,7 +455,9 @@ enum _AssignmentFilter {
 
   bool matches(AssignmentDetail assignment) => switch (this) {
     _AssignmentFilter.all => true,
-    _AssignmentFilter.upcoming => assignment.timing != AssignmentTiming.overdue,
+    _AssignmentFilter.upcoming =>
+      assignment.timing == AssignmentTiming.future ||
+          assignment.timing == AssignmentTiming.soon,
     _AssignmentFilter.submitted => switch (assignment.submissionState) {
       SubmissionState.submitted ||
       SubmissionState.late ||
@@ -543,7 +545,8 @@ _StatusVisual _statusVisual(AssignmentDetail assignment) {
   );
 }
 
-String _dueLabel(DateTime dueAt) {
+String _dueLabel(DateTime? dueAt) {
+  if (dueAt == null) return 'Chưa đặt hạn';
   final date = dueAt.year == DateTime.now().year
       ? '${dueAt.day.toString().padLeft(2, '0')}/${dueAt.month.toString().padLeft(2, '0')}'
       : '${dueAt.day.toString().padLeft(2, '0')}/${dueAt.month.toString().padLeft(2, '0')}/${dueAt.year}';

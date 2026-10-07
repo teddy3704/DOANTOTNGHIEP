@@ -40,7 +40,7 @@ Map<String, Object?> _overview() => {
       'summary': 'Học phần dữ liệu',
       'studentCount': 4,
       'work': [
-        {
+        <String, Object?>{
           'title': 'Thiết kế dữ liệu',
           'description': 'Bài tập học phần',
           'dueAt': '2026-09-22T08:00:00Z',
@@ -183,6 +183,25 @@ void main() {
     );
     await expectLater(repository.getOverview(), throwsA(isA<ParsingFailure>()));
   });
+  test(
+    'teacher work retains absent deadline without a fake timestamp',
+    () async {
+      final data = _overview();
+      final course = (data['courses']! as List).single as Map;
+      ((course['work'] as List).single as Map)['dueAt'] = null;
+      respond = (o, h) => h.resolve(
+        Response<Object?>(
+          requestOptions: o,
+          statusCode: 200,
+          data: {'data': data},
+        ),
+      );
+      expect(
+        (await repository.getOverview()).courses.single.work.single.dueAt,
+        isNull,
+      );
+    },
+  );
   test(
     'server error has no fixture fallback and 401 clears Teacher scope',
     () async {

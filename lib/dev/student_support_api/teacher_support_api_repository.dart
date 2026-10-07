@@ -1,4 +1,5 @@
 import '../../core/errors/app_failure.dart';
+import '../../core/parsing/api_timestamp.dart';
 import '../../features/profile/domain/app_user.dart';
 import '../../features/teacher/domain/teacher_support_repository.dart';
 import 'student_support_api_client.dart';
@@ -34,14 +35,17 @@ class TeacherSupportApiRepository implements TeacherSupportRepository {
               _list(c['work']).map((w) {
                 final total = _count(w, 'studentCount');
                 final submitted = _count(w, 'submitted');
-                final dueAt = DateTime.tryParse(_string(w, 'dueAt'));
-                if (submitted > total || total != count || dueAt == null) {
+                final rawDue = w['dueAt'];
+                final dueAt = tryParseApiTimestamp(rawDue);
+                if (submitted > total ||
+                    total != count ||
+                    (rawDue != null && dueAt == null)) {
                   _invalid();
                 }
                 return TeachingWork(
                   title: _string(w, 'title'),
                   description: _string(w, 'description'),
-                  dueAt: dueAt.toLocal(),
+                  dueAt: dueAt?.toLocal(),
                   submitted: submitted,
                   studentCount: total,
                 );

@@ -2,7 +2,31 @@
 
 Đồ án “Xây dựng ứng dụng di động và hỗ trợ học tập trên nền tảng LMS” của nhóm Đại học Đà Lạt. Ứng dụng Flutter giúp sinh viên xem học phần, bài cần làm, tiến độ, điểm và lời nhắc; giúp giảng viên theo dõi lớp, công việc và sinh viên cần hỗ trợ. [DLU LMS](https://lms.dlu.edu.vn/) vẫn là hệ thống chính thức cho xác thực, nộp bài, quiz, chấm điểm và quản trị học phần.
 
-## Phần mở rộng hiện tại — 06/10/2026
+## Checkpoint hiện tại — hardening 07/10/2026
+
+Nhánh `innovation-perfection-hardening` tiếp tục milestone innovation `2e04089`,
+không thay `main` (`c773b7e`) hay hệ thống LMS chính thức. Candidate đã sửa 94
+assignment states bị mất JOIN và 3 next-item đã completed; 42 bảng/20 views/588
+cột/42 PK/45 FK/29 CHECK, row/type digests giữ nguyên. Ba view definitions được
+sửa có kiểm chứng, không tuyên bố “views không đổi” cho checkpoint mới.
+
+Flutter hardening mục tiêu **107/107 PASS**: owner biểu mẫu, timestamp/NULL deadline,
+timeout hữu hạn, loading/retry và layout 320/390px với text scale 1.3/1.5.
+Final format PASS (156 files/0 changes), analyze0 issues, **245 tests PASS +1
+opt-in live skipped**; live payload chạy riêng PASS. Backend96/96 tests/audit0,
+real local/staging181 checks mỗi môi trường PASS; c5231e2 Live Render hiện hữu.
+Runtime phát hiện/sửa vòng đời coordinator khi xử lý plan qua mạng chậm, có test
+hồi quy và APK sửa đã PASS Student/Teacher/isolation/network recovery. APK cuối
+`D:\DLU-LMS\Artifacts\DLU_LMS_Support_Perfection_Final_Debug.apk`, SHA/SDK/size
+trong evidence/perfection/apk.json; giữ nguyên APK innovation và QA bị loại.
+Xem [Perfection QA](docs/PERFECTION_FINAL_QA.md) và
+[preflight](scripts/council_preflight.ps1). Preflight API diagnostics PASS nhưng
+worktree chưa freeze nên chưa gọi READY. pgAdmin UI chờ người dùng nhập kết nối
+candidate đã được duyệt; không chụp/điều khiển credential. Toàn bộ council gate
+vẫn PARTIAL đến khi bước UI này được quan sát, không suy từ SQL runner PASS.
+DLU auth/Web Services vẫn **TO_VERIFY_DLU**; production cần DB role least-privilege.
+
+## Milestone innovation đã PASS — 06/10/2026 (baseline được giữ)
 
 `innovation-study-planner-intervention` bổ sung **Student Smart Study Planner**
 và **Teacher Intervention Inbox** vào hệ thống hiện có. Sinh viên nhận ưu tiên

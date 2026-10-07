@@ -1,5 +1,30 @@
 # Test Plan
 
+## Perfection hardening gate — 07/10/2026
+
+STATUS: PARTIAL only for pending visible pgAdmin/finish handoff; code/API/runtime
+gates PASS. Final Flutter format156/0 changes, analyze0 issues, **245 tests PASS +1
+opt-in live skipped** (25s); live payload separately PASS. Delayed-card lifetime
+and original-owner confirmation regressions added after actual runtime defect.
+Backend full **96/96 PASS**, typecheck/build/format and audit0; real local/staging
+181/181 checks each PASS. Candidate002/003 rehearsal/apply, table
+row/type integrity and 12 bounded council SELECT resultsets PASS.
+
+| Regression | Executable evidence |
+| --- | --- |
+| Valid calendar/offset; leap/invalid date/time/no timezone | `test/core/api_timestamp_test.dart`, `test/features/interventions/intervention_models_test.dart` |
+| Unknown academic deadline remains null; safe Student/Teacher mapping | `student_support_repositories_test.dart`, `teacher_support_api_repository_test.dart`, `test/features/assignments/assignment_screen_test.dart` |
+| Finite timeout/cancel; no inherited private headers or context leakage | `test/dev/student_support_api/workflow_transport_test.dart`, `student_support_api_client_test.dart` |
+| Original-owner open form, pending-save guard, reactive validation, slow-load/retry | `test/features/study_planner/study_planner_widget_test.dart` |
+| Stale custom follow-up date; owner/lifecycle; 320/390px at scale 1.3/1.5 | `test/features/interventions/intervention_screens_test.dart` and Student widget suite |
+| Active enrolment, shared priority, readiness/logging/lifecycle/retry/NULL | `integration-api/test/hardening.test.ts`, domain/HTTP/store tests; `BACKEND_HARDENING_AUDIT.md` |
+
+Actual Student/Teacher workflows/isolation/restart/network recovery PASS. Render
+c5231e2 Live and final corrective staging APK21.1s build/install PASS; exact digest
+in evidence/perfection/apk.json. Original QA and rollback artifacts retained.
+pgAdmin UI needs human credential entry, not inferred from12 SQL resultsets.
+Use PERFECTION_FINAL_QA.md as current gate matrix, not historical224/82.
+
 ## Innovation completion gate — 06/10/2026
 
 **Product/runtime PASS:** candidate migration applied/verified with original rows, `lms`

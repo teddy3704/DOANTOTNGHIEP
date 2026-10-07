@@ -1,5 +1,23 @@
 # DLU Moodle API Matrix
 
+## Hardening contract delta — 07/10/2026
+
+Current branch: `innovation-perfection-hardening`; backend c5231e2 Live on existing
+Render, local/staging181 checks each PASS. Methods/envelopes/identity preserved.
+The deliberate widening is academic Assignment and TeachingWork `dueAt`:
+`string` → `string|null` for source `duedate=0`, without inventing 1970. Current
+eight candidate assignments retain their non-null deadlines; old APKs must not be
+claimed compatible with future null-deadline records. New Flutter parser/UI covers null.
+
+`GET /health` now checks essential database/source/workflow relation-column
+surfaces; `GET /health/live` checks process liveness only. Do not use liveness as
+Render readiness or treat HTTP 200 as a complete catalog/migration audit.
+Academic writes remain absent. App-owned lifecycle checks prevent reopening
+handled plans/resolved cases; identical follow-up retries within five seconds
+reuse scoped state, not a fabricated grade or durable idempotency promise.
+401/scope controls, strict errors and HTTP 415 are covered by targeted backend
+tests (full96 PASS) and real staging scope/lifecycle regression PASS. See `PERFECTION_FINAL_QA.md`.
+
 ## Application-owned innovation contract — 06/10/2026
 
 These are additions to the existing **development/staging Fastify API**, not

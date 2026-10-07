@@ -42,11 +42,14 @@ final studyPlanProvider = FutureProvider.autoDispose<List<StudyPlanItem>>((
 final studyPlanCoordinatorProvider = Provider.autoDispose<StudyPlanCoordinator>(
   (ref) {
     final owner = ref.watch(studyPlannerOwnerProvider);
+    var active = true;
+    ref.onDispose(() => active = false);
     return StudyPlanCoordinator(
       repository: ref.watch(studyPlannerRepositoryProvider),
       reminders: ref.watch(reminderRepositoryProvider),
       ownerId: owner,
       currentOwnerId: () {
+        if (!active) return null;
         final auth = ref.read(authControllerProvider);
         return auth.status == AuthStatus.authenticated &&
                 auth.session?.role == DluRole.student

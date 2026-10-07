@@ -70,11 +70,19 @@ class _InterventionEditorSheetState
   Future<void> _customDate() async {
     final now = _now();
     final firstDate = DateTime(now.year, now.month, now.day + 1);
+    final lastDate = DateTime(now.year + 2, now.month, now.day);
+    final selected = _followUp ?? firstDate;
+    // The sheet may remain open across midnight or while the app is paused.
+    final initial = selected.isBefore(firstDate)
+        ? firstDate
+        : selected.isAfter(lastDate)
+        ? lastDate
+        : selected;
     final chosen = await showDatePicker(
       context: context,
-      initialDate: _followUp ?? firstDate,
+      initialDate: initial,
       firstDate: firstDate,
-      lastDate: DateTime(now.year + 2, now.month, now.day),
+      lastDate: lastDate,
       helpText: 'Ngày theo dõi lại',
       cancelText: 'Hủy',
       confirmText: 'Chọn',

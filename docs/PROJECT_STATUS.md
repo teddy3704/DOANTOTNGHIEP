@@ -1,6 +1,29 @@
 # Project Status
 
-## Innovation extension — 06/10/2026; handoff recheck 07/10/2026 (current checkpoint)
+## Current hardening checkpoint — 07/10/2026
+
+STATUS: **PARTIAL / IN PROGRESS**, branch `innovation-perfection-hardening`, base
+innovation `2e04089`; main `c773b7e` preserved. Code/mobile/API gates PASS; visible
+pgAdmin candidate workspace awaits the human credential handoff.
+
+| Scope | Current result |
+| --- | --- |
+| Candidate integrity/read-model hardening | DONE/PASS: 002 + 003 applied after rehearsal; 94 lost states and 3 invalid completed candidates fixed; all original table row/type digests unchanged |
+| Actual catalog | 3 schemas, 42 tables (35 lms + 7 app), 20 views, 588 columns, 42 PK, 45 FK, 29 CHECK; three reviewed view definitions changed |
+| Backend final quality | PASS: 96/96 tests, typecheck/build/format, audit zero; real local/staging smoke181/181 each |
+| Flutter quality | PASS: format156/0 changes, analyze0 issues, final245 tests +1 opt-in skipped; live payload separately PASS; 320/390 scale1.3/1.5 PASS |
+| Preflight | API diagnostics PASS; intentionally dirty worktree/new artifact pending → NOT_READY |
+| Render / final runtime / APK | PASS: c5231e2 Live existing service; Student/Teacher app-owned workflows/isolation/network recovery; accepted corrective APK digest C507877E…AEBD26C in evidence/perfection/apk.json |
+| pgAdmin UI | PENDING human connection to existing approved candidate; SQL runner 12 read-only SELECTs PASS |
+| DLU production | TO_VERIFY_DLU; source SELECT/app WRITE least-privilege DB role prerequisite; no academic writes |
+
+Candidate/index secret scan480 files PASS (zero matches/private/forbidden), diff
+check PASS. Commit/push and clean preflight receipt belong to final Git handoff.
+NEXT STEP: human pgAdmin candidate connection/visible SQL workspace. Exact evidence and limits:
+[PERFECTION_FINAL_QA.md](PERFECTION_FINAL_QA.md). Do not repeat applied migrations,
+reset data or treat dated baseline PASS below as the new hardening result.
+
+## Preserved innovation milestone — 06/10/2026; handoff recheck 07/10/2026
 
 Branch `innovation-study-planner-intervention` extends preserved baseline
 `06ad157`. The historical council sections below remain baseline evidence, not

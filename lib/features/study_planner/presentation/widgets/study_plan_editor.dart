@@ -54,6 +54,9 @@ class _StudyPlanEditorState extends ConsumerState<StudyPlanEditor> {
   final _form = GlobalKey<FormState>();
   late final TextEditingController _duration;
   late final TextEditingController _notes;
+  late final StudyPlanCoordinator _coordinator;
+  late final ProviderSubscription<StudyPlanCoordinator>
+  _coordinatorSubscription;
   late DateTime _start;
   bool _remind = true;
   bool _saving = false;
@@ -65,6 +68,13 @@ class _StudyPlanEditorState extends ConsumerState<StudyPlanEditor> {
   @override
   void initState() {
     super.initState();
+    // Keep the editor's original owner. A new profile must not inherit this
+    // open form and its assignment, reminder settings or pending write.
+    _coordinatorSubscription = ref.listenManual(
+      studyPlanCoordinatorProvider,
+      (_, _) {},
+    );
+    _coordinator = _coordinatorSubscription.read();
     _start =
         widget.initialStart ??
         widget.existing?.scheduledStartAt.toLocal() ??
@@ -80,9 +90,7 @@ class _StudyPlanEditorState extends ConsumerState<StudyPlanEditor> {
   Future<void> _loadReminder() async {
     _loadingReminder = true;
     try {
-      final enabled = await ref
-          .read(studyPlanCoordinatorProvider)
-          .reminderEnabled(widget.existing!);
+      final enabled = await _coordinator.reminderEnabled(widget.existing!);
       if (mounted) setState(() => _remind = enabled);
     } on Object {
       if (mounted) {
@@ -98,6 +106,7 @@ class _StudyPlanEditorState extends ConsumerState<StudyPlanEditor> {
 
   @override
   void dispose() {
+    _coordinatorSubscription.close();
     _duration.dispose();
     _notes.dispose();
     super.dispose();
@@ -158,18 +167,17 @@ class _StudyPlanEditorState extends ConsumerState<StudyPlanEditor> {
       _error = null;
     });
     try {
-      final result = await ref
-          .read(studyPlanCoordinatorProvider)
-          .save(
-            assignmentId:
-                widget.existing?.assignmentId ??
-                widget.recommendation!.assignmentId,
-            scheduledStartAt: _start,
-            estimatedMinutes: duration,
-            notes: _notes.text.trim(),
-            remind: _remind,
-            existing: widget.existing,
-          );
+      FocusScope.of(context).unfocus();
+      final result = await _coordinator.save(
+        assignmentId:
+            widget.existing?.assignmentId ??
+            widget.recommendation!.assignmentId,
+        scheduledStartAt: _start,
+        estimatedMinutes: duration,
+        notes: _notes.text.trim(),
+        remind: _remind,
+        existing: widget.existing,
+      );
       if (!mounted) return;
       refreshStudyPlanner(ref);
       Navigator.of(context).pop(result);
@@ -186,110 +194,115 @@ class _StudyPlanEditorState extends ConsumerState<StudyPlanEditor> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return SingleChildScrollView(
-      padding: EdgeInsets.fromLTRB(
-        20,
-        0,
-        20,
-        20 + MediaQuery.viewInsetsOf(context).bottom,
-      ),
-      child: Form(
-        key: _form,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              widget.existing == null
-                  ? 'Dành thời gian cho việc này'
-                  : 'Điều chỉnh buổi học',
-              style: theme.textTheme.headlineSmall,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              widget.existing?.title ?? widget.recommendation!.assignmentName,
-              style: theme.textTheme.titleMedium,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              widget.existing?.courseName ?? widget.recommendation!.courseName,
-              style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
-            ),
-            const SizedBox(height: 20),
-            OutlinedButton.icon(
-              onPressed: _saving ? null : _pickStart,
-              icon: const Icon(Icons.edit_calendar_outlined),
-              label: Text(studyDateTime(_start)),
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _duration,
-              keyboardType: TextInputType.number,
-              textInputAction: TextInputAction.next,
-              enabled: !_saving,
-              decoration: const InputDecoration(
-                labelText: 'Thời lượng (phút)',
-                helperText: 'Từ 5 đến 480 phút, tùy nhịp học của bạn.',
-                helperMaxLines: 2,
-                errorMaxLines: 2,
+    return PopScope(
+      canPop: !_saving,
+      child: SingleChildScrollView(
+        padding: EdgeInsets.fromLTRB(
+          20,
+          0,
+          20,
+          20 + MediaQuery.viewInsetsOf(context).bottom,
+        ),
+        child: Form(
+          key: _form,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                widget.existing == null
+                    ? 'Dành thời gian cho việc này'
+                    : 'Điều chỉnh buổi học',
+                style: theme.textTheme.headlineSmall,
               ),
-              validator: (value) {
-                final minutes = int.tryParse(value ?? '');
-                return minutes == null || minutes < 5 || minutes > 480
-                    ? 'Nhập số phút từ 5 đến 480.'
-                    : null;
-              },
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _notes,
-              enabled: !_saving,
-              minLines: 2,
-              maxLines: 4,
-              maxLength: 500,
-              decoration: const InputDecoration(
-                labelText: 'Mục tiêu cho buổi học',
-                hintText: 'Bạn muốn xử lý phần nào? (không bắt buộc)',
-                hintMaxLines: 2,
+              const SizedBox(height: 8),
+              Text(
+                widget.existing?.title ?? widget.recommendation!.assignmentName,
+                style: theme.textTheme.titleMedium,
               ),
-            ),
-            SwitchListTile.adaptive(
-              contentPadding: EdgeInsets.zero,
-              title: const Text('Nhắc khi đến giờ học'),
-              subtitle: const Text(
-                'Nhắc trên thiết bị này, không thay đổi lịch LMS.',
+              const SizedBox(height: 4),
+              Text(
+                widget.existing?.courseName ??
+                    widget.recommendation!.courseName,
+                style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
               ),
-              value: _remind,
-              onChanged: _saving || _loadingReminder
-                  ? null
-                  : (value) => setState(() => _remind = value),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'Đây là kế hoạch cá nhân. Nộp bài và kết quả học tập vẫn được xác nhận trên LMS.',
-              style: theme.textTheme.bodySmall,
-            ),
-            if (_error != null)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                child: Semantics(
-                  liveRegion: true,
-                  child: Text(
-                    _error!,
-                    style: TextStyle(color: theme.colorScheme.error),
-                  ),
+              const SizedBox(height: 20),
+              OutlinedButton.icon(
+                onPressed: _saving ? null : _pickStart,
+                icon: const Icon(Icons.edit_calendar_outlined),
+                label: Text(studyDateTime(_start)),
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _duration,
+                keyboardType: TextInputType.number,
+                textInputAction: TextInputAction.next,
+                enabled: !_saving,
+                decoration: const InputDecoration(
+                  labelText: 'Thời lượng (phút)',
+                  helperText: 'Từ 5 đến 480 phút, tùy nhịp học của bạn.',
+                  helperMaxLines: 2,
+                  errorMaxLines: 2,
+                ),
+                validator: (value) {
+                  final minutes = int.tryParse(value ?? '');
+                  return minutes == null || minutes < 5 || minutes > 480
+                      ? 'Nhập số phút từ 5 đến 480.'
+                      : null;
+                },
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _notes,
+                enabled: !_saving,
+                minLines: 2,
+                maxLines: 4,
+                maxLength: 500,
+                decoration: const InputDecoration(
+                  labelText: 'Mục tiêu cho buổi học',
+                  hintText: 'Bạn muốn xử lý phần nào? (không bắt buộc)',
+                  hintMaxLines: 2,
                 ),
               ),
-            const SizedBox(height: 18),
-            FilledButton(
-              onPressed: _saving || _loadingReminder ? null : _save,
-              child: Text(_saving ? 'Đang lưu…' : 'Lưu kế hoạch'),
-            ),
-            TextButton(
-              onPressed: _saving ? null : () => Navigator.of(context).pop(),
-              child: const Text('Hủy'),
-            ),
-          ],
+              SwitchListTile.adaptive(
+                contentPadding: EdgeInsets.zero,
+                title: const Text('Nhắc khi đến giờ học'),
+                subtitle: const Text(
+                  'Nhắc trên thiết bị này, không thay đổi lịch LMS.',
+                ),
+                value: _remind,
+                onChanged: _saving || _loadingReminder
+                    ? null
+                    : (value) => setState(() => _remind = value),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Đây là kế hoạch cá nhân. Nộp bài và kết quả học tập vẫn được xác nhận trên LMS.',
+                style: theme.textTheme.bodySmall,
+              ),
+              if (_error != null)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  child: Semantics(
+                    liveRegion: true,
+                    child: Text(
+                      _error!,
+                      style: TextStyle(color: theme.colorScheme.error),
+                    ),
+                  ),
+                ),
+              const SizedBox(height: 18),
+              FilledButton(
+                onPressed: _saving || _loadingReminder ? null : _save,
+                child: Text(_saving ? 'Đang lưu…' : 'Lưu kế hoạch'),
+              ),
+              TextButton(
+                onPressed: _saving ? null : () => Navigator.of(context).pop(),
+                child: const Text('Hủy'),
+              ),
+            ],
+          ),
         ),
       ),
     );

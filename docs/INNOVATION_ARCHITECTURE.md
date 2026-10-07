@@ -1,5 +1,32 @@
 # Learning decision support — innovation extension
 
+## Current hardening — 07/10/2026
+
+Current branch `innovation-perfection-hardening` extends preserved `2e04089`.
+The baseline sections below are historical: hardening deliberately corrects three
+derived definitions (migrations 002/003) and adds five app CHECKs while preserving
+every original physical row and column/type signature. Current catalog: 42/20/588.
+
+Priority heuristics are centralized in `domain/priority-rules.ts`; missing deadline
+is `null`, missing tracking is not inferred failure. Scoped APIs recheck active
+enrolment/course/owner; handled/resolved states cannot be reopened by stale writes.
+Five-second identical follow-up protection is bounded transaction retry control,
+not durable idempotency. Original-owner Flutter subscriptions survive the network
+await but are invalidated on identity changes. Editor and card operations both
+pin the original coordinator; confirmation never adopts a newly selected user.
+
+Readiness verifies actual model/workflow surfaces; process liveness is separate.
+Pino emits sanitized startup/request/error codes without secrets, headers, bodies
+or raw driver diagnostics. Finite HTTPS request timeout is 60s with cancellation
+and an 8s slow-loading hint; no silent write retry/fallback. Current Render runs
+backend `c5231e2`, existing service, same secret/database. Architecture remains
+Flutter → HTTPS → Fastify → scoped academic SELECT + app-owned workflow WRITE.
+Official submission/quiz/grading stays LMS ONLY. Candidate owner bypasses RLS;
+production requires a SELECT-source/WRITE-app role plus verified DLU identity.
+
+Evidence and current limits: `PERFECTION_FINAL_QA.md`, `DATABASE_HARDENING_AUDIT.md`,
+`BACKEND_HARDENING_AUDIT.md`. No second backend or new dependency was introduced.
+
 Branch: `innovation-study-planner-intervention`; baseline preserved at `06ad157`.
 This extends the existing Fastify/Neon/Flutter staging system, not a second LMS.
 

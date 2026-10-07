@@ -1,3 +1,5 @@
+import '../../../core/parsing/api_timestamp.dart';
+
 enum AttentionPriority { high, medium, low }
 
 enum InterventionStatus { open, followingUp, resolved }
@@ -238,27 +240,7 @@ int _count(Object? value) {
 }
 
 DateTime _date(Object? value) {
-  if (value is String) {
-    final prefix = RegExp(
-      r'^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.\d+)?(?:Z|[+-](\d{2}):(\d{2}))$',
-    ).firstMatch(value);
-    final date = DateTime.tryParse(value);
-    if (prefix != null && date != null) {
-      final year = int.parse(prefix[1]!);
-      final month = int.parse(prefix[2]!);
-      final day = int.parse(prefix[3]!);
-      final normalized = DateTime.utc(year, month, day);
-      if (normalized.year == year &&
-          normalized.month == month &&
-          normalized.day == day &&
-          int.parse(prefix[4]!) < 24 &&
-          int.parse(prefix[5]!) < 60 &&
-          int.parse(prefix[6]!) < 60 &&
-          (prefix[7] == null || int.parse(prefix[7]!) < 24) &&
-          (prefix[8] == null || int.parse(prefix[8]!) < 60)) {
-        return date;
-      }
-    }
-  }
+  final date = tryParseApiTimestamp(value);
+  if (date != null) return date;
   throw const FormatException('Invalid support date');
 }

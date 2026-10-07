@@ -349,8 +349,9 @@ class _TeacherSupportScreenState extends ConsumerState<TeacherSupportScreen> {
   List<Widget> _calendar(TeacherOverview data) {
     final entries = [
       for (final c in data.courses)
-        for (final w in c.work) (course: c, work: w),
-    ]..sort((a, b) => a.work.dueAt.compareTo(b.work.dueAt));
+        for (final w in c.work)
+          if (w.dueAt != null) (course: c, work: w),
+    ]..sort((a, b) => a.work.dueAt!.compareTo(b.work.dueAt!));
     if (entries.isEmpty) return [const _QuietState('Chưa có mốc thời gian.')];
     return [
       for (final e in entries) ...[
@@ -363,7 +364,7 @@ class _TeacherSupportScreenState extends ConsumerState<TeacherSupportScreen> {
             ),
             title: Text(e.work.title),
             subtitle: Text(
-              '${e.course.name}\n${_date(e.work.dueAt)}${e.work.dueAt.isBefore(DateTime.now()) ? ' · Đã qua' : ''}',
+              '${e.course.name}\n${_date(e.work.dueAt)}${e.work.dueAt!.isBefore(DateTime.now()) ? ' · Đã qua' : ''}',
             ),
             isThreeLine: true,
             onTap: () => context.push('/teacher/course/${e.course.id}'),
@@ -374,8 +375,9 @@ class _TeacherSupportScreenState extends ConsumerState<TeacherSupportScreen> {
     ];
   }
 
-  String _date(DateTime d) =>
-      '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}, ${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
+  String _date(DateTime? d) => d == null
+      ? 'Chưa đặt hạn'
+      : '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}, ${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
 }
 
 class _QuietState extends StatelessWidget {

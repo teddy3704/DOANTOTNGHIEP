@@ -1,5 +1,26 @@
 # Truy vết yêu cầu tới bản staging GROUP_39_20
 
+## Perfection hardening — 07/10/2026
+
+Current evidence supersedes dated baseline claims below. Branch
+`innovation-perfection-hardening`, preserved base `2e04089`; backend `c5231e2`
+Live on the existing Render service. Database catalog 3/42/20/588, actual original
+rows/types intact; only reviewed derived corrections and five app CHECKs changed.
+
+| Feature | UI | API / service | DB / view | Tests | Actual evidence | LMS boundary |
+|---|---|---|---|---|---|---|
+| Explainable priorities | StudentTodayScreen / reasons | GET recommendations; InnovationService / priority-rules | scoped assign/status/completion, unified_tasks/student_task_summary reference | hardening/domain, widget and 181 smoke checks | perfection-final/13_final_student_today.png; staging-smoke.json | No academic write or prediction |
+| Personal plan lifecycle | StudyPlanScreen / editor / card | plan GET/POST/PATCH/DELETE, StudyPlanCoordinator | app.study_plan_items | coordinator, delayed-card / original-owner regressions, real smoke | 12_plan_updated.png; 14_final_plan_handled.png | Handled is app-local meaning only |
+| Study reminder | Editor / Reminder screen | device scheduler, ReminderRepository | secure local metadata, not DB reminder authority | coordinator/widget; final Android fire/tap/cancel | 15_plan_reminder_cancelled.png;30_final_reminder_delivered.png;31_notification_app_launch.png | Does not move academic deadline; generic app launch |
+| Teacher attention | TeacherToday / AttentionDetail / roster | attention GET; centralized ranking / scoped course roles | teacher_student_monitoring/student_risk_indicator reference, scoped table reads | HTTP/store/domain; payload tests | 17_teacher_action_center.png; 18_teacher_attention_detail.png; 23_teacher_roster.png | Rule-based support, not academic decision |
+| Support action / follow-up / history | Inbox / editor / history | intervention / follow-up routes; InnovationService | app.teacher_interventions + app.intervention_followups | lifecycle, negative owner/context and retry tests | 19_teacher_support_form.png; 20_teacher_history.png; 22_teacher_followup_history.png | No message sent or grade changed |
+| Null/time/error/role hardening | assignment/work/loading/form | strict timestamp parser, bounded transport and closed DTOs | nullable deadlines/grades retained | timestamp, workflow transport, 320/390 scale 1.3/1.5, 245 Flutter tests | flutter-gates.json; role runtime notes | Production main remains fail-closed |
+| Console readiness | preflight and Render startup | /health versus /health/live; sanitized Pino | verified model/workflow columns | 96 backend tests; local/staging 181 each | backend-gates.json; render-hardening-live.jpg | No credentials printed |
+
+Paths of mobile evidence are under `evidence/mobile/perfection-final`; gate JSON
+under `evidence/perfection`. API/SQL checks are not pgAdmin visible-workspace proof.
+Exact runtime and handoff limitations remain in `PERFECTION_FINAL_QA.md`.
+
 ## Innovation extension — 06/10/2026
 
 Nhánh `innovation-study-planner-intervention`; baseline được giữ nguyên.

@@ -98,6 +98,18 @@ void main() {
     },
   );
 
+  test(
+    'assignment without a deadline stays null, unranked and sorted last',
+    () async {
+      client.assignments.first['dueAt'] = null;
+      final result = await StagingAssignmentRepository(client).getAssignments();
+      expect(result.last.dueAt, isNull);
+      expect(result.last.timing, AssignmentTiming.noDeadline);
+      expect(result.last.timing.label, 'Chưa đặt hạn');
+      expect(result.first.dueAt, isNotNull);
+    },
+  );
+
   test('maps content joins without fabricating file or cutoff data', () async {
     final sections = await StagingCourseContentRepository(
       client,

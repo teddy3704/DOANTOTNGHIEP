@@ -25,6 +25,7 @@ Future<ProviderContainer> mount(
   RecordingInterventions? repository,
   MockSupportAuth? auth,
   double width = 390,
+  double textScale = 1.3,
 }) async {
   tester.view.physicalSize = Size(width, 844);
   tester.view.devicePixelRatio = 1;
@@ -85,7 +86,7 @@ Future<ProviderContainer> mount(
         builder: (context, child) => MediaQuery(
           data: MediaQuery.of(
             context,
-          ).copyWith(textScaler: TextScaler.linear(1.3)),
+          ).copyWith(textScaler: TextScaler.linear(textScale)),
           child: child!,
         ),
       ),
@@ -110,36 +111,42 @@ Future<void> reach(WidgetTester tester, Finder target) async {
 
 void main() {
   for (final width in [320.0, 390.0]) {
-    for (final entry in <String, Widget>{
-      'today': TeacherTodayScreen(clock: () => now),
-      'inbox': InterventionInboxScreen(clock: () => now),
-      'detail': const StudentAttentionDetailScreen(
-        courseId: 'course-test',
-        studentId: 'student-test',
-      ),
-    }.entries) {
-      testWidgets('${entry.key} fits ${width.toInt()}px at text scale 1.3', (
-        tester,
-      ) async {
-        await mount(tester, entry.value, width: width);
-        await tester.pumpAndSettle();
-        if (entry.key == 'today') {
-          final scheme = AppTheme.light().colorScheme;
-          final title = tester.widget<Text>(
-            find.textContaining('lượt cần chú ý'),
-          );
-          expect(title.style?.color, scheme.onPrimaryContainer);
-          final a = scheme.onPrimaryContainer.computeLuminance();
-          final b = scheme.primaryContainer.computeLuminance();
-          final ratio = ((a > b ? a : b) + .05) / ((a > b ? b : a) + .05);
-          expect(ratio, greaterThanOrEqualTo(4.5));
-        }
-        for (var i = 0; i < 8; i++) {
-          await tester.drag(find.byType(ListView).first, const Offset(0, -350));
-          await tester.pumpAndSettle();
-          expect(tester.takeException(), isNull);
-        }
-      });
+    for (final scale in [1.3, 1.5]) {
+      for (final entry in <String, Widget>{
+        'today': TeacherTodayScreen(clock: () => now),
+        'inbox': InterventionInboxScreen(clock: () => now),
+        'detail': const StudentAttentionDetailScreen(
+          courseId: 'course-test',
+          studentId: 'student-test',
+        ),
+      }.entries) {
+        testWidgets(
+          '${entry.key} fits ${width.toInt()}px at text scale $scale',
+          (tester) async {
+            await mount(tester, entry.value, width: width, textScale: scale);
+            await tester.pumpAndSettle();
+            if (entry.key == 'today') {
+              final scheme = AppTheme.light().colorScheme;
+              final title = tester.widget<Text>(
+                find.textContaining('lượt cần chú ý'),
+              );
+              expect(title.style?.color, scheme.onPrimaryContainer);
+              final a = scheme.onPrimaryContainer.computeLuminance();
+              final b = scheme.primaryContainer.computeLuminance();
+              final ratio = ((a > b ? a : b) + .05) / ((a > b ? b : a) + .05);
+              expect(ratio, greaterThanOrEqualTo(4.5));
+            }
+            for (var i = 0; i < 8; i++) {
+              await tester.drag(
+                find.byType(ListView).first,
+                const Offset(0, -350),
+              );
+              await tester.pumpAndSettle();
+              expect(tester.takeException(), isNull);
+            }
+          },
+        );
+      }
     }
   }
 
@@ -356,4 +363,24 @@ void main() {
       findsOneWidget,
     );
   });
+
+  testWidgets(
+    'custom follow-up picker clamps a stale open form after the day changes',
+    (tester) async {
+      var clock = now;
+      await mount(
+        tester,
+        InterventionEditorSheet(student: attention, clock: () => clock),
+      );
+      await tester.pumpAndSettle();
+      clock = now.add(const Duration(days: 5));
+      await reach(tester, find.text('Chọn ngày khác'));
+      await tester.tap(find.text('Chọn ngày khác'));
+      await tester.pumpAndSettle();
+      expect(find.byType(DatePickerDialog), findsOneWidget);
+      expect(tester.takeException(), isNull);
+      await tester.tap(find.text('Hủy').last);
+      await tester.pumpAndSettle();
+    },
+  );
 }

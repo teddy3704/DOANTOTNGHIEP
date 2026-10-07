@@ -1,0 +1,23 @@
+{
+  "date": "2026-10-07",
+  "path": "D:\\DLU-LMS\\Artifacts\\DLU_LMS_Support_Perfection_Final_Debug.apk",
+  "sha256": "C507877E53260B3F2C267DB87174864F1D20CF792BE3BEFF9D5E68E63AEBD26C",
+  "bytes": 221247876,
+  "packageId": "vn.edu.dlu.lmsmobile",
+  "versionName": "0.1.0",
+  "versionCode": 1,
+  "minSdk": 24,
+  "targetSdk": 36,
+  "install": "adb install -r: Success on existing emulator-5554; no data clear",
+  "entrypoint": "lib/main_staging.dart",
+  "build": "flutter build apk --debug -t lib/main_staging.dart",
+  "buildSeconds": 21.1,
+  "baseCommit": "2e04089ce344e9c8ab53e5bc6d9219202026f2df",
+  "branch": "innovation-perfection-hardening",
+  "sourceState": "Runtime exposed an autoDispose coordinator lifetime bug after an API card write. Original-owner operation subscription and two regression tests added; final format/analyze/245 tests PASS before this necessary corrective build.",
+  "rejectedQaArtifactPreserved": "DLU_LMS_Support_Perfection_Rejected_QA_2026-10-07.apk",
+  "previousArtifactPreserved": "DLU_LMS_Support_Innovation_Final_Debug.apk",
+  "storageBeforeGB": {"C": 33.76, "D": 86.62},
+  "storageAfterGB": {"C": 33.76, "D": 86.26},
+  "warnings": "Build PASS. flutter_timezone KGP future-compatibility warning and SDK XML parser warning retained as toolchain maintenance limits; no Android Studio used."
+}

@@ -1,5 +1,27 @@
 # Database Mapping
 
+## Current candidate hardening — 07/10/2026
+
+Actual catalog remains 3 schemas, 42 tables (35 `lms` + 7 `app`), 20 views,
+588 physical columns, 42 PK/45 FK; now **29 CHECKs**. 002 restores 94 assignment
+task states through reviewed `assign` ↔ `assignment` JOIN mapping and removes
+unknown inactivity/empty-tracker false penalties; 003 removes three completed
+next-item false candidates. Three derived definitions deliberately change;
+statements below about unchanged views belong to the earlier innovation milestone.
+
+Both migrations rehearsed/rolled back before approved apply. All 42 original
+table row digests and column/type signatures unchanged; no LMS/app DML or dropped
+objects. Source `duedate=0` maps through `nullif` to API null, not epoch 1970;
+Assignment/TeachingWork nullable contract and Flutter mapper match this semantics.
+Missing grade/engagement remains unknown; progress denominator guards priority.
+API rechecks enrolment/course context rather than trusting raw view visibility.
+
+Evidence and caveats: `DATABASE_HARDENING_AUDIT.md`,
+`evidence/database/perfection-final/`, `PERFECTION_FINAL_QA.md`.
+12 council SQL SELECTs PASS; visible pgAdmin preparation remains pending human
+connection to the existing approved candidate. Do not rerun applied migrations,
+create local DB, reset data or change Render secret for this check.
+
 ## Incremental app-owned extension — 06/10/2026
 
 The verified GROUP_39_20 baseline is preserved: 35 `lms` tables, 4 original `app`

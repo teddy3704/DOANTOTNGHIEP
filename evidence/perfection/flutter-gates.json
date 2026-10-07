@@ -1,0 +1,10 @@
+{
+  "date": "2026-10-07",
+  "format": {"command": "dart format .", "files": 156, "changed": 0, "status": "PASS"},
+  "analyze": {"command": "tool/flutter_dlu.ps1 analyze", "status": "PASS", "issues": 0, "durationSeconds": 20.7},
+  "tests": {"command": "tool/flutter_dlu.ps1 test", "passed": 245, "failed": 0, "skipped": 1, "durationSeconds": 25},
+  "runtimeRegression": {"targetedPassed": 16, "covered": ["delayed card markHandled retains coordinator and cancels reminder", "open delete confirmation cannot adopt another owner"]},
+  "skip": "Opt-in staging live payload test; separately executed after deployment.",
+  "accessibility": {"widths": [320, 390], "textScales": [1.3, 1.5], "status": "PASS"},
+  "notes": "Earlier 243-test suite passed before actual runtime exposed provider disposal after a slow API write. Final suite rerun is necessary evidence for that behavioral correction, not a repeated database/backend audit. Read-only pub outdated reviewed; no dependency changes or blind major upgrades."
+}

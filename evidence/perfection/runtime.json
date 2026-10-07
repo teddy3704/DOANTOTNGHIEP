@@ -1,0 +1,16 @@
+{
+  "date": "2026-10-07",
+  "device": "Existing DLU_LMS_Pixel / emulator-5554",
+  "acceptedApkSha256": "C507877E53260B3F2C267DB87174864F1D20CF792BE3BEFF9D5E68E63AEBD26C",
+  "student": "PASS: real API plan create/edit/postpone/restart; corrected APK handle/cancel/delete, exact restore after role switch",
+  "teacher": "PASS: GV001 action center, 2 courses/8 assignments/4 students, roster/detail, action note and 10 October follow-up, restart and append-only update/history",
+  "scope": "PASS: SV001 -> SV002 -> GV001 -> SV001 changes identity/navigation/data; SV002 has no SV001 plan; GV002 API-only verification, not mobile selector",
+  "network": "PASS: temporary emulator Wi-Fi/data outage and restart yield explicit network error, no fixture; original connectivity restored and GV001 selection reloads API",
+  "notification": {"scheduledLocal": "2026-10-07 20:02 +07", "observedDeliveredLocal": "2026-10-07 20:04 +07", "privacy": "Generic title/body, no academic or identity detail", "tap": "PASS: opens app Today; not assignment-specific deep link", "mode": "Android inexactAllowWhileIdle; lateness is expected"},
+  "lms": "PASS: verified HTTPS official origin launcher; no private endpoint invented, no academic write",
+  "logCheck": {"scope": "Current accepted app process, after role and outage/recovery", "lines": 160, "matchedRuntimeErrors": 0, "matchedSecretPatterns": 0},
+  "evidence": "01-12 genuine QA observations before corrective build;13 onward accepted artifact. Filename04 validation/11 postpone editor accurate.",
+  "cleanup": "Only own newly-created QA study plans removed after evidence; existing reminder and academic records untouched. Teacher append-only QA history retained.",
+  "pgAdmin": "PENDING human candidate credential handoff; SQL runner PASS is not GUI proof",
+  "productionDlu": "TO_VERIFY_DLU"
+}

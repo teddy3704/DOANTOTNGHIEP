@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import '../../core/errors/app_failure.dart';
+import '../../core/parsing/api_timestamp.dart';
 import '../../features/assignments/domain/assignment.dart';
 import '../../features/assignments/domain/assignment_repository.dart';
 import '../../features/auth/domain/auth_repository.dart';
@@ -429,10 +430,10 @@ class StagingAssignmentRepository implements AssignmentRepository {
                 courseId: itemCourseId,
                 name: _requiredString(item, 'assignmentName'),
                 description: _nullableNonEmptyString(item, 'description') ?? '',
-                dueAt: _requiredDate(item, 'dueAt'),
+                dueAt: _nullableDate(item, 'dueAt'),
                 allowsSubmissionsFrom: _requiredDate(item, 'opensAt'),
                 cutoffAt: null,
-                timing: _assignmentTiming(_requiredDate(item, 'dueAt')),
+                timing: _assignmentTiming(_nullableDate(item, 'dueAt')),
                 submissionState: status == null
                     ? SubmissionState.notSubmitted
                     : _submissionStateFromStatus(
@@ -452,7 +453,7 @@ class StagingAssignmentRepository implements AssignmentRepository {
             })
             .where((item) => courseId == null || item.courseId == courseId)
             .toList(growable: false)
-          ..sort((first, second) => first.dueAt.compareTo(second.dueAt));
+          ..sort(compareAssignmentDeadlines);
     return List<AssignmentDetail>.unmodifiable(mapped);
   }
 }
@@ -626,7 +627,7 @@ double _requiredNumber(StudentSupportJson json, String key) {
 
 DateTime _requiredDate(StudentSupportJson json, String key) {
   final value = _requiredString(json, key);
-  final parsed = DateTime.tryParse(value);
+  final parsed = tryParseApiTimestamp(value);
   if (parsed != null) return parsed.toLocal();
   throw ParsingFailure(
     'Trường thời gian "$key" không hợp lệ.',
@@ -638,7 +639,7 @@ DateTime? _nullableDate(StudentSupportJson json, String key) {
   final value = json[key];
   if (value == null) return null;
   if (value is String) {
-    final parsed = DateTime.tryParse(value);
+    final parsed = tryParseApiTimestamp(value);
     if (parsed != null) return parsed.toLocal();
   }
   throw ParsingFailure(
@@ -676,7 +677,8 @@ SubmissionState _submissionStateFromStatus(String status) => switch (status) {
   ),
 };
 
-AssignmentTiming _assignmentTiming(DateTime dueAt) {
+AssignmentTiming _assignmentTiming(DateTime? dueAt) {
+  if (dueAt == null) return AssignmentTiming.noDeadline;
   final remaining = dueAt.difference(DateTime.now());
   if (remaining.isNegative) return AssignmentTiming.overdue;
   if (remaining <= const Duration(days: 3)) return AssignmentTiming.soon;

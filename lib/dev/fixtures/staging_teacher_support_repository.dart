@@ -135,7 +135,12 @@ class StagingTeacherSupportRepository implements TeacherSupportRepository {
           ),
         );
       }
-      work.sort((a, b) => a.dueAt.compareTo(b.dueAt));
+      work.sort((a, b) {
+        final first = a.dueAt;
+        final second = b.dueAt;
+        if (first == null) return second == null ? 0 : 1;
+        return second == null ? -1 : first.compareTo(second);
+      });
       final resourceTypes = data
           .table('modules')
           .where((r) => r['name'] == 'resource')
