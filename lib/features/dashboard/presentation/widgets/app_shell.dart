@@ -18,30 +18,32 @@ class AppShell extends ConsumerWidget {
   final Widget child;
   final bool teacher;
 
-  int get _selectedIndex {
+  int _selectedIndex(bool assistant) {
     if (teacher) {
       return switch (currentLocation) {
         '/teacher/courses' => 1,
-        '/teacher/work' => 2,
+        '/teacher/interventions' => 2,
+        '/teacher/work' => assistant ? 3 : 2,
         '/teacher/calendar' => 3,
         '/teacher/profile' => 4,
         _ => 0,
       };
     }
-    if (currentLocation.startsWith(AppRoutes.courses)) return 1;
+    if (assistant && currentLocation.startsWith(AppRoutes.studyPlan)) return 1;
+    if (currentLocation.startsWith(AppRoutes.courses)) return assistant ? 2 : 1;
     if (currentLocation.startsWith(AppRoutes.assignments)) return 2;
     if (currentLocation.startsWith(AppRoutes.progress)) return 3;
     if (currentLocation.startsWith(AppRoutes.profile)) return 4;
     return 0;
   }
 
-  void _navigate(BuildContext context, int index) {
+  void _navigate(BuildContext context, int index, bool assistant) {
     if (teacher) {
       context.go(
         [
           '/teacher',
           '/teacher/courses',
-          '/teacher/work',
+          assistant ? '/teacher/interventions' : '/teacher/work',
           '/teacher/calendar',
           '/teacher/profile',
         ][index],
@@ -52,9 +54,9 @@ class AppShell extends ConsumerWidget {
       case 0:
         context.go(AppRoutes.dashboard);
       case 1:
-        context.go(AppRoutes.courses);
+        context.go(assistant ? AppRoutes.studyPlan : AppRoutes.courses);
       case 2:
-        context.go(AppRoutes.assignments);
+        context.go(assistant ? AppRoutes.courses : AppRoutes.assignments);
       case 3:
         context.go(AppRoutes.progress);
       case 4:
@@ -64,6 +66,7 @@ class AppShell extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final assistant = ref.watch(appConfigProvider).enableLearningAssistant;
     final stagingNotice = ref.watch(appConfigProvider).isStaging
         ? const StagingReadOnlyNotice()
         : null;
@@ -77,10 +80,11 @@ class AppShell extends ConsumerWidget {
               child: Row(
                 children: [
                   NavigationRail(
-                    selectedIndex: _selectedIndex,
+                    selectedIndex: _selectedIndex(assistant),
                     extended: extended,
                     minExtendedWidth: 220,
-                    onDestinationSelected: (index) => _navigate(context, index),
+                    onDestinationSelected: (index) =>
+                        _navigate(context, index, assistant),
                     labelType: extended
                         ? NavigationRailLabelType.none
                         : NavigationRailLabelType.all,
@@ -92,17 +96,43 @@ class AppShell extends ConsumerWidget {
                       NavigationRailDestination(
                         icon: Icon(Icons.space_dashboard_outlined),
                         selectedIcon: Icon(Icons.space_dashboard_rounded),
-                        label: Text('Trang chủ'),
+                        label: Text(assistant ? 'Hôm nay' : 'Trang chủ'),
                       ),
                       NavigationRailDestination(
-                        icon: Icon(Icons.menu_book_outlined),
-                        selectedIcon: Icon(Icons.menu_book_rounded),
-                        label: Text('Khóa học'),
+                        icon: Icon(
+                          assistant && !teacher
+                              ? Icons.event_note_outlined
+                              : Icons.menu_book_outlined,
+                        ),
+                        selectedIcon: Icon(
+                          assistant && !teacher
+                              ? Icons.event_note_rounded
+                              : Icons.menu_book_rounded,
+                        ),
+                        label: Text(
+                          assistant && !teacher ? 'Kế hoạch' : 'Khóa học',
+                        ),
                       ),
                       NavigationRailDestination(
-                        icon: Icon(Icons.assignment_outlined),
-                        selectedIcon: Icon(Icons.assignment_rounded),
-                        label: Text(teacher ? 'Công việc' : 'Bài tập'),
+                        icon: Icon(
+                          assistant
+                              ? (teacher
+                                    ? Icons.support_agent_outlined
+                                    : Icons.menu_book_outlined)
+                              : Icons.assignment_outlined,
+                        ),
+                        selectedIcon: Icon(
+                          assistant
+                              ? (teacher
+                                    ? Icons.support_agent_rounded
+                                    : Icons.menu_book_rounded)
+                              : Icons.assignment_rounded,
+                        ),
+                        label: Text(
+                          assistant
+                              ? (teacher ? 'Theo dõi' : 'Khóa học')
+                              : (teacher ? 'Công việc' : 'Bài tập'),
+                        ),
                       ),
                       NavigationRailDestination(
                         icon: Icon(
@@ -137,23 +167,46 @@ class AppShell extends ConsumerWidget {
             child: _ShellBody(notice: stagingNotice, child: child),
           ),
           bottomNavigationBar: NavigationBar(
-            selectedIndex: _selectedIndex,
-            onDestinationSelected: (index) => _navigate(context, index),
+            selectedIndex: _selectedIndex(assistant),
+            onDestinationSelected: (index) =>
+                _navigate(context, index, assistant),
             destinations: [
               NavigationDestination(
                 icon: Icon(Icons.space_dashboard_outlined),
                 selectedIcon: Icon(Icons.space_dashboard_rounded),
-                label: 'Trang chủ',
+                label: assistant ? 'Hôm nay' : 'Trang chủ',
               ),
               NavigationDestination(
-                icon: Icon(Icons.menu_book_outlined),
-                selectedIcon: Icon(Icons.menu_book_rounded),
-                label: 'Khóa học',
+                icon: Icon(
+                  assistant && !teacher
+                      ? Icons.event_note_outlined
+                      : Icons.menu_book_outlined,
+                ),
+                selectedIcon: Icon(
+                  assistant && !teacher
+                      ? Icons.event_note_rounded
+                      : Icons.menu_book_rounded,
+                ),
+                label: assistant && !teacher ? 'Kế hoạch' : 'Khóa học',
               ),
               NavigationDestination(
-                icon: Icon(Icons.assignment_outlined),
-                selectedIcon: Icon(Icons.assignment_rounded),
-                label: teacher ? 'Công việc' : 'Bài tập',
+                icon: Icon(
+                  assistant
+                      ? (teacher
+                            ? Icons.support_agent_outlined
+                            : Icons.menu_book_outlined)
+                      : Icons.assignment_outlined,
+                ),
+                selectedIcon: Icon(
+                  assistant
+                      ? (teacher
+                            ? Icons.support_agent_rounded
+                            : Icons.menu_book_rounded)
+                      : Icons.assignment_rounded,
+                ),
+                label: assistant
+                    ? (teacher ? 'Theo dõi' : 'Khóa học')
+                    : (teacher ? 'Công việc' : 'Bài tập'),
               ),
               NavigationDestination(
                 icon: Icon(

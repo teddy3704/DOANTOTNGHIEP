@@ -1,5 +1,51 @@
 # Progress Report
 
+## 06/10/2026 — Learning decision support extension (product/runtime PASS)
+
+- Continued from verified `06ad157` on `innovation-study-planner-intervention`;
+  preserved main, prior milestones, working academic API and original reports.
+- Added deterministic, explainable assignment priorities and personal study
+  planning; Teacher attention, scoped support notes, follow-up history and
+  source snapshots. Flutter staging uses repository contracts and real API
+  adapters. Official submission/quiz/grading still belong exclusively to LMS.
+- Applied incremental migration after successful rehearsal/rollback; private
+  baseline backup retained. Verified 3 schemas, 42 tables (35 lms + 7 app),
+  20 views, 42 PK, 45 FK, 588 columns. Original rows, lms columns and derived
+  views are unchanged.
+- Backend typecheck/build/format-check and 82/82 tests PASS. Local real
+  CRUD/persistence/scope API smoke 181 checks PASS; evidence in
+  `evidence/innovation/local-smoke.json`. Final Flutter format/analyze PASS;
+  224 tests PASS + 1 opt-in live test skipped; live contract separately PASS.
+  Contrast/500-character note fixes verified by 44 targeted new-UI tests using
+  AppTheme.light at 320/390px and text scale 1.3. Stale validation message after
+  editing Teacher form fixed via onUserInteraction, regression test included.
+- Backend `a0c2cb7` Live on existing Render from innovation branch; public
+  regression 165 checks PASS. Environment/database secret unchanged; latest
+  visible logs have 0 secret-like matches. No main/history rewrite.
+- Final APK rebuilt PASS (17.4s), installed/force-stop/relaunch Success:
+  221,242,818 bytes, package vn.edu.dlu.lmsmobile, minSdk 24/targetSdk 36 at
+  `D:\DLU-LMS\Artifacts\DLU_LMS_Support_Innovation_Final_Debug.apk`, SHA256
+  `D34037F56D4D456D74B119E627A802DCEE4B70283EA7D328792BD70763B6AF06`.
+- Runtime PASS: SV001 creates plan; Android reminder delivered at 17:22 with
+  generic title/body; edit to 60 minutes/note, postpone 07/10, handled cancels
+  reminder without changing unfinished LMS status. SV002 week stays empty;
+  GV001 has no Student nav. SV001 relogin restores exact handled state.
+- Teacher scoped action with 09/10 follow-up persists through APK update/restart;
+  follow-up note → resolved → closed history PASS. No causal-improvement claim.
+  Fifteen actual PNGs in `evidence/mobile/innovation-final/`; final clean form
+  recaptured as 09. Only our test plan was deleted via confirmed UI for replay;
+  no LMS data mutation/reset. Backend audit 0 vulnerabilities. Final read-only
+  integrity PASS: original rows/columns/views unchanged, 42/20/588 catalog;
+  plan cleanup persists at 0 and exact Teacher resolved case/history persists
+  with unchanged 29% progress/4 overdue, followUpAt null.
+- 07/10 handoff recheck: candidate/index scan PASS (416 files; zero secret/index/
+  private-config/forbidden-artifact matches); diff check PASS. Restarted existing
+  AVD and installed app, Student Today restored with 0 plans; no new build or
+  database mutation. Current app process log buffer: zero matched Flutter,
+  RenderFlex, crash, ANR, navigation or uncaught-async errors. Focused feature
+  commit/non-force push receipt is returned in the final handoff; exact hash in Git.
+  Historical entries remain.
+
 ## 23/09/2026 — Đóng băng tính năng và chuẩn bị bảo vệ
 
 - Giữ nguyên source đã xác minh ở `a276ef2`: database GROUP_39_20, Render staging, API Student/Teacher chỉ đọc, Flutter analyze PASS, 167 test PASS, backend 54 test PASS và APK debug staging đã cài.

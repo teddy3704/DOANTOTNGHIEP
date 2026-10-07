@@ -41,6 +41,11 @@ final class ConfigurationFailure extends AppFailure {
   const ConfigurationFailure(super.message, {super.code, super.diagnostic});
 }
 
+/// Locally validated or sanitized server workflow input failure.
+final class ValidationFailure extends AppFailure {
+  const ValidationFailure(super.message, {super.code, super.diagnostic});
+}
+
 sealed class AppFailureDiagnostic {
   const AppFailureDiagnostic();
 }

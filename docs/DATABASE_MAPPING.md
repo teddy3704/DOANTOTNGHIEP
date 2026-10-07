@@ -1,6 +1,44 @@
 # Database Mapping
 
-## GROUP_39_20 — current development/staging runtime
+## Incremental app-owned extension — 06/10/2026
+
+The verified GROUP_39_20 baseline is preserved: 35 `lms` tables, 4 original `app`
+tables and 20 derived views. After successful transactional rehearsal/rollback,
+the incremental migration was applied to the approved candidate and verified.
+**Actual extended catalog:** 3 schemas, 42 tables (35 `lms` + 7 `app`), 20 views,
+42 PK, 45 FK, 588 physical columns. All original row digests, `lms` columns and
+derived view definitions remain unchanged. Render `a0c2cb7` is now Live on the
+same configured database without secret/environment change; public regression
+165 checks PASS. Installed Mobile verifies Student plan create/edit/handled/
+restore and Teacher action/follow-up/resolved-history persistence across restart.
+Deleting only our test plan used the confirmed app UI; official LMS records
+were unchanged. These results verify the app-owned boundary, not production DLU.
+The final read-only verification after runtime also PASS: original table rows,
+`lms` columns and derived views unchanged, catalog remains 42 tables/20 views/
+588 columns. SV001 plan cleanup persists at count 0; the exact Teacher resolved
+case/history persists with unchanged observed progress 29% and 4 overdue tasks.
+
+| New table | Domain ownership | Verified source relationship |
+|---|---|---|
+| `app.study_plan_items` | Personal scheduled session, duration, note, planned/handled status and source snapshot | Owner → `lms."user"`; assignment → `lms.assign`; course → `lms.course` |
+| `app.teacher_interventions` | Teacher action, next follow-up, reasons, baseline snapshot and open/following_up/resolved status | Owner and student → `lms."user"`; course → `lms.course` |
+| `app.intervention_followups` | Append-only support note, outcome and observed progress/pending/overdue snapshot | Parent → `app.teacher_interventions` |
+
+The migration adds 3 PK and 7 FK with supporting indexes. It changes no `lms`
+column, row or constraint and no derived view. Plan completion does not update
+assignment submission or course completion. Support resolution does not update
+grades. Owner/role/enrolment/visibility are checked in parameterized SQL; no
+mobile SQL connection or direct academic mutation is introduced.
+
+`tool/innovation_database.mjs` compares original row digests, `lms` columns and
+view definitions against the private off-repository baseline backup. Startup
+does not migrate. The down migration refuses to drop nonempty workflow tables;
+after records exist, code rollback retains data pending export/review. Exact
+schema and rollback reasoning: `INNOVATION_ARCHITECTURE.md`.
+
+Earlier catalog counts below remain evidence of their dated baseline only.
+
+## GROUP_39_20 baseline — historical verified development/staging runtime
 
 Actual candidate catalog: lms/app/derived; 35+4 physical tables; 20 derived views;
 39 PK; 38 FK; 548 columns. Runtime proof and differences are recorded in

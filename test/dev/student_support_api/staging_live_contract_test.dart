@@ -4,6 +4,8 @@ import 'package:dlu_lms_mobile/dev/student_support_api/student_support_repositor
 import 'package:dlu_lms_mobile/dev/student_support_api/student_support_staging_config.dart';
 import 'package:dlu_lms_mobile/dev/student_support_api/staging_student_identity_provider.dart';
 import 'package:dlu_lms_mobile/dev/student_support_api/teacher_support_api_repository.dart';
+import 'package:dlu_lms_mobile/dev/student_support_api/study_planner_api_repository.dart';
+import 'package:dlu_lms_mobile/dev/student_support_api/intervention_api_repository.dart';
 
 class _Storage implements StagingIdentityStorage {
   String? value;
@@ -55,6 +57,11 @@ void main() {
           hasLength(10),
         );
         await StagingCalendarRepository(client).getUpcomingEvents();
+        final planner = StudyPlannerApiRepository(client);
+        final suggestions = await planner.getRecommendations();
+        expect(suggestions, isNotEmpty);
+        expect(suggestions.every((r) => r.reasons.isNotEmpty), isTrue);
+        await planner.getPlan();
         for (final course in courses) {
           expect(
             await StagingCourseContentRepository(client).getSections(course.id),
@@ -66,6 +73,9 @@ void main() {
       await identity.select('GV001');
       final teacher = TeacherSupportApiRepository(client);
       final overview = await teacher.getOverview();
+      final support = InterventionApiRepository(client);
+      expect(await support.getAttention(), isNotEmpty);
+      await support.getInterventions();
       expect(overview.courses, hasLength(2));
       for (final course in overview.courses) {
         expect(await teacher.getStudents(course.id), isNotEmpty);

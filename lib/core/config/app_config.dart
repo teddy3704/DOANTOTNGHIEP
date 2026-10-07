@@ -7,6 +7,7 @@ class AppConfig {
     required this.environment,
     required Uri moodleBaseUri,
     required this.enableDevFixtures,
+    this.enableLearningAssistant = false,
     this.appName = 'DLU LMS Mobile',
   }) : moodleBaseUri = _normalizeMoodleOrigin(moodleBaseUri) {
     if (environment != AppEnvironment.development && enableDevFixtures) {
@@ -42,11 +43,13 @@ class AppConfig {
     environment: AppEnvironment.staging,
     moodleBaseUri: Uri.parse('https://lms.dlu.edu.vn'),
     enableDevFixtures: false,
+    enableLearningAssistant: true,
   );
 
   final AppEnvironment environment;
   final Uri moodleBaseUri;
   final bool enableDevFixtures;
+  final bool enableLearningAssistant;
   final String appName;
 
   bool get isProduction => environment == AppEnvironment.production;

@@ -1,5 +1,41 @@
 # Đối chiếu báo cáo nhóm với hệ thống đang chạy
 
+## Phần mở rộng innovation — 06/10/2026 (product/runtime PASS)
+
+Phần mới không còn chỉ là màn hình xem LMS: sinh viên có ưu tiên có giải thích
+và kế hoạch học cá nhân; giảng viên có danh sách cần chú ý, ghi nhận hỗ trợ và
+lịch sử theo dõi. Đây là **rule-based decision support**, không AI, không dự báo
+kết quả học vụ. Chỉ dùng trường API đã có; không suy đoán chuyên cần, không hoạt
+động hoặc điểm thấp từ dữ liệu thiếu.
+
+Bổ sung ba bảng `app.*` cho plan/intervention/follow-up, không dựng backend thứ
+hai và không đổi 35 bảng `lms` hay 20 derived views. Candidate migration đã apply
+sau rehearsal/rollback PASS: **3 schema, 42 bảng (35 lms + 7 app), 20 views,
+42 PK, 45 FK, 588 cột**; original rows/lms columns/view definitions không đổi.
+Backend 82 tests, local real API 181 checks, public regression 165 checks PASS.
+Render `a0c2cb7` Live chỉ từ nhánh innovation, environment/database secret không
+đổi. Flutter format/analyze/224 tests PASS (1 opt-in skipped, separately PASS);
+responsive UI PASS ở 320/390px, text scale 1.3, form validation đã sửa/test.
+APK cuối rebuilt/cài/relaunch thành công. Student plan create/edit/postpone/
+handled/restore PASS; notification delivered 17:22, handled cancels alarm.
+Teacher action → follow-up → resolved/history persist sau restart PASS; đổi
+SV001/SV002/GV001 không lẫn scope. 15 ảnh thật ở `evidence/mobile/innovation-final/`.
+Final candidate/index secret scan và diff check PASS. Commit/push receipt bàn
+giao riêng; lấy exact hash từ Git, không dùng hash dự kiến trong báo cáo.
+Số 39/20 trong Word và phần dưới là baseline lịch sử; không trộn với extension.
+
+Khi biên tập báo cáo, phân biệt: học vụ đọc staging từ dữ liệu mẫu; thao tác ghi
+thuộc ứng dụng; nộp bài/quiz/chấm điểm chính thức ở DLU LMS. “Đã xử lý” trong kế
+hoạch không có nghĩa “đã nộp”; “đã kết thúc hỗ trợ” không có nghĩa đã cải thiện
+điểm. Snapshot chỉ so sánh quan sát nguồn trước/sau, không chứng minh quan hệ
+nhân quả. DLU auth/Web Services vẫn **TO_VERIFY_DLU**.
+
+Word nguồn được giữ nguyên. Dùng `PRODUCT_DIFFERENTIATION.md`,
+`REVIEWER_FEEDBACK_RESPONSE.md`, `PRESENTATION_UPDATE_PLAN.md` và
+`INNOVATION_ARCHITECTURE.md` để cập nhật phần đóng góp/kiến trúc đã được kiểm tra;
+screenshot lịch sử vẫn cần nhãn lịch sử, không dùng làm bằng chứng workflow
+mới. Các phần dưới là checkpoint đã đóng trước innovation.
+
 ## Bản chốt hội đồng — 23/09/2026
 
 Hai Word nguồn được giữ nguyên. Ma trận vị trí/câu thay thế nằm ở `docs/council/REPORT_CORRECTION_MATRIX.md`; bản sao DOCX đã sửa kỹ thuật ở `D:\DLU-LMS-FINAL-DEMO\05_REPORT\revised`. Số liệu hiện hành: GROUP_39_20 (3 schema, 39 bảng gồm 35 `lms` + 4 `app`, 20 view, 39 PK, 38 FK, 548 cột); backend Node.js/TypeScript/Fastify trên Render; Student và Teacher API thật chỉ đọc; Flutter 167 test và backend 54 test PASS. Word gốc từng nêu Spring Boot/JdbcTemplate/localhost:8080 và ảnh MVP cũ; các nội dung đó **không** mô tả runtime cuối. Bản Word sửa giữ ảnh MVP cũ nhưng gắn nhãn lịch sử; ảnh runtime cuối ở `evidence/mobile/group39-20-final/`.

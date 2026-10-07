@@ -1,5 +1,57 @@
 # Architecture
 
+## Learning decision support extension — 06/10/2026
+
+Branch `innovation-study-planner-intervention` extends the verified `06ad157`
+baseline; it does not replace the backend or modify official academic workflows.
+Academic reads remain scoped and read-only. The new, separate application write
+boundary persists personal study sessions and teacher support history in `app.*`.
+
+```text
+Flutter main_staging → HTTPS → existing Fastify API → scoped lms/derived reads
+                                      ↓
+                         deterministic, explained priorities
+                                      ↓
+                      app.study_plan_items / teacher_interventions
+                               / intervention_followups
+Device-local reminder scheduler ← personal study plan
+Official submission / quiz / grading / administration → DLU LMS only
+```
+
+`StudyPlannerRepository` and `InterventionRepository` isolate presentation from
+the actual staging adapters. `main_staging.dart` injects API implementations;
+production `main.dart` neither enables them nor falls back to sample data.
+Student Today/Plan and Teacher Today/Inbox/detail are role-scoped routes.
+Ownership is checked again in the API and SQL, not only by the navigation shell.
+
+Ranking uses available deadline, submission-state and progress fields for
+students; progress, pending and overdue task counts for teachers. It does not
+infer inactivity or low grades. Priority is high ≥65, medium ≥30, otherwise low.
+Reasons and stable tie-breaking make the heuristic explainable, not AI. Plan
+“handled” is personal tracking, not an LMS submission/completion. Teacher notes
+and follow-ups are app-owned actions, not sent messages, grades or causal proof
+of improvement. See `INNOVATION_ARCHITECTURE.md` for exact rules and safeguards.
+
+**Product/runtime gate:** PASS — migration applied and verified on candidate:
+3 schemas, 42 tables (35 `lms` + 7 `app`), 20 views, 42 PK, 45 FK, 588 columns.
+Original rows/`lms` columns/view definitions remain unchanged. Backend build,
+typecheck, format-check and 82/82 tests PASS; real local CRUD/scope smoke PASS
+(181 checks). Patched backend `a0c2cb7` is Live on the existing Render service
+from this innovation branch, with environment/database secret unchanged; public
+regression 165 checks PASS. Flutter format/analyze and 224 tests PASS, with
+1 opt-in live test skipped and separately executed PASS; responsive new UI
+verified with AppTheme.light at 320/390px and text scale 1.3. Final APK rebuilt,
+installed and force-stop/relaunched successfully.
+Student scheduling/edit/postpone/handled persists through update and relogin;
+Android study reminder delivered at 17:22 with generic text, then handled
+cancels it without changing LMS state. Teacher scoped action, follow-up and
+resolved history persist across restart; baseline/current snapshots are not
+causal improvement claims. SV002 and GV001 do not inherit SV001 plan/navigation.
+Fifteen actual screenshots are in `evidence/mobile/innovation-final/`.
+Final handoff secret/index and diff checks PASS. The focused feature-branch
+commit/push receipt is returned in the handoff; the exact hash is obtained from Git.
+All earlier sections below describe their dated historical checkpoints.
+
 ## Current GROUP_39_20 adapter boundary — 22/09/2026
 
 `DATABASE_MODEL=group_39_20` selects GroupStudentDataSource and GroupTeacherDataSource

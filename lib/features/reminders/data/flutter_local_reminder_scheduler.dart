@@ -147,8 +147,12 @@ class FlutterLocalReminderScheduler implements ReminderScheduler {
       await _gateway.schedule(
         notificationId: _notificationIdFor(reminder.id),
         scheduledAt: reminder.remindAt,
-        title: 'Nhắc việc học tập',
-        body: 'Bạn có một hạn nộp cần xem lại.',
+        title: reminder.assignmentId.startsWith('study-plan:')
+            ? 'Đến giờ học theo kế hoạch'
+            : 'Nhắc việc học tập',
+        body: reminder.assignmentId.startsWith('study-plan:')
+            ? 'Mở kế hoạch để bắt đầu buổi học của bạn.'
+            : 'Bạn có một hạn nộp cần xem lại.',
       );
     } on ReminderException {
       rethrow;

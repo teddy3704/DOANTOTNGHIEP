@@ -8,6 +8,80 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
 void main() {
+  for (final teacher in [false, true]) {
+    for (final width in [320.0, 390.0]) {
+      testWidgets('assistant navigation role=$teacher width=$width scaled', (
+        tester,
+      ) async {
+        tester.view.physicalSize = Size(width, 844);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        final paths = teacher
+            ? [
+                '/teacher',
+                '/teacher/courses',
+                '/teacher/interventions',
+                '/teacher/calendar',
+                '/teacher/profile',
+              ]
+            : [
+                AppRoutes.dashboard,
+                AppRoutes.studyPlan,
+                AppRoutes.courses,
+                AppRoutes.progress,
+                AppRoutes.profile,
+              ];
+        final labels = teacher
+            ? ['Hôm nay', 'Khóa học', 'Theo dõi', 'Lịch', 'Hồ sơ']
+            : ['Hôm nay', 'Kế hoạch', 'Khóa học', 'Tiến độ', 'Hồ sơ'];
+        final router = GoRouter(
+          initialLocation: paths.first,
+          routes: [
+            for (final path in paths)
+              GoRoute(
+                path: path,
+                builder: (context, state) => AppShell(
+                  teacher: teacher,
+                  currentLocation: state.uri.path,
+                  child: Text('page:$path'),
+                ),
+              ),
+          ],
+        );
+        addTearDown(router.dispose);
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              appConfigProvider.overrideWithValue(AppConfig.staging()),
+            ],
+            child: MaterialApp.router(
+              routerConfig: router,
+              builder: (context, child) => MediaQuery(
+                data: MediaQuery.of(
+                  context,
+                ).copyWith(textScaler: const TextScaler.linear(1.3)),
+                child: child!,
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        for (var index = 0; index < paths.length; index++) {
+          await tester.tap(find.text(labels[index]));
+          await tester.pumpAndSettle();
+          expect(find.text('page:${paths[index]}'), findsOneWidget);
+          expect(
+            tester
+                .widget<NavigationBar>(find.byType(NavigationBar))
+                .selectedIndex,
+            index,
+          );
+          expect(tester.takeException(), isNull);
+        }
+      });
+    }
+  }
   testWidgets('compact shell exposes five student destinations', (
     tester,
   ) async {
@@ -115,7 +189,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(
-      find.text('Dữ liệu mô phỏng phục vụ phát triển · Chỉ đọc'),
+      find.text('Dữ liệu mô phỏng · Học tập chính thức trên LMS'),
       findsOneWidget,
     );
     expect(tester.takeException(), isNull);
@@ -142,7 +216,7 @@ void main() {
     await tester.pumpAndSettle();
 
     final label = tester.widget<Text>(
-      find.text('Dữ liệu mô phỏng phục vụ phát triển · Chỉ đọc'),
+      find.text('Dữ liệu mô phỏng · Học tập chính thức trên LMS'),
     );
     expect(label.maxLines, 1);
     expect(label.overflow, TextOverflow.ellipsis);

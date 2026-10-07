@@ -20,6 +20,12 @@ import '../../core/widgets/staging_read_only_notice.dart';
 import '../../features/auth/domain/auth_session.dart';
 import '../../features/teacher/presentation/teacher_support_screen.dart';
 import '../../features/teacher/presentation/teacher_students_screen.dart';
+import '../../core/config/app_config.dart';
+import '../../features/study_planner/presentation/screens/student_today_screen.dart';
+import '../../features/study_planner/presentation/screens/study_plan_screen.dart';
+import '../../features/interventions/presentation/teacher_today_screen.dart';
+import '../../features/interventions/presentation/intervention_inbox_screen.dart';
+import '../../features/interventions/presentation/student_attention_detail_screen.dart';
 import 'app_routes.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -38,6 +44,7 @@ final routerRefreshProvider = Provider<RouterRefreshNotifier>((ref) {
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   final refresh = ref.watch(routerRefreshProvider);
+  final assistant = ref.watch(appConfigProvider).enableLearningAssistant;
 
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
@@ -83,7 +90,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         routes: [
           GoRoute(
             path: '/teacher',
-            builder: (context, state) => const TeacherSupportScreen(),
+            builder: (context, state) => assistant
+                ? const TeacherTodayScreen()
+                : const TeacherSupportScreen(),
+          ),
+          GoRoute(
+            path: '/teacher/interventions',
+            builder: (context, state) => const InterventionInboxScreen(),
           ),
           GoRoute(
             path: '/teacher/courses',
@@ -105,6 +118,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const ProfileScreen(),
           ),
         ],
+      ),
+      GoRoute(
+        path: '/teacher/attention/:courseId/:studentId',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => StagingReadOnlyFrame(
+          child: StudentAttentionDetailScreen(
+            courseId: state.pathParameters['courseId']!,
+            studentId: state.pathParameters['studentId']!,
+          ),
+        ),
       ),
       GoRoute(
         path: '/teacher/course/:courseId/students',
@@ -131,8 +154,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         routes: [
           GoRoute(
             path: AppRoutes.dashboard,
+            pageBuilder: (context, state) => NoTransitionPage(
+              child: assistant
+                  ? const StudentTodayScreen()
+                  : const DashboardScreen(),
+            ),
+          ),
+          GoRoute(
+            path: AppRoutes.studyPlan,
             pageBuilder: (context, state) =>
-                const NoTransitionPage(child: DashboardScreen()),
+                const NoTransitionPage(child: StudyPlanScreen()),
           ),
           GoRoute(
             path: AppRoutes.courses,

@@ -13,6 +13,7 @@ import 'package:dlu_lms_mobile/dev/student_support_api/student_support_staging_c
 import 'package:dlu_lms_mobile/features/auth/domain/auth_repository.dart';
 import 'package:dlu_lms_mobile/features/auth/domain/auth_session.dart';
 import 'package:dlu_lms_mobile/features/auth/domain/student_identity_provider.dart';
+import 'package:dlu_lms_mobile/features/interventions/presentation/intervention_providers.dart';
 import 'package:dlu_lms_mobile/features/teacher/domain/teacher_support_repository.dart';
 import 'package:dlu_lms_mobile/features/teacher/presentation/teacher_support_screen.dart';
 import 'package:flutter/material.dart';
@@ -161,6 +162,8 @@ void main() {
           ),
         ),
         teacherSupportRepositoryProvider.overrideWithValue(repository),
+        teacherAttentionProvider.overrideWith((ref) async => []),
+        teacherInterventionsProvider.overrideWith((ref) async => []),
       ],
     );
     addTearDown(container.dispose);
@@ -168,7 +171,7 @@ void main() {
       UncontrolledProviderScope(container: container, child: const DluLmsApp()),
     );
     await tester.pumpAndSettle();
-    expect(find.text('Góc giảng dạy'), findsOneWidget);
+    expect(find.text('Hôm nay cần hỗ trợ ai?'), findsOneWidget);
     final router = container.read(appRouterProvider);
     router.go('/assignments');
     await tester.pumpAndSettle();

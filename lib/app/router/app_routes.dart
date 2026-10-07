@@ -4,6 +4,7 @@ abstract final class AppRoutes {
   static const dashboard = '/dashboard';
   static const courses = '/courses';
   static const assignments = '/assignments';
+  static const studyPlan = '/study-plan';
   static const progress = '/progress';
   static const calendar = '/calendar';
   static const reminders = '/reminders';

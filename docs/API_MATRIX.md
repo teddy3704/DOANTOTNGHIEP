@@ -1,5 +1,55 @@
 # DLU Moodle API Matrix
 
+## Application-owned innovation contract — 06/10/2026
+
+These are additions to the existing **development/staging Fastify API**, not
+verified DLU Web Services. The following closed contracts passed real candidate
+local CRUD/persistence/scope smoke: **181 checks**, evidence at
+`evidence/innovation/local-smoke.json`; backend build/typecheck/format-check and
+82/82 tests PASS. Patched backend `a0c2cb7` is **Live** from the innovation branch
+on the existing Render service; environment/database secret unchanged. Public
+workflow **181 checks PASS** (`evidence/innovation/staging-smoke.json`); separate
+patched GET-only regression **165 checks PASS** (runtime checkpoint / Final QA). Real
+Student plan create/edit/postpone/handled/restore and Teacher action/follow-up/
+resolved-history persistence are verified through real API on the installed
+final APK. Student/Teacher and SV001/SV002 context isolation PASS. Android study
+reminder delivery is observed separately; it is not an API or LMS notification.
+Final read-only reread confirms SV001 has 0 plans after its confirmed test-plan
+cleanup, and the exact Teacher resolved case retains its follow-up history;
+`followUpAt=null` removes it from the due queue. Academic unfinished state is
+unchanged. Source metrics remain 29% progress/4 overdue in baseline/current/
+follow-up observations, not an invented improvement.
+The older Student and Teacher academic GET contracts are preserved.
+
+| Method | Path under `/api/v1` | Scope / purpose |
+|---|---|---|
+| GET | `/me/recommendations` | Current student's explained assignment priorities |
+| GET | `/me/study-plan` | Current student's persisted personal sessions |
+| POST | `/me/study-plan/items` | Schedule an accessible recommendation |
+| PATCH / DELETE | `/me/study-plan/items/{id}` | Edit, postpone, mark handled / remove own session |
+| GET | `/me/teacher/attention` | Students within currently assigned course scope |
+| GET | `/me/teacher/interventions` | Own scoped support records and snapshots |
+| GET | `/me/teacher/followups` | Own unresolved follow-ups due now |
+| GET / PATCH | `/me/teacher/interventions/{id}` | Read / update own support record |
+| POST | `/me/teacher/interventions` | Record a scoped app-owned support action |
+| POST | `/me/teacher/interventions/{id}/followups` | Append outcome and fresh observed snapshot |
+
+Student requests use the existing allowlisted `X-Demo-Student-Code`; Teacher
+requests use `X-Demo-Teacher-Code`. Mixed, raw or unknown identities are rejected.
+These selectors are not production authentication. Client-supplied owner IDs,
+scores, snapshots and official LMS state are not accepted. Backend rechecks
+ownership, course role, enrolment and visibility. Invalid/inaccessible IDs use
+safe errors; writes are bounded and limited to 30 per minute per actor.
+
+Source of truth: `integration-api/src/http/innovation-routes.ts`; OpenAPI is
+generated from actual schemas. `tool/innovation_smoke.mjs` exercises candidate
+and public staging, including persistence and forbidden academic/cross-role
+writes. Status/results belong in `PROJECT_STATUS.md`, not inferred from this
+contract table. DLU auth/Web Services remain **TO_VERIFY_DLU**; official
+submission, quiz and grading remain **LMS ONLY**.
+
+The dated sections below are historical and do not override this extension.
+
 ## GROUP_39_20 local integration API (not DLU Web Services)
 
 Student's existing GET routes/DTOs passed candidate HTTP smoke through the new

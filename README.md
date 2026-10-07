@@ -2,7 +2,53 @@
 
 Đồ án “Xây dựng ứng dụng di động và hỗ trợ học tập trên nền tảng LMS” của nhóm Đại học Đà Lạt. Ứng dụng Flutter giúp sinh viên xem học phần, bài cần làm, tiến độ, điểm và lời nhắc; giúp giảng viên theo dõi lớp, công việc và sinh viên cần hỗ trợ. [DLU LMS](https://lms.dlu.edu.vn/) vẫn là hệ thống chính thức cho xác thực, nộp bài, quiz, chấm điểm và quản trị học phần.
 
-## Bản đã xác minh ngày 23/09/2026
+## Phần mở rộng hiện tại — 06/10/2026
+
+`innovation-study-planner-intervention` bổ sung **Student Smart Study Planner**
+và **Teacher Intervention Inbox** vào hệ thống hiện có. Sinh viên nhận ưu tiên
+có lý do, tạo/sửa/hoãn kế hoạch học và nhắc giờ; giảng viên ghi nhận hỗ trợ, hẹn
+theo dõi và xem lịch sử/snapshot. Thao tác này chỉ ghi dữ liệu thuộc ứng dụng
+trong `app.*`; nộp bài, quiz và chấm điểm vẫn ở LMS.
+
+Đây là quy tắc có thể giải thích từ deadline, trạng thái bài và tiến độ hiện có,
+**không AI**, không tự suy ra dữ liệu thiếu. Flutter staging dùng API repository
+thật; lỗi mạng không đổi sang fixture. Production entrypoint không chọn dữ liệu
+mẫu. Identity staging không phải tài khoản hay xác thực DLU.
+
+**PRODUCT/RUNTIME PASS:** migration đã áp dụng và xác minh trên candidate: 3 schema,
+42 bảng (35 `lms` + 7 `app`), 20 views, 42 PK, 45 FK, 588 cột. Original rows,
+`lms` columns và derived views không đổi. Backend build/typecheck/format-check
+và 82/82 tests PASS; local real API CRUD/scope smoke 181 checks PASS
+(`evidence/innovation/local-smoke.json`). Render backend `a0c2cb7` đã **Live** trên
+nhánh innovation ở service hiện hữu; environment/database secret không đổi.
+Public workflow 181 checks PASS (`evidence/innovation/staging-smoke.json`);
+separate patched read-only regression 165 checks PASS (runtime checkpoint / Final QA).
+Flutter format/analyze PASS, **224 tests PASS + 1 opt-in live test skipped**;
+live contract đã chạy riêng PASS. Responsive UI dùng AppTheme.light, 320/390px,
+text scale 1.3; lỗi validation tồn đọng khi sửa form đã được sửa và regression
+test PASS. APK cuối build 17.4s, cài/force-stop/relaunch thành công trên
+`DLU_LMS_Pixel`: `D:\DLU-LMS\Artifacts\DLU_LMS_Support_Innovation_Final_Debug.apk`
+(221,242,818 bytes; package `vn.edu.dlu.lmsmobile`, minSdk 24, targetSdk 36).
+Student tạo/sửa/hoãn/handled và restore kế hoạch đúng; nhắc học đã **delivered**
+lúc 17:22 với nội dung generic, handled hủy alarm và không thay trạng thái LMS.
+Teacher ghi nhận hỗ trợ → follow-up → resolved/history persist qua restart;
+đổi SV001/SV002/GV001 không lẫn plan hay navigation. [15 PNG thật](evidence/mobile/innovation-final/)
+ghi lại các bước đã kiểm tra. Chỉ xóa plan kiểm thử của mình qua UI xác nhận để
+trình diễn lại, không xóa dữ liệu LMS. Final candidate/index secret scan và diff
+check PASS. Commit hash tra từ Git; receipt push nhánh innovation được bàn giao
+ở kết quả cuối, không dùng hash suy đoán. Kết quả cuối nằm ở
+[PROJECT_STATUS](docs/PROJECT_STATUS.md); 167/54 dưới đây chỉ là baseline lịch sử.
+Final read-only verification after runtime also PASS: original rows/columns/
+views unchanged, SV001 plan cleanup persists, Teacher resolved case/history
+persists. [Final QA](docs/INNOVATION_FINAL_QA.md) records these actual checks.
+
+APK SHA256: `D34037F56D4D456D74B119E627A802DCEE4B70283EA7D328792BD70763B6AF06`.
+
+- [Đóng góp sản phẩm](docs/PRODUCT_DIFFERENTIATION.md), [phản hồi góp ý](docs/REVIEWER_FEEDBACK_RESPONSE.md).
+- [Kiến trúc innovation](docs/INNOVATION_ARCHITECTURE.md), [truy vết](docs/FINAL_TRACEABILITY_MATRIX.md).
+- [Kịch bản innovation](demo/COUNCIL_DEMO_SCRIPT_INNOVATION.md), [checklist](demo/DEMO_CHECKLIST.md).
+
+## Baseline đã xác minh ngày 23/09/2026 (lịch sử, được giữ nguyên)
 
 | Thành phần | Trạng thái |
 |---|---|

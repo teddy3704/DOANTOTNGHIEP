@@ -1,5 +1,42 @@
 # Checklist trình diễn LMS Support — GROUP_39_20
 
+## Innovation readiness — 06/10/2026
+
+Product/runtime gate PASS: candidate apply/verify, backend 82/82 tests, local
+real API 181 checks, public regression 165 checks và Flutter format/analyze/224
+tests PASS (1 opt-in live test skipped, separately executed PASS). Render
+`a0c2cb7` Live; final APK rebuilt/installed/relaunched. Student plan/reminder
+delivery and Teacher action/follow-up/closure/persistence verified on emulator.
+Handoff scans PASS on 07/10; the final commit/push receipt is returned separately
+and the exact hash comes from Git. Baseline 23/09 below is history, not the current artifact.
+
+- [x] Existing Render `a0c2cb7` Live; public contract/security regression 165 checks PASS; environment/database secret unchanged.
+- [x] Candidate migration applied/verified; original rows/`lms` columns/20 views unchanged. Actual catalog: 3 schemas, 42 tables (35 lms + 7 app), 42 PK, 45 FK, 588 columns.
+- [x] Local real API CRUD/persistence/scope smoke: 181 checks PASS, `evidence/innovation/local-smoke.json`.
+- [x] Real API CRUD 181 checks and patched public regression 165 checks PASS; persistence, denied academic writes and scope isolation verified.
+- [x] Existing `DLU_LMS_Pixel` online; installed final innovation APK successfully, no new AVD or Android Studio.
+- [x] Student: create → edit 60-minute duration/note → postpone 07/10 17:22 → handled; exact state restored after SV001 relogin/restart. LMS remains unfinished.
+- [x] Android study reminder delivered at 17:22; generic title/body, no PII (`12_study_reminder.png`); handled cancels alarm.
+- [x] Teacher: attention → scoped student detail → action/09/10 follow-up → persisted restart → follow-up note → resolved/history; no causal-improvement claim.
+- [x] SV002 week empty (no SV001 plan); GV001 has no Student navigation; switching back restores SV001's exact handled state.
+- [x] Official LMS handoff still works; no official submission, quiz, grading or administrative write.
+- [x] Responsive AppTheme.light at 320/390px and text scale 1.3; async/form states tested; stale form validation fixed with regression coverage.
+- [x] Backend typecheck/build/format-check and 82/82 tests PASS; audit 0 vulnerabilities. Flutter format/analyze and 224 tests PASS, 1 opt-in skipped; separate live-contract PASS.
+- [x] Final APK rebuild 17.4s/install/force-stop/relaunch Success; 221,242,818 bytes; package `vn.edu.dlu.lmsmobile`, minSdk 24, targetSdk 36; SHA256 `D34037F56D4D456D74B119E627A802DCEE4B70283EA7D328792BD70763B6AF06`; `D:\DLU-LMS\Artifacts\DLU_LMS_Support_Innovation_Final_Debug.apk`.
+- [x] All 15 actual PNGs in `evidence/mobile/innovation-final/`; `09_intervention_action.png` recaptured with final clean form.
+- [x] Final candidate/index secret scan and `git diff --check` PASS; no private config, cache or APK staged.
+- Git handoff: focused commit and non-force push only to `innovation-study-planner-intervention`; verify final receipt / `git log -1`, never main/history rewrite.
+- [ ] Follow `COUNCIL_DEMO_SCRIPT_INNOVATION.md`; explain synthetic data, app-owned writes and DLU integration limits honestly.
+- [ ] Hide private connection/environment tabs; no database credential in output, screenshots, slides or exports.
+
+Only our test plan was deleted through the confirmed UI to allow repeating the
+presentation; no LMS record was changed. Do not reset or restore the database.
+Keep verified
+old evidence and private backup for recovery; when offline, use captured evidence
+while the app shows its honest retry state, never a silent fixture fallback.
+
+## Historical baseline checklist — 23/09/2026
+
 Kiểm tra lại trước buổi báo cáo; dữ liệu phát triển là dữ liệu mẫu, không phải hồ sơ DLU.
 
 QA 23/09: Student/Teacher/API/APK/screenshots PASS. Render Free cold start từng

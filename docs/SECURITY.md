@@ -1,5 +1,58 @@
 # Security Baseline
 
+## App-owned workflow controls — 06/10/2026
+
+Academic queries still use the existing read-only database boundary. The new
+writer accepts only reviewed, parameterized `app.*` statements with short
+transactions; no submission, quiz, grade or administration mutation is enabled.
+Candidate migration applied after successful rehearsal/rollback; verification
+confirms original rows, `lms` columns and views unchanged. Backend 82/82 tests
+and real local CRUD/scope smoke (181 checks) PASS, including forbidden academic
+writes and identity/ownership controls. Render `a0c2cb7` is Live on the innovation
+branch with environment/database secret unchanged. Public regression 165 checks
+PASS; backend audit reports 0 vulnerabilities. Latest visible deployment-log
+scan has 0 secret-like matches. Final candidate/index secret scan PASS: 416
+files, zero actual/indexed secret matches, private config or forbidden staged
+artifacts; diff check PASS. Actual runtime ownership tests PASS. This log
+observation is limited to the visible latest logs, not proof of every historical
+log. Historical results below are not final innovation verification.
+
+- Owner identity is derived from the fixed staging alias map, never request
+  user IDs. SQL rechecks active course roles, student enrolment, visibility and
+  ownership on reads and mutations. Cross-owner and nonexistent records share
+  the same inaccessible response. Mixed role headers are rejected.
+- Closed schemas reject unknown fields, invalid dates/IDs, invalid status and
+  scores; notes are capped at 500 characters, duration at 5–480 minutes and
+  write bodies at 8 KiB. Source reasons/snapshots are server-owned. Record
+  bounds, one active intervention per teacher/course/student and 30 workflow
+  writes/minute/actor constrain public synthetic staging abuse.
+- Flutter retains HTTPS-origin and method/path allowlists, sends only the active
+  role header and rejects stale responses after identity switches. Providers
+  invalidate per session; forms recheck the current owner before writing.
+  No fixture fallback follows an API failure.
+- Persisted personal plans and teacher notes are application data, not official
+  academic records. Reminders stay device-local with generic notification text.
+  Reminder failure reports the already-saved plan truthfully rather than losing
+  authoritative state or claiming a failed save. Android delivery observed at
+  17:22 uses generic title/body without PII; handled cancels that alarm.
+  SV002 has no SV001 plan and GV001 no Student navigation; SV001 relogin restores
+  its exact state. Teacher notes/follow-up/history persist across APK update/
+  restart without official academic mutation. Only our test plan was deleted
+  through confirmed UI; no database reset or LMS deletion occurred.
+  Final read-only integrity check after runtime again confirms original rows,
+  `lms` columns and derived views unchanged; the academic assignment remains
+  unfinished, not implicitly submitted by marking the plan handled.
+- Existing private candidate configuration is consumed silently. The baseline
+  backup is off-repository; credentials, raw database errors, APKs and backups
+  are excluded from Git/export/screenshots. Secret/index scan remains a final
+  required gate.
+
+The public demonstration selector is **not production authentication**. This
+synthetic environment must not hold real PII. Production requires approved DLU
+authentication/capabilities and least-privilege database credentials; client role
+UI and staging aliases are not substitutes. No new dependency or credential
+rotation is required by this extension.
+
 ## GROUP_39_20 runtime controls
 
 Private candidate configuration is now populated and consumed silently by CLI.

@@ -16,8 +16,12 @@ import 'features/grades/domain/grade_repository.dart';
 import 'features/profile/domain/user_repository.dart';
 import 'dev/student_support_api/teacher_support_api_repository.dart';
 import 'features/teacher/domain/teacher_support_repository.dart';
+import 'dev/student_support_api/study_planner_api_repository.dart';
+import 'dev/student_support_api/intervention_api_repository.dart';
+import 'features/study_planner/domain/study_planner_repository.dart';
+import 'features/interventions/presentation/intervention_providers.dart';
 
-/// Explicit, read-only entrypoint for the verified Student Support staging API.
+/// Explicit staging entrypoint: academic reads and app-owned learning support.
 ///
 /// It is not selected by `main.dart`, does not implement DLU password login, and
 /// never falls back from a production API request to development data.
@@ -49,6 +53,12 @@ void main() {
         ),
       ),
       teacherSupportRepositoryProvider.overrideWithValue(teacherRepository),
+      studyPlannerRepositoryProvider.overrideWithValue(
+        StudyPlannerApiRepository(client),
+      ),
+      interventionRepositoryProvider.overrideWithValue(
+        InterventionApiRepository(client),
+      ),
       courseRepositoryProvider.overrideWithValue(
         StagingCourseRepository(client),
       ),

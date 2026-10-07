@@ -5,6 +5,7 @@ String userMessageFor(Object error) => switch (error) {
   AuthenticationFailure() =>
     'Không thể đăng nhập. Vui lòng kiểm tra thông tin và thử lại.',
   PermissionFailure() => 'Bạn không có quyền thực hiện thao tác này.',
+  ValidationFailure() => error.message,
   TimeoutFailure() =>
     'Kết nối mất quá nhiều thời gian. Vui lòng kiểm tra mạng và thử lại.',
   NetworkFailure() => 'Không thể kết nối. Vui lòng kiểm tra mạng và thử lại.',

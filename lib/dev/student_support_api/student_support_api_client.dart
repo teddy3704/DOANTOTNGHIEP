@@ -10,7 +10,8 @@ import 'student_support_staging_config.dart';
 
 typedef StudentSupportJson = Map<String, Object?>;
 
-/// HTTPS-only, GET-only client for the verified Student Support staging API.
+/// HTTPS-only client for scoped staging reads and app-owned support workflows.
+/// Academic resources remain GET-only; writes have a separate closed allowlist.
 ///
 /// It deliberately lives in the development layer. It never participates in the
 /// production composition root and does not model the development identity as a
@@ -94,6 +95,76 @@ class StudentSupportApiClient {
 
   Future<StudentSupportJson> getOverview() => _getObject('/api/v1/me/overview');
 
+  /// Only explicitly reviewed app-owned endpoints may use these methods.
+  Future<List<StudentSupportJson>> getWorkflowList(
+    String path, {
+    DluRole role = DluRole.student,
+  }) async {
+    _validateWorkflow('GET', path, role);
+    final response = await _request(path, role: role);
+    final envelope = _expectObject(response.data);
+    final data = envelope['data'];
+    final meta = _expectObject(envelope['meta']);
+    if (data is! List || meta['count'] != data.length) {
+      throw const ParsingFailure('Danh sách hỗ trợ học tập không hợp lệ.');
+    }
+    return List.unmodifiable(data.map(_expectObject));
+  }
+
+  Future<StudentSupportJson> mutateWorkflow(
+    String method,
+    String path, {
+    StudentSupportJson? data,
+    DluRole role = DluRole.student,
+  }) async {
+    _validateWorkflow(method, path, role);
+    if (method == 'GET') throw ArgumentError('Use getWorkflowList for reads.');
+    final response = await _request(
+      path,
+      role: role,
+      method: method,
+      data: data,
+    );
+    return _expectObject(_expectObject(response.data)['data']);
+  }
+
+  static final _planItemPath = RegExp(
+    r'^/api/v1/me/study-plan/items/[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}$',
+  );
+  static final _interventionPath = RegExp(
+    r'^/api/v1/me/teacher/interventions/[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}$',
+  );
+  static final _followupPath = RegExp(
+    r'^/api/v1/me/teacher/interventions/[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}/followups$',
+  );
+
+  void _validateWorkflow(String method, String path, DluRole role) {
+    final allowed = role == DluRole.student
+        ? (method == 'GET' &&
+                  const {
+                    '/api/v1/me/recommendations',
+                    '/api/v1/me/study-plan',
+                  }.contains(path)) ||
+              (method == 'POST' && path == '/api/v1/me/study-plan/items') ||
+              (const {'PATCH', 'DELETE'}.contains(method) &&
+                  _planItemPath.hasMatch(path))
+        : (method == 'GET' &&
+                  const {
+                    '/api/v1/me/teacher/attention',
+                    '/api/v1/me/teacher/interventions',
+                  }.contains(path)) ||
+              (method == 'POST' &&
+                  path == '/api/v1/me/teacher/interventions') ||
+              (method == 'PATCH' && _interventionPath.hasMatch(path)) ||
+              (method == 'POST' && _followupPath.hasMatch(path));
+    if (!allowed) {
+      throw const ConfigurationFailure(
+        'Chức năng này không thuộc phạm vi hỗ trợ học tập.',
+        code: 'WORKFLOW_ROUTE_REJECTED',
+      );
+    }
+  }
+
   Future<StudentSupportJson> getTeacherOverview() =>
       _getObject('/api/v1/me/teacher/overview', role: DluRole.teacher);
 
@@ -147,9 +218,19 @@ class StudentSupportApiClient {
       );
     }
 
+    return _request(path, includeStudentCode: includeStudentCode, role: role);
+  }
+
+  Future<Response<Object?>> _request(
+    String path, {
+    bool includeStudentCode = true,
+    DluRole role = DluRole.student,
+    String method = 'GET',
+    StudentSupportJson? data,
+  }) async {
     final studentCode = includeStudentCode ? await _selectedCode(role) : null;
     final options = Options(
-      method: 'GET',
+      method: method,
       followRedirects: false,
       headers: includeStudentCode
           ? <String, Object>{
@@ -160,7 +241,9 @@ class StudentSupportApiClient {
             }
           : const <String, Object>{},
     );
-    final request = options.compose(_dio.options, path);
+    final request = options.compose(_dio.options, path, data: data);
+    // An injected transport must not attach query credentials or identity.
+    request.queryParameters.clear();
     // Never inherit the other role's identity from an injected transport.
     request.headers.removeWhere(
       (key, _) => [
@@ -188,7 +271,7 @@ class StudentSupportApiClient {
       }
       return response;
     } on DioException catch (error) {
-      final failure = _mapDioException(error, path);
+      final failure = _mapDioException(error, path, method);
       if (failure is AuthenticationFailure &&
           (await _identityProvider.restore())?.id == studentCode) {
         await _identityProvider.invalidate();
@@ -255,10 +338,10 @@ class StudentSupportApiClient {
     };
   }
 
-  AppFailure _mapDioException(DioException error, String path) {
+  AppFailure _mapDioException(DioException error, String path, String method) {
     final statusCode = error.response?.statusCode;
     final diagnostic = NetworkFailureDiagnostic(
-      method: 'GET',
+      method: method,
       redactedPath: _safePath(path),
       statusCode: statusCode,
       transportType: error.type.name,
@@ -283,6 +366,15 @@ class StudentSupportApiClient {
         'Bạn không có quyền xem dữ liệu học tập này.',
         diagnostic: diagnostic,
       ),
+      DioExceptionType.badResponse when statusCode == 429 =>
+        const ValidationFailure(
+          'Bạn thao tác quá nhanh. Vui lòng thử lại sau một phút.',
+        ),
+      DioExceptionType.badResponse
+          when statusCode == 400 || statusCode == 409 =>
+        const ValidationFailure(
+          'Không thể lưu thay đổi. Kiểm tra thời gian, nội dung và thử lại.',
+        ),
       DioExceptionType.badResponse when statusCode == 404 => MoodleApiFailure(
         'Dữ liệu học tập được yêu cầu không tồn tại.',
         diagnostic: diagnostic,
@@ -305,6 +397,13 @@ class StudentSupportApiClient {
   }
 
   String _safePath(String path) {
+    if (_planItemPath.hasMatch(path)) return '/api/v1/me/study-plan/items/<id>';
+    if (_interventionPath.hasMatch(path)) {
+      return '/api/v1/me/teacher/interventions/<id>';
+    }
+    if (_followupPath.hasMatch(path)) {
+      return '/api/v1/me/teacher/interventions/<id>/followups';
+    }
     if (_teacherStudentsPath.hasMatch(path)) {
       return '/api/v1/me/teacher/courses/<id>/students';
     }

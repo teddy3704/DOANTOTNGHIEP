@@ -1,5 +1,40 @@
 # Project Status
 
+## Innovation extension — 06/10/2026; handoff recheck 07/10/2026 (current checkpoint)
+
+Branch `innovation-study-planner-intervention` extends preserved baseline
+`06ad157`. The historical council sections below remain baseline evidence, not
+the catalog or feature scope of this extension.
+
+| Gate | Actual result |
+|---|---|
+| Candidate migration | PASS: rehearsal/rollback, then additive apply; original rows, lms columns and derived views unchanged |
+| Current catalog | 3 schemas, 42 tables (35 lms + 7 app), 20 views, 42 PK, 45 FK, 588 physical columns |
+| Backend quality | PASS: 82/82 tests, typecheck, build, formatting |
+| Real local workflow | PASS: 181 checks, plan CRUD, follow-up/history/closure, Student/Teacher scope rejection; evidence/innovation/local-smoke.json |
+| Flutter source quality | PASS: format, analyze zero issues, 224 tests; opt-in live payload test separately PASS (one skipped in default suite) |
+| Responsive new UI | PASS automated: 320/390px, text scale 1.3, keyboard/forms/navigation, actual-theme contrast and validation recovery |
+| Render deployment | PASS: a0c2cb7 Live on existing service / innovation branch; public regression 165 checks and workflow smoke 181 checks PASS; secret/config otherwise unchanged |
+| Student runtime | PASS: explainable recommendation, create/edit/postpone, reminder delivered, handled/cancel, restore and scoped deletion of own test plan |
+| Teacher runtime | PASS: attention/inbox, note + 3-day follow-up, persistence through restart/update, follow-up/closure/history and honest snapshot comparison |
+| Role/context isolation | PASS: SV002 does not see SV001 plan; Student/Teacher navigation and API data scopes remain separate |
+| Final APK / screenshots | PASS: staging debug build/install; 15 actual screenshots in evidence/mobile/innovation-final; APK/QA details in docs/INNOVATION_FINAL_QA.md |
+| Handoff safety | PASS: candidate/index secret scan, no private config/artifact staged, git diff check; existing emulator/app restarted 07/10 with no matched runtime errors in current process buffer |
+| DLU authentication / Web Services | TO_VERIFY_DLU; no production API or academic write claim |
+
+Implemented: explainable priority rules, Today/Study Plan, local reminder
+integration, Teacher attention inbox, action notes and append-only follow-up
+snapshots in app-owned tables. Official submission/quiz/grading remain LMS ONLY.
+No new dependency or second backend; main unchanged. Fastify received a compatible
+security patch; npm audit reports zero vulnerabilities. The only removed data was
+the newly created SV001 test plan, after persistence evidence was captured, so the
+presentation can repeat the workflow. Teacher history remains append-only.
+
+Demo-ready innovation scope: **PASS**. Production DLU integration remains
+**PARTIAL / TO_VERIFY_DLU**. Next: use demo/COUNCIL_DEMO_SCRIPT_INNOVATION.md and
+docs/PRESENTATION_UPDATE_PLAN.md to present the verified scope; obtain an approved
+DLU authentication/Web Services contract before production integration.
+
 ## Final council-demo checkpoint — 23/09/2026
 
 This matrix supersedes the historical phase/backlog text below. Feature code is frozen at `a276ef2`; the present handoff only updates documentation and off-repository backups.

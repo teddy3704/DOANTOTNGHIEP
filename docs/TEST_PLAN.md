@@ -1,5 +1,54 @@
 # Test Plan
 
+## Innovation completion gate — 06/10/2026
+
+**Product/runtime PASS:** candidate migration applied/verified with original rows, `lms`
+columns and views unchanged. Backend typecheck/build/format-check and **82/82
+tests PASS**. Real local CRUD/persistence/scope smoke **181 checks PASS**:
+`evidence/innovation/local-smoke.json`. Patched backend `a0c2cb7` Live on existing
+Render; public workflow **181 checks PASS** (`evidence/innovation/staging-smoke.json`)
+and separate patched GET-only regression **165 checks PASS** (runtime checkpoint / Final QA).
+Final Flutter format/analyze PASS and **224 tests PASS + 1 opt-in live test
+skipped**; live contract separately executed PASS. Responsive UI at 320/390px,
+AppTheme.light/text scale 1.3, contrast/500-character notes and stale validation
+error fix are covered. Final staging APK rebuild PASS (17.4s), installed,
+force-stop/relaunch Success, 221,242,818 bytes; package `vn.edu.dlu.lmsmobile`,
+minSdk 24, targetSdk 36; SHA256
+`D34037F56D4D456D74B119E627A802DCEE4B70283EA7D328792BD70763B6AF06`.
+Student create/edit/postpone/handled/restore PASS; Android generic reminder
+delivered at 17:22 and cancelled on handled, LMS unfinished state unchanged.
+Teacher action/follow-up/resolved history persisted after restart/install PASS;
+SV001/SV002/GV001 context isolation PASS. Fifteen actual screenshots:
+`evidence/mobile/innovation-final/`. Backend audit: 0 vulnerabilities.
+Final handoff candidate/index secret scan and diff check PASS. The focused
+feature-branch commit/push receipt is returned separately; Git records the exact hash.
+Final read-only reread after runtime PASS: original rows/columns/views unchanged,
+SV001 cleanup persists (0 plans), exact resolved Teacher case/history retained,
+29% progress/4 overdue unchanged and no due follow-up after closure. See
+`INNOVATION_FINAL_QA.md`; no new academic writes or fixture fallback.
+Baseline 54 API and 167 Flutter counts below are historical, not current totals.
+
+| Scope | Executable coverage / required evidence |
+|---|---|
+| Deterministic recommendations and attention | `integration-api/test/innovation-domain.test.ts`: available signals, reasons, stable order, unknown state, plan exclusions and scope |
+| HTTP contract and write guards | `integration-api/test/innovation-http.test.ts`: valid mutations, rejected owner/academic fields, identities, validation, safe errors and rate limit |
+| SQL/persistence boundary | `integration-api/test/innovation-store.test.ts`; guarded candidate rehearsal/apply and original-table digest verification |
+| Student workflow | `test/features/study_planner/`: API-owned save, edit/postpone/delete/handled, reminder coordination/failure, ownership changes and loading/empty/error/retry |
+| Teacher workflow | `test/features/interventions/`: typed models, scoped providers, action/follow-up/history/resolve, snapshot interpretation and owner changes |
+| Transport/parsing | `test/dev/student_support_api/workflow_transport_test.dart`, `study_planner_api_repository_test.dart`: closed route/role allowlist, safe failure and stale-response rejection |
+| Layout | Student/Teacher widget suites at 320/390 logical width and text scale 1.3; no overflow or inaccessible form actions |
+| Real API | `tool/innovation_smoke.mjs`: local candidate and public Render, persistence after reread, Student/Teacher and cross-owner isolation, academic-write rejection |
+| Android runtime | Today → recommendation → plan → reminder/edit/handled; Teacher attention → action → follow-up → history/resolve; switch role once and verify no stale context |
+
+Run backend build/tests, then `dart format .`, `flutter analyze`, `flutter test`
+and one final staging debug APK using the existing D-drive tooling. Capture
+only screens actually verified. Notification delivery is a separate observed
+device gate, not inferred from successful scheduling. No production DLU writes,
+new AVD, Android Studio or synthetic fallback is permitted.
+
+Actual commands, counts, artifact hash and gate results are recorded in
+`PROJECT_STATUS.md` and `PROGRESS_REPORT.md`. Older sections remain dated history.
+
 ## Candidate backend gate
 
 - `node tool/restore_candidate.mjs`: one guarded, transactional import PASS.
