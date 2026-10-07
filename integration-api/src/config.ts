@@ -11,8 +11,14 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
   const environment = env.APP_ENV ?? "development";
   if (environment !== "development" && environment !== "staging")
     throw new Error("CONFIG_ENVIRONMENT_NOT_SUPPORTED");
-  const port = Number(env.PORT ?? 3000);
-  if (!Number.isInteger(port) || port < 1 || port > 65535)
+  const rawPort = env.PORT ?? "3000";
+  const port = Number(rawPort);
+  if (
+    !/^[0-9]+$/.test(rawPort) ||
+    !Number.isInteger(port) ||
+    port < 1 ||
+    port > 65535
+  )
     throw new Error("CONFIG_PORT_INVALID");
   if (!env.DATABASE_URL?.trim()) throw new Error("CONFIG_DATABASE_REQUIRED");
   if (env.DEMO_AUTH_ENABLED !== "true" && env.DEMO_AUTH_ENABLED !== "false")

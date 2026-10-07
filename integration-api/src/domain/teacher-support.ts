@@ -8,7 +8,7 @@ export interface TeacherProfile {
 export interface TeachingWork {
   title: string;
   description: string;
-  dueAt: string;
+  dueAt: string | null;
   submitted: number;
   studentCount: number;
 }
@@ -30,6 +30,9 @@ export interface StudentMonitoring {
   studentId: string;
   studentName: string;
   progressPercent: number;
+  // Internal input only; omitted from the public response contract. Zero means
+  // the course has no tracked activities, not that the learner failed them.
+  totalActivities?: number;
   pendingTasks: number;
   overdueTasks: number;
   riskLevel: string;

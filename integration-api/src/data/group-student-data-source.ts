@@ -62,7 +62,15 @@ export class GroupStudentDataSource implements StudentLearningDataSource {
     ) as T[];
   }
   async health() {
-    await this.database.read("SELECT 1 AS healthy");
+    // Parses the essential query surfaces without exposing rows. A reachable
+    // server with a missing source/app migration is not ready for this build.
+    await this.database.read(`SELECT
+      (SELECT id FROM lms.assign LIMIT 0),
+      (SELECT userid FROM derived.student_course_learning_items LIMIT 0),
+      (SELECT studentid FROM derived.teacher_student_monitoring LIMIT 0),
+      (SELECT scheduled_start_at FROM app.study_plan_items LIMIT 0),
+      (SELECT baseline FROM app.teacher_interventions LIMIT 0),
+      (SELECT outcome_status FROM app.intervention_followups LIMIT 0)`);
   }
   async student(code: string): Promise<Student | null> {
     const rows = await this.select<
@@ -138,7 +146,7 @@ export class GroupStudentDataSource implements StudentLearningDataSource {
       code,
       `SELECT c.id::text AS "courseId",c.shortname AS "courseCode",c.fullname AS "courseName",
     a.id::text AS "assignmentId",'A-'||a.id AS "assignmentCode",a.name AS "assignmentName",coalesce(a.intro,'') AS description,
-    to_timestamp(a.allowsubmissionsfromdate) AS "opensAt",to_timestamp(a.duedate) AS "dueAt",a.grade::float8 AS "maxGrade"
+    to_timestamp(a.allowsubmissionsfromdate) AS "opensAt",to_timestamp(nullif(a.duedate,0)) AS "dueAt",a.grade::float8 AS "maxGrade"
     FROM scoped_courses c JOIN lms.assign a ON a.course=c.id WHERE ${visibleAssign} ORDER BY a.duedate,c.shortname,a.id`,
     );
   }

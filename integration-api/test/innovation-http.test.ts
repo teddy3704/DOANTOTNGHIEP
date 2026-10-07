@@ -28,7 +28,7 @@ const interventionBody = {
   title: "Trao đổi kế hoạch",
   note: "Cần xem lại bài tập quá hạn",
   actionType: "contacted",
-  followUpAt: "2020-01-01T12:00:00.000Z",
+  followUpAt: "2030-01-01T12:00:00.000Z",
 };
 const planPath = "/api/v1/me/study-plan/items";
 const interventionPath = "/api/v1/me/teacher/interventions";
@@ -329,14 +329,14 @@ test("teacher workflow: scoped create/detail/update/followup/history/resolution 
     ).statusCode,
     409,
   );
-  assert.equal(
+  assert.deepEqual(
     (
       await app.inject({
         url: "/api/v1/me/teacher/followups",
         headers: teacherHeaders,
       })
-    ).json().data[0].id,
-    item.id,
+    ).json().data,
+    [],
   );
   const patched = await app.inject({
     method: "PATCH",

@@ -24,7 +24,7 @@ const profile = object({
 const work = object({
   title: str,
   description: str,
-  dueAt: { type: "string", format: "date-time" },
+  dueAt: { type: "string", format: "date-time", nullable: true },
   submitted: count,
   studentCount: count,
 });

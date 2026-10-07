@@ -138,7 +138,7 @@ export class PostgresInnovationStore implements InnovationStore {
             r.priority,
             JSON.stringify(r.reasons),
             input.scheduledStartAt,
-            input.estimatedMinutes ?? 45,
+            input.estimatedMinutes ?? r.recommendedDurationMinutes,
             input.notes ?? "",
           ],
         ),
@@ -155,7 +155,8 @@ export class PostgresInnovationStore implements InnovationStore {
       first<PlanItem>(
         await q.query(
           studentScope +
-            ` UPDATE app.study_plan_items p SET scheduled_start_at=coalesce($3::timestamptz,p.scheduled_start_at),estimated_minutes=coalesce($4::integer,p.estimated_minutes),notes=coalesce($5::text,p.notes),status=coalesce($6::text,p.status),updated_at=now() WHERE p.id=$2::uuid AND ${planAccess} RETURNING ${planProjection}`,
+            ` UPDATE app.study_plan_items p SET scheduled_start_at=coalesce($3::timestamptz,p.scheduled_start_at),estimated_minutes=coalesce($4::integer,p.estimated_minutes),notes=coalesce($5::text,p.notes),status=coalesce($6::text,p.status),updated_at=now() WHERE p.id=$2::uuid AND ${planAccess}
+            AND NOT(p.status='handled' AND ($3::timestamptz IS NOT NULL OR $4::integer IS NOT NULL OR coalesce($6::text,p.status)='planned')) RETURNING ${planProjection}`,
           [
             studentIds[code],
             id,
@@ -255,7 +256,8 @@ export class PostgresInnovationStore implements InnovationStore {
     return this.db.transaction(async (q) => {
       const rows = await q.query(
         teacherScope +
-          ` UPDATE app.teacher_interventions i SET title=coalesce($3::text,i.title),note=coalesce($4::text,i.note),action_type=coalesce($5::text,i.action_type),status=coalesce($6::text,i.status),follow_up_at=CASE WHEN coalesce($6::text,i.status)='resolved' THEN NULL WHEN $7::boolean THEN $8::timestamptz ELSE i.follow_up_at END,updated_at=now() WHERE i.id=$2::uuid AND ${interventionAccess} RETURNING i.id`,
+          ` UPDATE app.teacher_interventions i SET title=coalesce($3::text,i.title),note=coalesce($4::text,i.note),action_type=coalesce($5::text,i.action_type),status=coalesce($6::text,i.status),follow_up_at=CASE WHEN coalesce($6::text,i.status)='resolved' THEN NULL WHEN $7::boolean THEN $8::timestamptz ELSE i.follow_up_at END,updated_at=now() WHERE i.id=$2::uuid AND ${interventionAccess}
+          AND i.status<>'resolved' AND NOT(i.status='following_up' AND coalesce($6::text,i.status)='open') RETURNING i.id`,
         [
           teacherId,
           id,
@@ -285,6 +287,28 @@ export class PostgresInnovationStore implements InnovationStore {
         [teacherId, id],
       );
       if (!rows.length) return null;
+      // Serialize on the parent first. A rapid identical retry should return the
+      // existing state, not append duplicate history. Distinct notes, outcomes,
+      // snapshots or next dates still constitute a genuine new follow-up.
+      const duplicate = await q.query(
+        `SELECT f.id FROM app.intervention_followups f JOIN app.teacher_interventions i ON i.id=f.intervention_id
+        WHERE f.intervention_id=$2::uuid AND i.owner_teacher_id=$1::bigint AND f.note=$3 AND f.outcome_status=$4
+        AND f.progress_percent=$5 AND f.pending_tasks=$6 AND f.overdue_tasks=$7
+        AND f.created_at>=now()-interval '5 seconds'
+        AND (NOT $8::boolean OR i.follow_up_at IS NOT DISTINCT FROM $9::timestamptz) LIMIT 1`,
+        [
+          teacherId,
+          id,
+          input.note.trim(),
+          input.outcomeStatus,
+          snapshot.progressPercent,
+          snapshot.pendingTasks,
+          snapshot.overdueTasks,
+          Object.hasOwn(input, "nextFollowUpAt"),
+          input.nextFollowUpAt ?? null,
+        ],
+      );
+      if (duplicate.length) return this.record(q, teacherId, id);
       const inserted = await q.query(
         `INSERT INTO app.intervention_followups(id,intervention_id,note,outcome_status,progress_percent,pending_tasks,overdue_tasks) SELECT $1::uuid,$2::uuid,$3,$4,$5,$6,$7 WHERE (SELECT count(*) FROM app.intervention_followups WHERE intervention_id=$2::uuid)<100 RETURNING id`,
         [

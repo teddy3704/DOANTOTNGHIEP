@@ -1,0 +1,41 @@
+{
+  "mode": "rehearse",
+  "status": "PASS",
+  "transaction": "ROLLED_BACK",
+  "migrationSHA256": "0c5db104c1677377016c03af7475bec0a2ec054822d1be2e5f6862204b519213",
+  "before": {
+    "lost_task_states": 94,
+    "assignment_rows": 94
+  },
+  "after": {
+    "lost_task_states": 0,
+    "assignment_rows": 94
+  },
+  "allColumnSignaturesUnchanged": true,
+  "tableRowsUnchanged": true,
+  "tablesChecked": 42,
+  "constraints": [
+    {
+      "name": "study_plan_timestamp_order_ck",
+      "validated": true
+    },
+    {
+      "name": "study_plan_title_nonblank_ck",
+      "validated": true
+    },
+    {
+      "name": "teacher_intervention_followup_order_ck",
+      "validated": true
+    },
+    {
+      "name": "teacher_intervention_resolved_followup_ck",
+      "validated": true
+    },
+    {
+      "name": "teacher_intervention_timestamp_order_ck",
+      "validated": true
+    }
+  ],
+  "unknownInactivityPenaltyRemoved": true,
+  "noTrackedActivityGuardPresent": true
+}

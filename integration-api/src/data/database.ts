@@ -4,6 +4,7 @@ import type { QueryResultRow } from "pg";
 export function createPool(
   databaseUrl: string,
   model: "current_22_10" | "group_39_20" = "current_22_10",
+  onUnavailable: () => void = () => {},
 ): pg.Pool {
   const databaseName =
     model === "group_39_20"
@@ -52,7 +53,9 @@ export function createPool(
     application_name: "dlu-student-support-development",
   });
   pool.on("error", () => {
-    console.error(JSON.stringify({ event: "database_pool_unavailable" }));
+    // Driver errors include endpoint/credential context. Emit only a fixed event
+    // through the caller's structured logger, never the error object itself.
+    onUnavailable();
   });
   return pool;
 }

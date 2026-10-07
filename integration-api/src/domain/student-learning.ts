@@ -54,7 +54,7 @@ export interface Assignment extends DeepLink {
   assignmentName: string;
   description: string;
   opensAt: string;
-  dueAt: string;
+  dueAt: string | null;
   maxGrade: number;
 }
 export type SubmissionStatus =

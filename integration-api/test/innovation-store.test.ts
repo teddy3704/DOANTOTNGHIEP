@@ -191,6 +191,7 @@ test("plan store SQL: every read/write checks current owner, active course enrol
     /ON CONFLICT\(owner_user_id,assignment_id\) DO NOTHING/,
   );
   assert.match(db.queries[2]!.sql, /p\.owner_user_id=\$1::bigint/);
+  assert.match(db.queries[2]!.sql, /NOT\(p\.status='handled'/);
   assert.match(db.queries[3]!.sql, /p\.owner_user_id=\$1::bigint/);
   assert.equal(
     db.queries[1]!.values.includes("synthetic-note' OR 1=1--"),
@@ -255,6 +256,12 @@ test("teacher store SQL: record owner/course role and target's active enrollment
     db.queries.some(({ sql }) => /WHEN \$3='resolved' THEN NULL/.test(sql)),
     true,
   );
+  assert.equal(
+    db.queries.some(({ sql }) =>
+      /AND i\.status<>'resolved' AND NOT\(i\.status='following_up'/.test(sql),
+    ),
+    true,
+  );
   for (const { sql } of db.queries) {
     const mutations = [
       ...sql.matchAll(
@@ -277,6 +284,31 @@ test("teacher store SQL: absent or revoked locked record cannot append history o
   );
   assert.equal(db.queries.length, 1);
   assert.match(db.queries[0]!.sql, /FOR UPDATE OF i/);
+});
+
+test("teacher follow-up duplicate retry returns existing record after scoped lock without inserting another history row", async () => {
+  const db = new RecordingDatabase();
+  const id = randomUUID();
+  db.response = (sql) =>
+    /FOR UPDATE OF i|SELECT f.id/.test(sql) ? [{ id }] : [];
+  const store = new PostgresInnovationStore(db);
+  await store.addFollowup("GV001", id, attention(), {
+    note: "Nội dung theo dõi",
+    outcomeStatus: "following_up",
+    nextFollowUpAt: "2030-01-02T12:00:00.000Z",
+  });
+  assert.match(db.queries[0]!.sql, /FOR UPDATE OF i/);
+  assert.match(db.queries[1]!.sql, /interval '5 seconds'/);
+  assert.match(db.queries[1]!.sql, /owner_teacher_id=\$1::bigint/);
+  assert.match(db.queries[1]!.sql, /IS NOT DISTINCT FROM \$9::timestamptz/);
+  assert.equal(
+    db.queries.some(({ sql }) =>
+      /INSERT INTO app.intervention_followups/.test(sql),
+    ),
+    false,
+  );
+  assert.match(db.queries.at(-1)!.sql, /scoped_courses/);
+  assert.equal(db.queries[1]!.sql.includes("Nội dung theo dõi"), false);
 });
 
 test("innovation migration: candidate guard, app-only indexed FKs, active-record uniqueness and nonempty rollback protection", () => {

@@ -16,10 +16,12 @@ import {
   type InnovationStore,
 } from "./domain/innovation.ts";
 import { registerStudentInnovationRoutes } from "./http/innovation-routes.ts";
+import { safeLoggerOptions } from "./logging.ts";
 
 declare module "fastify" {
   interface FastifyRequest {
     principal: Student | null;
+    diagnosticFailureCode: string | null;
   }
 }
 
@@ -44,7 +46,7 @@ export async function buildApp(
   innovationStore?: InnovationStore,
 ) {
   const app = Fastify({
-    logger,
+    logger: safeLoggerOptions(logger),
     logController: new SafeLogController(),
     requestIdHeader: false,
     exposeHeadRoutes: false,
@@ -62,11 +64,28 @@ export async function buildApp(
       ? new InnovationService(source, teacherSource, innovationStore)
       : undefined;
   app.decorateRequest("principal", null);
-  app.setErrorHandler((error, _request, reply) => {
-    if (error instanceof ApiFailure)
+  app.decorateRequest("diagnosticFailureCode", null);
+  app.setErrorHandler((error, request, reply) => {
+    if (error instanceof ApiFailure) {
+      request.diagnosticFailureCode = error.code;
       return reply
         .code(error.statusCode)
         .send({ error: { code: error.code, message: error.message } });
+    }
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "statusCode" in error &&
+      error.statusCode === 415
+    ) {
+      request.diagnosticFailureCode = "UNSUPPORTED_MEDIA_TYPE";
+      return reply.code(415).send({
+        error: {
+          code: "UNSUPPORTED_MEDIA_TYPE",
+          message: "Định dạng nội dung yêu cầu không được hỗ trợ.",
+        },
+      });
+    }
     if (
       typeof error === "object" &&
       error !== null &&
@@ -91,6 +110,7 @@ export async function buildApp(
           message: "Tham số yêu cầu không hợp lệ.",
         },
       });
+    request.diagnosticFailureCode = "INTERNAL_ERROR";
     return reply.code(500).send({
       error: {
         code: "INTERNAL_ERROR",
@@ -108,13 +128,20 @@ export async function buildApp(
   );
   app.addHook("onResponse", async (request, reply) => {
     // Never log raw URL, headers, records, error objects or environment.
-    app.log.info(
+    const log =
+      reply.statusCode >= 500
+        ? app.log.error.bind(app.log)
+        : app.log.info.bind(app.log);
+    log(
       {
         requestId: request.id,
         method: request.method,
         path: request.routeOptions.url ?? "[unmatched]",
         statusCode: reply.statusCode,
         durationMs: Math.round(reply.elapsedTime),
+        ...(request.diagnosticFailureCode
+          ? { failureCode: request.diagnosticFailureCode }
+          : {}),
       },
       "request_completed",
     );
@@ -173,6 +200,13 @@ export async function buildApp(
   app.get("/openapi.json", { schema: { hide: true } }, async () =>
     app.swagger(),
   );
+  // Liveness is deliberately separate from readiness. Never use this probe to
+  // claim the database or app workflow is ready; Render continues using /health.
+  app.get(
+    "/health/live",
+    { schema: { hide: true, querystring: s.noQuery } },
+    async () => ({ status: "ok" }),
+  );
   app.get(
     "/health",
     {
@@ -180,7 +214,7 @@ export async function buildApp(
         operationId: "getHealth",
         summary: "Development API health",
         description:
-          "Checks actual PostgreSQL reachability using a read-only query. Exposes no database internals.",
+          "Readiness: checks actual PostgreSQL reachability and essential source/workflow relation-column surfaces using read-only queries. Exposes no database internals. /health/live is process liveness only.",
         tags: ["Health"],
         querystring: s.noQuery,
         response: { 200: s.healthSchema, ...s.errorResponses },

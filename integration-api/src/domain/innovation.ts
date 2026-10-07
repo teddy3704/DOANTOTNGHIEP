@@ -9,6 +9,7 @@ import type {
   TeacherSupportDataSource,
 } from "./teacher-support.ts";
 import { ApiFailure } from "./learning-service.ts";
+import { priorityRules as rules } from "./priority-rules.ts";
 
 export type Priority = "high" | "medium" | "low";
 export interface Recommendation {
@@ -154,8 +155,13 @@ const outstanding = new Set([
   "returned_for_resubmission",
 ]);
 const priority = (score: number): Priority =>
-  score >= 65 ? "high" : score >= 30 ? "medium" : "low";
-const key = (course: string, assignment: string) => `${course}/${assignment}`;
+  score >= rules.highThreshold
+    ? "high"
+    : score >= rules.mediumThreshold
+      ? "medium"
+      : "low";
+const key = (course: string, assignment: string) =>
+  JSON.stringify([course, assignment]);
 export function rankRecommendations(
   assignments: Assignment[],
   statuses: AssignmentStatus[],
@@ -163,65 +169,104 @@ export function rankRecommendations(
   plans: PlanItem[],
   now: Date,
 ): Recommendation[] {
-  const statusByKey = new Map(
-    statuses.map((s) => [key(s.courseCode, s.assignmentCode), s]),
-  );
+  // Duplicated read-model rows are never resolved by last-write/order wins: a
+  // conflicting status suppresses the recommendation instead of inventing one.
+  const statusByKey = new Map<string, AssignmentStatus>();
+  const conflicting = new Set<string>();
+  for (const status of statuses) {
+    const identity = key(status.courseCode, status.assignmentCode);
+    const prior = statusByKey.get(identity);
+    if (prior && prior.submissionStatus !== status.submissionStatus)
+      conflicting.add(identity);
+    else statusByKey.set(identity, status);
+  }
+  const seen = new Set<string>();
+  const assignmentById = new Map<string, Assignment>();
+  const conflictingAssignments = new Set<string>();
+  for (const assignment of assignments) {
+    const previous = assignmentById.get(assignment.assignmentId);
+    if (
+      previous &&
+      (previous.courseId !== assignment.courseId ||
+        previous.assignmentCode !== assignment.assignmentCode ||
+        previous.dueAt !== assignment.dueAt ||
+        previous.assignmentName !== assignment.assignmentName)
+    )
+      conflictingAssignments.add(assignment.assignmentId);
+    else assignmentById.set(assignment.assignmentId, assignment);
+  }
   return assignments
     .flatMap((a) => {
-      const status = statusByKey.get(key(a.courseCode, a.assignmentCode));
+      if (
+        seen.has(a.assignmentId) ||
+        conflictingAssignments.has(a.assignmentId)
+      )
+        return [];
+      seen.add(a.assignmentId);
+      const identity = key(a.courseCode, a.assignmentCode);
+      const status = statusByKey.get(identity);
       // No inferred status: unknown/missing source row is not a recommendation.
       if (
         !status ||
+        conflicting.has(identity) ||
         !outstanding.has(status.submissionStatus) ||
         plans.some(
           (p) => p.assignmentId === a.assignmentId && p.status === "handled",
         )
       )
         return [];
-      const hours = (Date.parse(a.dueAt) - now.getTime()) / 3600000;
-      if (!Number.isFinite(hours)) return [];
-      let score =
+      if (typeof a.dueAt !== "string") return [];
+      const due = Date.parse(a.dueAt);
+      const hours = (due - now.getTime()) / 3600000;
+      // Moodle's zero deadline is unknown, not an overdue task. Defensively
+      // reject historical epoch sentinels from older source implementations too.
+      if (!Number.isFinite(hours) || due <= 0) return [];
+      let score: number =
         hours < 0
-          ? 70
-          : hours <= 24
-            ? 60
-            : hours <= 72
-              ? 45
-              : hours <= 168
-                ? 25
-                : 10;
+          ? rules.deadline.overdue
+          : hours <= rules.deadlineHours.day
+            ? rules.deadline.within24Hours
+            : hours <= rules.deadlineHours.threeDays
+              ? rules.deadline.within72Hours
+              : hours <= rules.deadlineHours.week
+                ? rules.deadline.within168Hours
+                : rules.deadline.later;
       const reasons = [
         hours < 0
           ? "Đã qua hạn và chưa hoàn tất trên LMS"
-          : hours <= 24
+          : hours <= rules.deadlineHours.day
             ? "Đến hạn trong 24 giờ"
-            : hours <= 72
+            : hours <= rules.deadlineHours.threeDays
               ? "Đến hạn trong 3 ngày"
-              : hours <= 168
+              : hours <= rules.deadlineHours.week
                 ? "Đến hạn trong 7 ngày"
                 : "Bài tập còn cần thực hiện",
       ];
       if (status.submissionStatus === "returned_for_resubmission") {
-        score += 20;
+        score += rules.returnedWeight;
         reasons.push("Giảng viên yêu cầu nộp lại trên LMS");
       }
       if (status.submissionStatus === "draft") {
-        score += 10;
+        score += rules.draftWeight;
         reasons.push("Bài nộp trên LMS còn ở trạng thái nháp");
       }
-      const courseProgress = progress.find((p) => p.courseId === a.courseId);
+      const progressRows = progress.filter((p) => p.courseId === a.courseId);
+      const courseProgress =
+        progressRows.length === 1 ? progressRows[0] : undefined;
       if (
         courseProgress &&
         Number.isInteger(courseProgress.totalActivities) &&
         courseProgress.totalActivities > 0 &&
         Number.isFinite(courseProgress.progressPercent) &&
         courseProgress.progressPercent >= 0 &&
-        courseProgress.progressPercent < 50
+        courseProgress.progressPercent < rules.lowProgressThreshold
       ) {
-        score += 10;
-        reasons.push("Tiến độ hoạt động của học phần dưới 50%");
+        score += rules.studentLowProgressWeight;
+        reasons.push(
+          `Tiến độ hoạt động của học phần dưới ${rules.lowProgressThreshold}%`,
+        );
       }
-      score = Math.min(score, 100);
+      score = Math.min(score, rules.maxScore);
       return [
         {
           sourceType: "assignment" as const,
@@ -236,7 +281,7 @@ export function rankRecommendations(
           priorityScore: score,
           priority: priority(score),
           reasons,
-          recommendedDurationMinutes: 45,
+          recommendedDurationMinutes: rules.recommendedMinutes,
           planned: plans.some(
             (p) => p.assignmentId === a.assignmentId && p.status === "planned",
           ),
@@ -253,6 +298,7 @@ export function rankRecommendations(
 export function rankAttention(
   rows: (StudentMonitoring & { courseName: string })[],
 ): Attention[] {
+  const seen = new Set<string>();
   return rows
     .map((row) => {
       // Unknown source metrics must not become an invented zero or risk signal.
@@ -264,26 +310,41 @@ export function rankAttention(
         !Number.isInteger(row.pendingTasks) ||
         row.pendingTasks < 0 ||
         !Number.isInteger(row.overdueTasks) ||
-        row.overdueTasks < 0
+        row.overdueTasks < 0 ||
+        (row.totalActivities !== undefined &&
+          (!Number.isInteger(row.totalActivities) ||
+            row.totalActivities < 0)) ||
+        seen.has(key(row.courseId, row.studentId))
       )
         throw new ApiFailure(
           503,
           "SUPPORT_UNAVAILABLE",
           "Dữ liệu hỗ trợ tạm thời chưa sẵn sàng. Vui lòng thử lại.",
         );
+      seen.add(key(row.courseId, row.studentId));
       const reasons: string[] = [];
       let score = 0;
       if (row.overdueTasks > 0) {
-        score += Math.min(60, row.overdueTasks * 20);
+        score += Math.min(
+          rules.teacherOverdueCap,
+          row.overdueTasks * rules.teacherOverdueWeight,
+        );
         reasons.push(`${row.overdueTasks} bài tập quá hạn chưa hoàn tất`);
       }
       if (row.pendingTasks > 0) {
-        score += Math.min(20, row.pendingTasks * 5);
+        score += Math.min(
+          rules.teacherPendingCap,
+          row.pendingTasks * rules.teacherPendingWeight,
+        );
         reasons.push(`${row.pendingTasks} bài tập đang chờ thực hiện`);
       }
-      if (row.progressPercent < 50) {
-        score += 20;
-        reasons.push("Tiến độ hoạt động dưới 50%");
+      if (
+        row.progressPercent < rules.lowProgressThreshold &&
+        (row.totalActivities === undefined ||
+          (Number.isInteger(row.totalActivities) && row.totalActivities > 0))
+      ) {
+        score += rules.teacherLowProgressWeight;
+        reasons.push(`Tiến độ hoạt động dưới ${rules.lowProgressThreshold}%`);
       }
       if (!reasons.length)
         reasons.push("Chưa có dấu hiệu cần ưu tiên từ dữ liệu hiện có");
@@ -318,6 +379,12 @@ const missing = () =>
     "SUPPORT_ITEM_NOT_FOUND",
     "Không tìm thấy nội dung được phép truy cập.",
   );
+const sameInstant = (a: string | null, b: string | null) =>
+  (a === null && b === null) ||
+  (typeof a === "string" &&
+    typeof b === "string" &&
+    Number.isFinite(Date.parse(a)) &&
+    Date.parse(a) === Date.parse(b));
 export class InnovationService {
   readonly student: StudentLearningDataSource;
   readonly teacher: TeacherSupportDataSource;
@@ -397,7 +464,19 @@ export class InnovationService {
     return created;
   }
   async updatePlan(code: string, id: string, patch: PlanPatch) {
-    if (!(await this.plans(code)).some((p) => p.id === id)) throw missing();
+    const existing = (await this.plans(code)).find((p) => p.id === id);
+    if (!existing) throw missing();
+    if (
+      existing.status === "handled" &&
+      (patch.status === "planned" ||
+        patch.scheduledStartAt !== undefined ||
+        patch.estimatedMinutes !== undefined)
+    )
+      throw new ApiFailure(
+        409,
+        "PLAN_ALREADY_HANDLED",
+        "Buổi học đã được xử lý. Hãy tạo kế hoạch mới nếu cần.",
+      );
     if (
       patch.scheduledStartAt !== undefined &&
       !(Date.parse(patch.scheduledStartAt) > this.clock().getTime())
@@ -471,6 +550,7 @@ export class InnovationService {
       );
   }
   async createIntervention(code: string, input: InterventionCreate) {
+    this.validateFollowupTime(input.followUpAt);
     const attention = (await this.attention(code)).find(
       (a) => a.courseId === input.courseId && a.studentId === input.studentId,
     );
@@ -502,6 +582,24 @@ export class InnovationService {
   async updateIntervention(code: string, id: string, patch: InterventionPatch) {
     const existing = (await this.interventions(code)).find((i) => i.id === id);
     if (!existing) throw missing();
+    if (existing.status === "resolved")
+      throw new ApiFailure(
+        409,
+        "INTERVENTION_CLOSED",
+        "Hồ sơ đã khép lại. Hãy tạo lượt hỗ trợ mới nếu cần.",
+      );
+    if (existing.status === "following_up" && patch.status === "open")
+      throw new ApiFailure(
+        409,
+        "INTERVENTION_TRANSITION_INVALID",
+        "Hồ sơ đang theo dõi không thể trở lại trạng thái mới.",
+      );
+    if (
+      patch.status !== "resolved" &&
+      patch.followUpAt !== undefined &&
+      !sameInstant(patch.followUpAt, existing.followUpAt)
+    )
+      this.validateFollowupTime(patch.followUpAt);
     const result = await this.store.updateIntervention(code, id, patch);
     if (!result) throw missing();
     return { ...result, current: existing.current };
@@ -515,6 +613,12 @@ export class InnovationService {
         "FOLLOWUP_CLOSED",
         "Hồ sơ đã kết thúc hoặc đã đủ số lần theo dõi.",
       );
+    if (
+      input.outcomeStatus !== "resolved" &&
+      input.nextFollowUpAt !== undefined &&
+      !sameInstant(input.nextFollowUpAt, existing.followUpAt)
+    )
+      this.validateFollowupTime(input.nextFollowUpAt);
     const result = await this.store.addFollowup(
       code,
       id,
@@ -523,5 +627,13 @@ export class InnovationService {
     );
     if (!result) throw missing();
     return { ...result, current: existing.current };
+  }
+  private validateFollowupTime(value: string | null) {
+    if (value !== null && !(Date.parse(value) >= this.clock().getTime()))
+      throw new ApiFailure(
+        400,
+        "FOLLOWUP_TIME_INVALID",
+        "Vui lòng chọn thời gian theo dõi từ hiện tại trở đi.",
+      );
   }
 }

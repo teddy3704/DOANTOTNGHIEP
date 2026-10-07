@@ -40,7 +40,17 @@ test("SEC10: production and unsupported environments cannot load demo configurat
 });
 
 test("configuration: port must be a valid nonzero TCP integer", () => {
-  for (const port of ["0", "-1", "65536", "3000.5", "invalid", ""]) {
+  for (const port of [
+    "0",
+    "-1",
+    "65536",
+    "3000.5",
+    "invalid",
+    "",
+    " 3000 ",
+    "3e3",
+    "0xbb8",
+  ]) {
     assert.throws(
       () => loadConfig({ ...fixture(), PORT: port }),
       /^Error: CONFIG_PORT_INVALID$/,

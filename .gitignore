@@ -65,6 +65,7 @@ supabase/signing_keys.json
 # Reviewed read-only demonstration queries; database exports remain ignored.
 !demo/01_verify_database_baseline.sql
 !demo/02_council_database_demo.sql
+!database/council_pgadmin_demo.sql
 # Reviewed incremental app-owned migrations only; no database exports.
 !integration-api/migrations/*.sql
 /evidence/council-backup/

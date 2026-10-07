@@ -1,0 +1,446 @@
+{
+  "auditDate": "2026-10-07",
+  "accessMode": "READ ONLY",
+  "viewChecks": [
+    {
+      "name": "student_attendance_summary",
+      "rows": 16,
+      "duplicate_keys": 0
+    },
+    {
+      "name": "student_continue_learning",
+      "rows": 25,
+      "duplicate_keys": 0
+    },
+    {
+      "name": "student_course_learning_items",
+      "rows": 428,
+      "duplicate_keys": 0
+    },
+    {
+      "name": "student_course_overview",
+      "rows": 31,
+      "duplicate_keys": 0
+    },
+    {
+      "name": "student_course_progress",
+      "rows": 31,
+      "duplicate_keys": 0
+    },
+    {
+      "name": "student_dashboard",
+      "rows": 15,
+      "duplicate_keys": 0
+    },
+    {
+      "name": "student_engagement",
+      "rows": 31,
+      "duplicate_keys": 0
+    },
+    {
+      "name": "student_grade_category_summary",
+      "rows": 62,
+      "duplicate_keys": 0
+    },
+    {
+      "name": "student_grade_overview",
+      "rows": 126,
+      "duplicate_keys": 0
+    },
+    {
+      "name": "student_learning_analytics",
+      "rows": 31,
+      "duplicate_keys": 0
+    },
+    {
+      "name": "student_risk_indicator",
+      "rows": 31,
+      "duplicate_keys": 0
+    },
+    {
+      "name": "student_task_summary",
+      "rows": 31,
+      "duplicate_keys": 0
+    },
+    {
+      "name": "teacher_assignment_monitoring",
+      "rows": 20,
+      "duplicate_keys": 0
+    },
+    {
+      "name": "teacher_course_analytics",
+      "rows": 6,
+      "duplicate_keys": 0
+    },
+    {
+      "name": "teacher_course_overview",
+      "rows": 6,
+      "duplicate_keys": 0
+    },
+    {
+      "name": "teacher_dashboard",
+      "rows": 3,
+      "duplicate_keys": 0
+    },
+    {
+      "name": "teacher_grade_overview",
+      "rows": 46,
+      "duplicate_keys": 0
+    },
+    {
+      "name": "teacher_quiz_monitoring",
+      "rows": 12,
+      "duplicate_keys": 0
+    },
+    {
+      "name": "teacher_student_monitoring",
+      "rows": 46,
+      "duplicate_keys": 0
+    },
+    {
+      "name": "unified_tasks",
+      "rows": 156,
+      "duplicate_keys": 0
+    }
+  ],
+  "checks": {
+    "appUserOrphans": [
+      {
+        "table_name": "learning_goals",
+        "invalid": 0
+      },
+      {
+        "table_name": "learning_reminders",
+        "invalid": 0
+      },
+      {
+        "table_name": "notifications",
+        "invalid": 0
+      },
+      {
+        "table_name": "notification_preferences",
+        "invalid": 0
+      }
+    ],
+    "planIntegrity": [
+      {
+        "blank_title": 0,
+        "assignment_course_mismatch": 0,
+        "reversed_timestamps": 0
+      }
+    ],
+    "interventionIntegrity": [
+      {
+        "past_initial_followup": 0,
+        "resolved_with_followup": 0,
+        "reversed_timestamps": 0,
+        "invalid_teacher_scope": 0,
+        "student_never_enrolled": 0
+      }
+    ],
+    "followupIntegrity": [
+      {
+        "before_intervention": 0,
+        "separate_overdue_bucket_exceeds_pending_bucket": 5
+      }
+    ],
+    "reminderPolymorphism": [
+      {
+        "type": "assignment",
+        "count": 18,
+        "incomplete_reference": 0
+      },
+      {
+        "type": "course",
+        "count": 4,
+        "incomplete_reference": 0
+      },
+      {
+        "type": "quiz",
+        "count": 1,
+        "incomplete_reference": 0
+      }
+    ],
+    "notificationPolymorphism": [
+      {
+        "type": "assignment",
+        "count": 19,
+        "incomplete_reference": 0
+      },
+      {
+        "type": "course",
+        "count": 8,
+        "incomplete_reference": 0
+      },
+      {
+        "type": "quiz",
+        "count": 1,
+        "incomplete_reference": 0
+      }
+    ],
+    "zeroNullGrades": [
+      {
+        "null_grade_rows": 60,
+        "zero_grade_rows": 11,
+        "null_converted_to_grade": 0,
+        "zero_lost": 0,
+        "zero_denominator_invalid": 0
+      }
+    ],
+    "gradeRange": [
+      {
+        "out_of_range": 0,
+        "reversed_range": 0
+      }
+    ],
+    "noTrackedActivity": [
+      {
+        "no_tracked_rows": 0,
+        "no_tracked_mapped_to_zero": 0,
+        "impossible_completion": 0
+      }
+    ],
+    "unknownEngagement": [
+      {
+        "unknown_activity_rows": 0,
+        "unknown_with_inactivity_penalty": 0
+      }
+    ],
+    "enrolmentScope": [
+      {
+        "source_rows_outside_current_student_scope": 0
+      }
+    ],
+    "assignmentLearningState": [
+      {
+        "assignment_learning_rows": 94,
+        "lost_task_status": 0
+      }
+    ],
+    "sourceSubmissionSemantics": [
+      {
+        "submitted_tasks": 63,
+        "submitted_not_completed": 0,
+        "no_submission_rows": 21,
+        "no_quiz_attempt_rows": 24,
+        "unknown_false_completed": 0
+      }
+    ],
+    "attendanceDenominator": [
+      {
+        "attendance_user_rows": 16,
+        "only_marked_denominator": 0
+      }
+    ],
+    "noAttendance": [
+      {
+        "unknown_rows": 15,
+        "unknown_converted_to_zero": 0
+      }
+    ],
+    "continuedSourceCompleted": [
+      {
+        "source_completed_but_completion_tracker_incomplete": 0
+      }
+    ],
+    "sourcePolymorphicIntegrity": [
+      {
+        "module_rows": 52,
+        "unsupported_module_type": 0,
+        "absent_or_course_mismatched_instance": 0
+      }
+    ],
+    "appCourseOrphans": [
+      {
+        "table_name": "learning_goals",
+        "invalid": 0
+      },
+      {
+        "table_name": "learning_reminders",
+        "invalid": 0
+      }
+    ],
+    "foreignKeyOrphans": [
+      {
+        "name": "assign_grades_assignment_fk",
+        "orphans": 0
+      },
+      {
+        "name": "assign_submission_assignment_fk",
+        "orphans": 0
+      },
+      {
+        "name": "course_categories_parent_fk",
+        "orphans": 0
+      },
+      {
+        "name": "course_category_fk",
+        "orphans": 0
+      },
+      {
+        "name": "course_completions_course_fk",
+        "orphans": 0
+      },
+      {
+        "name": "course_completions_user_fk",
+        "orphans": 0
+      },
+      {
+        "name": "course_modules_completion_cm_fk",
+        "orphans": 0
+      },
+      {
+        "name": "course_modules_completion_user_fk",
+        "orphans": 0
+      },
+      {
+        "name": "course_modules_course_fk",
+        "orphans": 0
+      },
+      {
+        "name": "course_modules_grouping_fk",
+        "orphans": 0
+      },
+      {
+        "name": "course_modules_module_fk",
+        "orphans": 0
+      },
+      {
+        "name": "course_sections_course_fk",
+        "orphans": 0
+      },
+      {
+        "name": "enrol_course_fk",
+        "orphans": 0
+      },
+      {
+        "name": "enrol_role_fk",
+        "orphans": 0
+      },
+      {
+        "name": "grade_categories_course_fk",
+        "orphans": 0
+      },
+      {
+        "name": "grade_categories_parent_fk",
+        "orphans": 0
+      },
+      {
+        "name": "grade_grades_item_fk",
+        "orphans": 0
+      },
+      {
+        "name": "grade_grades_user_fk",
+        "orphans": 0
+      },
+      {
+        "name": "grade_grades_usermodified_fk",
+        "orphans": 0
+      },
+      {
+        "name": "grade_items_category_fk",
+        "orphans": 0
+      },
+      {
+        "name": "grade_items_course_fk",
+        "orphans": 0
+      },
+      {
+        "name": "groupings_course_fk",
+        "orphans": 0
+      },
+      {
+        "name": "groupings_groups_group_fk",
+        "orphans": 0
+      },
+      {
+        "name": "groupings_groups_grouping_fk",
+        "orphans": 0
+      },
+      {
+        "name": "groups_course_fk",
+        "orphans": 0
+      },
+      {
+        "name": "groups_members_group_fk",
+        "orphans": 0
+      },
+      {
+        "name": "groups_members_user_fk",
+        "orphans": 0
+      },
+      {
+        "name": "intervention_followups_intervention_id_fkey",
+        "orphans": 0
+      },
+      {
+        "name": "logstore_standard_log_context_fk",
+        "orphans": 0
+      },
+      {
+        "name": "quiz_attempts_quiz_fk",
+        "orphans": 0
+      },
+      {
+        "name": "quiz_attempts_user_fk",
+        "orphans": 0
+      },
+      {
+        "name": "quiz_grades_quiz_fk",
+        "orphans": 0
+      },
+      {
+        "name": "role_assignments_context_fk",
+        "orphans": 0
+      },
+      {
+        "name": "role_assignments_role_fk",
+        "orphans": 0
+      },
+      {
+        "name": "role_assignments_user_fk",
+        "orphans": 0
+      },
+      {
+        "name": "study_plan_items_assignment_id_fkey",
+        "orphans": 0
+      },
+      {
+        "name": "study_plan_items_course_id_fkey",
+        "orphans": 0
+      },
+      {
+        "name": "study_plan_items_owner_user_id_fkey",
+        "orphans": 0
+      },
+      {
+        "name": "teacher_interventions_course_id_fkey",
+        "orphans": 0
+      },
+      {
+        "name": "teacher_interventions_owner_teacher_id_fkey",
+        "orphans": 0
+      },
+      {
+        "name": "teacher_interventions_student_id_fkey",
+        "orphans": 0
+      },
+      {
+        "name": "user_enrolments_enrol_fk",
+        "orphans": 0
+      },
+      {
+        "name": "user_enrolments_modifier_fk",
+        "orphans": 0
+      },
+      {
+        "name": "user_enrolments_user_fk",
+        "orphans": 0
+      },
+      {
+        "name": "user_lastaccess_user_fk",
+        "orphans": 0
+      }
+    ]
+  }
+}

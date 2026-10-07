@@ -1,0 +1,144 @@
+{
+  "auditDate": "2026-10-07",
+  "councilSql": "PASS",
+  "access": "READ ONLY; ROLLBACK",
+  "sqlSHA256": "97abcaa8f812258e4665651232e098ecd1bec20846442bd5e4a9f6d03ce16c44",
+  "statements": 16,
+  "resultSets": [
+    {
+      "columns": [
+        "schema_name",
+        "physical_tables",
+        "read_model_views"
+      ],
+      "rowCount": 3
+    },
+    {
+      "columns": [
+        "primary_keys",
+        "foreign_keys",
+        "unique_constraints",
+        "check_constraints"
+      ],
+      "rowCount": 1
+    },
+    {
+      "columns": [
+        "student_alias",
+        "student_name",
+        "course_name",
+        "activity_name",
+        "task_type",
+        "due_at",
+        "lms_source_state",
+        "derived_task_state"
+      ],
+      "rowCount": 16
+    },
+    {
+      "columns": [
+        "student_alias",
+        "course_name",
+        "completed_activities",
+        "total_tracked_activities",
+        "known_progress_percent",
+        "pending_tasks",
+        "overdue_tasks",
+        "recorded_inactivity_days",
+        "recorded_events_last_7_days"
+      ],
+      "rowCount": 3
+    },
+    {
+      "columns": [
+        "owner_alias",
+        "course_name",
+        "personal_study_task",
+        "planned_start",
+        "estimated_minutes",
+        "priority",
+        "personal_plan_state",
+        "notes",
+        "updated_at"
+      ],
+      "rowCount": 0
+    },
+    {
+      "columns": [
+        "teacher_alias",
+        "student_name",
+        "course_name",
+        "known_progress_percent",
+        "pending_tasks",
+        "overdue_tasks",
+        "support_reason"
+      ],
+      "rowCount": 8
+    },
+    {
+      "columns": [
+        "teacher_alias",
+        "student_name",
+        "course_name",
+        "support_action",
+        "action_type",
+        "status",
+        "initial_note",
+        "follow_up_at",
+        "created_at",
+        "reviewed_at",
+        "review_note",
+        "outcome_status",
+        "observed_progress_percent",
+        "observed_pending_tasks",
+        "observed_overdue_tasks"
+      ],
+      "rowCount": 5
+    },
+    {
+      "columns": [
+        "not_graded",
+        "recorded_zero_grade",
+        "invalid_null_conversion"
+      ],
+      "rowCount": 1
+    },
+    {
+      "columns": [
+        "task_type",
+        "no_source_submission_or_attempt",
+        "source_completed",
+        "source_overdue",
+        "source_pending"
+      ],
+      "rowCount": 2
+    },
+    {
+      "columns": [
+        "course_name",
+        "attendance_sessions",
+        "attendance_percentage",
+        "days_since_last_activity"
+      ],
+      "rowCount": 3
+    },
+    {
+      "columns": [
+        "student_alias",
+        "course_count",
+        "owned_plan_count"
+      ],
+      "rowCount": 2
+    },
+    {
+      "columns": [
+        "teacher_alias",
+        "course_context_count",
+        "owned_support_records"
+      ],
+      "rowCount": 2
+    }
+  ],
+  "exportedRowValues": false,
+  "pgAdminVisibleWorkspace": "NOT_VERIFIED_BY_SQL_RUNNER"
+}

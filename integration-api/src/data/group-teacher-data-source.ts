@@ -7,7 +7,13 @@ import type {
   StudentMonitoring,
   TeacherSupportDataSource,
 } from "../domain/teacher-support.ts";
-import { teacherIds, teacherScope, visibleAssign } from "./group-scope.ts";
+import {
+  teacherIds,
+  teacherScope,
+  visibleAssign,
+  activeStudentInCourse,
+} from "./group-scope.ts";
+import { rankAttention } from "../domain/innovation.ts";
 
 export class GroupTeacherDataSource implements TeacherSupportDataSource {
   private readonly database: ReadDatabase;
@@ -60,7 +66,7 @@ export class GroupTeacherDataSource implements TeacherSupportDataSource {
       this.read<TeachingWork & { courseId: string }>(
         code,
         `SELECT c.id::text AS "courseId",a.name AS title,coalesce(a.intro,'') AS description,
-        to_timestamp(a.duedate) AS "dueAt",v.submitted_count::int AS submitted,v.student_count::int AS "studentCount"
+        to_timestamp(nullif(a.duedate,0)) AS "dueAt",v.submitted_count::int AS submitted,v.student_count::int AS "studentCount"
         FROM scoped_courses c JOIN lms.assign a ON a.course=c.id
         JOIN derived.teacher_assignment_monitoring v ON v.assignment_id=a.id AND v.teacherid=$1::bigint
         WHERE ${visibleAssign} ORDER BY a.duedate,a.id`,
@@ -101,15 +107,26 @@ export class GroupTeacherDataSource implements TeacherSupportDataSource {
       ).length
     )
       return null;
-    return this.read(
+    const rows = await this.read<StudentMonitoring>(
       code,
       `SELECT v.courseid::text AS "courseId",v.studentid::text AS "studentId",v.student_name AS "studentName",
-      v.progress_percentage::float8 AS "progressPercent",v.pending_tasks::int AS "pendingTasks",v.overdue_tasks::int AS "overdueTasks",
+      v.progress_percentage::float8 AS "progressPercent",v.total_tracked_activities::int AS "totalActivities",v.pending_tasks::int AS "pendingTasks",v.overdue_tasks::int AS "overdueTasks",
       v.risk_level AS "riskLevel" FROM derived.teacher_student_monitoring v JOIN scoped_courses c ON c.id=v.courseid
       JOIN lms."user" u ON u.id=v.studentid AND u.deleted=0 AND u.suspended=0
-      WHERE v.teacherid=$1::bigint AND v.courseid=$2::bigint ORDER BY v.student_name,v.studentid`,
+      WHERE v.teacherid=$1::bigint AND v.courseid=$2::bigint AND ${activeStudentInCourse} ORDER BY v.student_name,v.studentid`,
       [courseId],
     );
+    // Keep the legacy roster badge consistent with the Intervention Inbox.
+    // Raw view risk_level is not authority (it has different historical rules).
+    const levels = new Map(
+      rankAttention(rows.map((row) => ({ ...row, courseName: "" }))).map(
+        (row) => [row.studentId, row.priority.toUpperCase()],
+      ),
+    );
+    return rows.map((row) => ({
+      ...row,
+      riskLevel: levels.get(row.studentId)!,
+    }));
   }
   async attention(
     code: string,
@@ -117,14 +134,10 @@ export class GroupTeacherDataSource implements TeacherSupportDataSource {
     return this.read(
       code,
       `SELECT v.courseid::text AS "courseId",c.fullname AS "courseName",v.studentid::text AS "studentId",v.student_name AS "studentName",
-      v.progress_percentage::float8 AS "progressPercent",v.pending_tasks::int AS "pendingTasks",v.overdue_tasks::int AS "overdueTasks",v.risk_level AS "riskLevel"
+      v.progress_percentage::float8 AS "progressPercent",v.total_tracked_activities::int AS "totalActivities",v.pending_tasks::int AS "pendingTasks",v.overdue_tasks::int AS "overdueTasks",v.risk_level AS "riskLevel"
       FROM derived.teacher_student_monitoring v JOIN scoped_courses c ON c.id=v.courseid
       JOIN lms."user" u ON u.id=v.studentid AND u.deleted=0 AND u.suspended=0
-      WHERE v.teacherid=$1::bigint AND EXISTS(SELECT 1 FROM lms.user_enrolments ue JOIN lms.enrol e ON e.id=ue.enrolid AND e.courseid=c.id AND e.status=0
-      JOIN lms.context ctx ON ctx.contextlevel=50 AND ctx.instanceid=c.id
-      JOIN lms.role_assignments ra ON ra.userid=u.id AND ra.contextid=ctx.id
-      JOIN lms.role r ON r.id=ra.roleid AND (r.shortname='student' OR r.archetype='student')
-      WHERE ue.userid=u.id AND ue.status=0 AND (ue.timestart=0 OR ue.timestart<=extract(epoch FROM now())) AND (ue.timeend=0 OR ue.timeend>extract(epoch FROM now())))
+      WHERE v.teacherid=$1::bigint AND ${activeStudentInCourse}
       ORDER BY c.id,v.studentid`,
     );
   }

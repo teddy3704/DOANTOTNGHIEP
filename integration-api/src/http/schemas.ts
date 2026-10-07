@@ -84,7 +84,7 @@ export const assignmentSchema = object({
   assignmentId: string,
   description: string,
   opensAt: date,
-  dueAt: date,
+  dueAt: nullable(date),
   maxGrade: number,
   ...deepLink,
 });
@@ -175,6 +175,7 @@ export const errorResponses = {
   401: errorSchema,
   403: errorSchema,
   404: errorSchema,
+  415: errorSchema,
   500: errorSchema,
   503: errorSchema,
 };

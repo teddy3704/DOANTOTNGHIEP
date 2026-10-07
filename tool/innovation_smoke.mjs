@@ -8,6 +8,9 @@ import { safeFailure } from './candidate_database.mjs';
 
 const mode = process.argv[2];
 if (!['local', 'staging'].includes(mode)) throw new Error('EXPLICIT_SMOKE_MODE_REQUIRED');
+// Preserve the verified innovation evidence when auditing the hardened build.
+const evidenceMode = process.argv[3] ?? 'innovation';
+if (!['innovation', 'perfection'].includes(evidenceMode)) throw new Error('EXPLICIT_EVIDENCE_MODE_REQUIRED');
 const base = 'https://dlu-lms-student-support-staging.onrender.com';
 let app, pool, failed = 0;
 const checks = [], timings = [];
@@ -110,7 +113,7 @@ try {
   const createdIntervention = (await request('/api/v1/me/teacher/interventions', teacher, 201, 'POST', {
     courseId: target.courseId, studentId: target.studentId, title: 'Kiểm thử theo dõi ' + randomUUID().slice(0, 8),
     note: 'Ghi nhận kiểm thử workflow trên dữ liệu mô phỏng.', actionType: 'contacted',
-    followUpAt: new Date(Date.now() - 60000).toISOString() })).data;
+    followUpAt: new Date(Date.now() + 3600000).toISOString() })).data;
   const interventionPath = '/api/v1/me/teacher/interventions/' + createdIntervention.id;
   await request(interventionPath, teacher2, 404);
   await request(interventionPath, teacher2, 404, 'PATCH', { note: 'Không thuộc phạm vi.' });
@@ -121,7 +124,7 @@ try {
   if (outside) await request('/api/v1/me/teacher/interventions', teacher, 404, 'POST', {
     courseId: outside.courseId, studentId: outside.studentId, title: 'Không thuộc phạm vi',
     note: 'Không thuộc phạm vi.', actionType: 'monitoring', followUpAt: null });
-  verify('due follow-up persisted', (await request('/api/v1/me/teacher/followups', teacher)).data.some(i => i.id === createdIntervention.id));
+  verify('future follow-up is not falsely marked due', !(await request('/api/v1/me/teacher/followups', teacher)).data.some(i => i.id === createdIntervention.id));
   const history = (await request(interventionPath + '/followups', teacher, 201, 'POST', {
     note: 'Đã kiểm tra lại; đây không phải đánh giá hay điểm chính thức.', outcomeStatus: 'following_up',
     nextFollowUpAt: future })).data;
@@ -136,8 +139,9 @@ try {
   await request('/api/v1/me/assignments', student, 404, 'POST', { grade: 10 });
   const report = { status: failed ? 'FAIL' : 'PASS', mode, checkedAt: new Date().toISOString(),
     checks, timings, testData: 'Plan item removed; synthetic teacher test record resolved, history retained.' };
-  await mkdir(new URL('../evidence/innovation/', import.meta.url), { recursive: true });
-  await writeFile(new URL(`../evidence/innovation/${mode}-smoke.json`, import.meta.url), JSON.stringify(report, null, 2));
+  const evidenceDirectory = evidenceMode === 'perfection' ? '../evidence/perfection/' : '../evidence/innovation/';
+  await mkdir(new URL(evidenceDirectory, import.meta.url), { recursive: true });
+  await writeFile(new URL(`${evidenceDirectory}${mode}-smoke.json`, import.meta.url), JSON.stringify(report, null, 2));
   console.log(JSON.stringify({ status: report.status, checks: checks.length, failed }));
 } catch (error) {
   console.log(JSON.stringify(safeFailure(error))); process.exitCode = 1;

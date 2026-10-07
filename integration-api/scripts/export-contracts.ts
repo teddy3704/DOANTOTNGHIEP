@@ -32,7 +32,7 @@ const candidateStore: InnovationStore = {
 const app = await buildApp(
   {
     environment: "development",
-    port: 3000,
+    port: process.argv.includes("--candidate") ? 3001 : 3000,
     host: "127.0.0.1",
     databaseUrl: "",
     demoAuthEnabled: true,
