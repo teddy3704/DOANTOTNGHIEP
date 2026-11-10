@@ -19,6 +19,13 @@ public class HealthResponse {
         this.portal = portal;
     }
 
+    /** POLISH-1: Portal warm-up progress "N/M" (calls done / planned); null when off. Counts only. */
+    private String prewarm;
+
+    public String getPrewarm() { return prewarm; }
+
+    public void setPrewarm(String prewarm) { this.prewarm = prewarm; }
+
     public String getPortal() {
         return portal;
     }

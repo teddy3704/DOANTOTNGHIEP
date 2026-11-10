@@ -87,7 +87,38 @@ if (-not (Test-Path -LiteralPath $config)) { Fail 'Thiếu .local\backend.json' 
 & (Join-Path $tools 'Set-LocalBackendDatabase.ps1') -Target $Database | Out-Null
 $cfg = [IO.File]::ReadAllText($config) | ConvertFrom-Json
 $portalOn = $cfg.PORTAL -and $cfg.PORTAL.enabled -eq $true
+$portalBase = if ($portalOn) { [string]$cfg.PORTAL.baseUrl } else { '' }
 $cfg = $null
+
+# POLISH-4: read-only readiness checks for the defense room. They only warn; nothing on Windows is changed.
+$issues = [Collections.Generic.List[string]]::new()
+function Warn([string]$text) { Write-Host "      CẢNH BÁO $text" -ForegroundColor Yellow; $issues.Add($text) }
+if ((FreeC) -lt 22) { $issues.Add("Ổ C còn $(FreeC) GiB (< 22)") }
+try {
+    $battery = @(Get-CimInstance -ClassName Win32_Battery -ErrorAction Stop)
+    # BatteryStatus 1 = discharging (on battery); 2 = on AC power.
+    if ($battery.Count -gt 0 -and @($battery | Where-Object { $_.BatteryStatus -eq 1 }).Count -gt 0) {
+        Warn "Máy đang chạy pin ($([int]($battery | Measure-Object EstimatedChargeRemaining -Average).Average)%): cắm sạc trước khi demo"
+    }
+} catch { }
+$rebootKeys = @('HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired',
+    'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending')
+$pendingRename = $null
+try {
+    $pendingRename = (Get-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager' `
+        -Name PendingFileRenameOperations -ErrorAction Stop).PendingFileRenameOperations
+} catch { }
+if (@($rebootKeys | Where-Object { Test-Path $_ }).Count -gt 0 -or $pendingRename) {
+    Warn 'Windows đang chờ khởi động lại (cập nhật): khởi động lại máy TRƯỚC buổi demo, không để nó tự khởi động giữa chừng'
+}
+if ($portalOn -and $portalBase) {
+    try {
+        Invoke-WebRequest -Uri $portalBase -Method Head -TimeoutSec 5 -UseBasicParsing -ErrorAction Stop | Out-Null
+    } catch {
+        # Any HTTP answer (even 404/405) means the Portal host is reachable; only a timeout/DNS/connect error is a problem.
+        if (-not $_.Exception.Response) { Warn 'Không có internet hoặc Portal không trả lời trong 5 s: phần Học vụ/Lớp cố vấn có thể không chạy' }
+    }
+}
 Ok "backend.json -> lms_mobile_group_$Database; Portal: $(if ($portalOn) { 'bật' } else { 'TẮT (màn Học vụ sẽ báo chưa kết nối)' })"
 if ($PhysicalDevice -and $NoEmulator) { Fail '-PhysicalDevice và -NoEmulator không dùng chung' 'Chọn một trong hai.' }
 if (-not (Test-Path $adb) -and -not $NoEmulator) { Fail "Không thấy adb ở $adb" 'Kiểm tra Android SDK tại D:\DLU-LMS\Android\Sdk.' }
@@ -116,7 +147,7 @@ Step '3/8' 'Backend 127.0.0.1:8081'
 if (Test-Port 8081) {
     Ok 'cổng 8081 đã có tiến trình, dùng lại (nếu là bản cũ: Stop-Demo.ps1 rồi chạy lại)'
 } else {
-    $p = Open-Window 'DLU Demo - Backend' "& '$tools\Start-LocalBackend.ps1'"
+    $p = Open-Window 'DLU Demo - Backend' "& '$tools\Start-LocalBackend.ps1' -DemoCache"
     Save-Pid 'backendWindow' $p.Id
     Ok "mở cửa sổ Backend (PID $($p.Id)); lần đầu Maven có thể mất 1-2 phút"
 }
@@ -128,13 +159,25 @@ Ok "status UP, database $($health.database), portal $($health.portal)"
 if ($portalOn -and $health.portal -ne 'UP') { Write-Host "      CẢNH BÁO Portal = $($health.portal): màn Học vụ sẽ báo chưa kết nối; phần LMS vẫn chạy." -ForegroundColor Yellow }
 
 $portalState = if (-not $portalOn) { 'TẮT' } elseif ($health.portal -eq 'UP') { 'UP' } else { "DOWN ($($health.portal))" }
+if ($portalOn -and $health.portal -ne 'UP') { $issues.Add("Portal $($health.portal): bỏ đoạn Học vụ/Lớp cố vấn trong DEMO_SCRIPT") }
+$apkShort = 'chưa kiểm'
 function Summary {
+    $h = Get-Health
+    $prewarm = if ($h -and $h.prewarm) { "prewarm $($h.prewarm)" } else { 'prewarm tắt' }
     Write-Host ''
-    Write-Host '==== Tóm tắt demo ====' -ForegroundColor Green
-    Write-Host "  Database : lms_mobile_group_$Database"
-    Write-Host "  Portal   : $portalState$(if ($portalState -ne 'UP') { ' -> bỏ qua đoạn Học vụ trong DEMO_SCRIPT' })"
-    Write-Host "  Thiết bị : $deviceName"
-    Write-Host "  Ổ C      : $(FreeC) GiB"
+    Write-Host '==== SẴN SÀNG? ====' -ForegroundColor Green
+    Write-Host ("  {0,-9}: {1}" -f 'DB', "lms_mobile_group_$Database")
+    Write-Host ("  {0,-9}: {1}" -f 'Backend', $(if ($h) { "/health $($h.status), database $($h.database)" } else { 'không trả lời' }))
+    Write-Host ("  {0,-9}: {1}" -f 'Portal', "$portalState, $prewarm")
+    Write-Host ("  {0,-9}: {1}" -f 'Thiết bị', $deviceName)
+    Write-Host ("  {0,-9}: {1}" -f 'APK', $apkShort)
+    Write-Host ("  {0,-9}: {1}" -f 'Ổ C', "$(FreeC) GiB")
+    if ($issues.Count -eq 0) {
+        Write-Host ("  {0,-9}: {1}" -f 'Kết luận', 'SẴN SÀNG') -ForegroundColor Green
+    } else {
+        Write-Host ("  {0,-9}: CẦN XỬ LÝ" -f 'Kết luận') -ForegroundColor Yellow
+        foreach ($i in $issues) { Write-Host "             - $i" -ForegroundColor Yellow }
+    }
     Write-Host '  Tắt      : tools\Stop-Demo.ps1'
 }
 if ($NoEmulator) { $deviceName = 'không (-NoEmulator)'; Summary; exit 0 }
@@ -197,6 +240,16 @@ if (-not $installed -or $stale) {
     Ok "đã cài $(Split-Path $Apk -Leaf) (SHA-256 $($apkHash.Substring(0, 12))…)"
 } else {
     Ok 'ứng dụng đã có trên máy'
+}
+$installedPath = ((Adb shell pm path $package 2>$null) -join '') -replace '^package:', ''
+$installedSha = if ($installedPath) { (((Adb shell sha256sum $installedPath.Trim() 2>$null) -join '') -split '\s+')[0] } else { '' }
+if ($installedSha) {
+    $apkShort = $installedSha.Substring(0, 12).ToUpper()
+    if (Test-Path -LiteralPath $finalApk) {
+        $finalSha = (Get-FileHash -LiteralPath $finalApk -Algorithm SHA256).Hash
+        if ($finalSha -ne $installedSha.ToUpper()) { $issues.Add("APK trên máy ($apkShort) khác bản cuối ($($finalSha.Substring(0, 12))): cài lại bằng -Apk") }
+        else { $apkShort += ' (= bản cuối)' }
+    }
 }
 Adb shell monkey -p $package -c android.intent.category.LAUNCHER 1 2>$null | Out-Null
 Ok 'đã mở ứng dụng'

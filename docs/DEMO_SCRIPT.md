@@ -12,37 +12,40 @@ Quy ước: **Bấm** = thao tác; **Mã** = chức năng; **Nói** = một câu
 
 ## A. Sinh viên 205 (khoảng 6 phút)
 
-| # | Bấm | Mã | Nói |
-| --- | --- | --- | --- |
-| 1 | Màn **Đăng nhập**: gõ MSSV `2312005` + mật khẩu demo (owner đặt bằng `Set-DemoPasswords.ps1`) › **Đăng nhập** | LOGIN | "Đăng nhập bằng mã số sinh viên như LMS của trường; máy chủ quyết định vai trò, sai 5 lần thì khóa tạm 15 phút." |
-| 2 | Trang chủ: nhìn thẻ **GPA tích lũy** (đầu trang) | P1 | "GPA và tín chỉ lấy từ Portal Đào tạo, cùng một màn với dữ liệu học trên LMS." |
-| 3 | Bấm thẻ GPA › tab **Chương trình** | P2 | "Tiến độ chương trình đào tạo: tín chỉ bắt buộc đã đạt, học phần đủ điều kiện đăng ký." |
-| 4 | Tab **Mô phỏng GPA** | P3 + N1 | "GPA dự kiến dùng điểm hiện tại trên LMS của các môn đang học; app cho biết cần bao nhiêu để đạt Giỏi." |
-| 5 | Quay lại › thẻ **Tình trạng học tập** (Đỏ/Vàng/Xanh) | N9 | "Sinh viên thấy đúng điểm theo dõi giảng viên thấy, kèm lý do và việc cần làm để lên Xanh." |
-| 6 | Quay lại › thẻ **Hôm nay: N việc** › Kế hoạch tuần | N6 | "Hạn nộp thật được xếp thành lịch từng ngày vừa quỹ thời gian; bài dài tách hai phần; quá tải thì cảnh báo." |
-| 7 | Tab **Khóa học** › **Mobile Application Development** › **Flashcards** › **Bắt đầu ôn tập** › chạm lật thẻ › **Được** (nút ghi "không có thẻ đến hạn" thì bấm **Thêm thẻ**, tạo 1 thẻ — thẻ mới đến hạn ngay) | N5 | "Ôn tập ngắt quãng SM-2: mỗi nút ghi rõ bao lâu nữa gặp lại thẻ." |
-| 8 | Quay lại khóa › tab **Điểm** › **Mô phỏng điểm** | N1 | "Thử 'nếu bài X được Y điểm' và xem còn cần bao nhiêu ở các bài chưa chấm để qua môn." |
-| 9 | Trang chủ › biểu tượng **Lịch** › **Tuần** | N12 | "Hạn nộp, kế hoạch và buổi học trên một lịch; xuất .ics sang Google Calendar." |
-| 10 | Biểu tượng **chuông** (Cài đặt nhắc) | N7 | "Nhắc trước hạn nộp và nhắc ôn hằng ngày ngay cả khi app đã đóng; quyền thông báo chỉ xin khi người dùng bật." |
-| 11 | Biểu tượng **kính lúp** › gõ `ho tro hoc` (không dấu) | N13 | "Tìm không dấu, kết quả mở thẳng đúng khóa." |
+| # | Bấm | Mã | Nói | Giây |
+| --- | --- | --- | --- | ---: |
+| 1 | Màn **Đăng nhập**: gõ MSSV `2312005` + mật khẩu demo (owner đặt bằng `Set-DemoPasswords.ps1`) › **Đăng nhập** | LOGIN | "Đăng nhập bằng mã số sinh viên như LMS của trường; máy chủ quyết định vai trò, sai 5 lần thì khóa tạm 15 phút." | 35 |
+| 2 | Trang chủ: nhìn thẻ **GPA tích lũy** (đầu trang) | P1 | "GPA và tín chỉ lấy từ Portal Đào tạo, cùng một màn với dữ liệu học trên LMS." | 10 |
+| 3 | Bấm thẻ GPA › tab **Chương trình** | P2 | "Tiến độ chương trình đào tạo: tín chỉ bắt buộc đã đạt, học phần đủ điều kiện đăng ký." | 20 |
+| 4 | Tab **Mô phỏng GPA** | P3 + N1 | "GPA dự kiến dùng điểm hiện tại trên LMS của các môn đang học; app cho biết cần bao nhiêu để đạt Giỏi." | 15 |
+| 5 | Quay lại › thẻ **Tình trạng học tập** (Đỏ/Vàng/Xanh) | N9 | "Sinh viên thấy đúng điểm theo dõi giảng viên thấy, kèm lý do và việc cần làm để lên Xanh." | 20 |
+| 6 | Quay lại › thẻ **Hôm nay: N việc** › Kế hoạch tuần | N6 | "Hạn nộp thật được xếp thành lịch từng ngày vừa quỹ thời gian; bài dài tách hai phần; quá tải thì cảnh báo." | 20 |
+| 7 | Tab **Khóa học** › **Mobile Application Development** › **Flashcards** › **Bắt đầu ôn tập** › chạm lật thẻ › **Được** (nút ghi "không có thẻ đến hạn" thì bấm **Thêm thẻ**, tạo 1 thẻ — thẻ mới đến hạn ngay) | N5 | "Ôn tập ngắt quãng SM-2: mỗi nút ghi rõ bao lâu nữa gặp lại thẻ." | 45 |
+| 8 | Quay lại khóa › tab **Điểm** › **Mô phỏng điểm** | N1 | "Thử 'nếu bài X được Y điểm' và xem còn cần bao nhiêu ở các bài chưa chấm để qua môn." | 30 |
+| 9 | Trang chủ › biểu tượng **Lịch** › **Tuần** | N12 | "Hạn nộp, kế hoạch và buổi học trên một lịch; xuất .ics sang Google Calendar." | 30 |
+| 10 | Biểu tượng **chuông** (Cài đặt nhắc) | N7 | "Nhắc trước hạn nộp và nhắc ôn hằng ngày ngay cả khi app đã đóng; quyền thông báo chỉ xin khi người dùng bật." | 20 |
+| 11 | Biểu tượng **kính lúp** › gõ `ho tro hoc` (không dấu) | N13 | "Tìm không dấu, kết quả mở thẳng đúng khóa." | 20 |
 
 ## B. Giảng viên 102 (khoảng 4 phút)
 
-| # | Bấm | Mã | Nói |
-| --- | --- | --- | --- |
-| 12 | Trang chủ SV › nút **Đăng xuất** (góc trái) › đăng nhập `teacher02` + mật khẩu demo | LOGIN | "Đăng xuất xóa token, dữ liệu lưu ngoại tuyến và lịch nhắc của tài khoản trước; vai trò GV do máy chủ xác định." |
-| 13 | Trang chủ GV: thẻ **Lớp cố vấn ITK47A** › bật **Ẩn danh** › **Cần quan tâm** | P6 | "Kết quả cả lớp cố vấn từ Portal; bật ẩn danh khi trình chiếu, tên thành 'SV 01'." |
-| 14 | Một SV trong danh sách cần quan tâm (lần mở đầu có thể chờ 20–30 s vì server tải lịch sử nhiều học kỳ từ Portal; nói câu thuyết minh trong lúc chờ) | P6 + N9 | "Nếu SV cũng học khóa của thầy cô trên LMS, app hiện thêm tín hiệu học tập ở đó." |
-| 15 | Quay lại › tab **Khóa học** › **Hỗ trợ học tập số** › tab **Phân tích** › cuộn xuống phần **Dự báo qua môn** | N4 | "Engine mô phỏng điểm chạy cho cả lớp: ai đã chắc qua, ai cần cố gắng, ai không còn khả thi." |
-| 16 | Cuộn tiếp tới **Phân tích bài kiểm tra** (MVP3 - Quiz 5.1: "Quá khó", "Nhiều sinh viên bỏ") | N16 | "Câu nào quá khó, nhiều SV bỏ, hay làm quá nhanh — để chỉnh đề." |
-| 17 | Tab **Sinh viên** › một SV › **Nhắc riêng** › chọn mẫu › **Hủy** (KHÔNG bấm Gửi) | N8 | "Mẫu nhắc dựng từ lý do thật như số ngày chưa vào khóa; ngoài danh sách lớp thì server từ chối." |
+| # | Bấm | Mã | Nói | Giây |
+| --- | --- | --- | --- | ---: |
+| 12 | Trang chủ SV › nút **Đăng xuất** (góc trái) › đăng nhập `teacher02` + mật khẩu demo | LOGIN | "Đăng xuất xóa token, dữ liệu lưu ngoại tuyến và lịch nhắc của tài khoản trước; vai trò GV do máy chủ xác định." | 55 |
+| 13 | Trang chủ GV: thẻ **Lớp cố vấn ITK47A** › bật **Ẩn danh** › **Cần quan tâm** | P6 | "Kết quả cả lớp cố vấn từ Portal; bật ẩn danh khi trình chiếu, tên thành 'SV 01'." | 25 |
+| 14 | Một SV trong danh sách cần quan tâm (mở ngay: Start-Demo đã làm nóng cache Portal, bảng SẴN SÀNG báo `prewarm N/N`) | P6 + N9 | "Nếu SV cũng học khóa của thầy cô trên LMS, app hiện thêm tín hiệu học tập ở đó." | 15 |
+| 15 | Quay lại › tab **Khóa học** › **Hỗ trợ học tập số** › tab **Phân tích** › cuộn xuống phần **Dự báo qua môn** | N4 | "Engine mô phỏng điểm chạy cho cả lớp: ai đã chắc qua, ai cần cố gắng, ai không còn khả thi." | 35 |
+| 16 | Cuộn tiếp tới **Phân tích bài kiểm tra** (MVP3 - Quiz 5.1: "Quá khó", "Nhiều sinh viên bỏ") | N16 | "Câu nào quá khó, nhiều SV bỏ, hay làm quá nhanh — để chỉnh đề." | 20 |
+| 17 | Quay lại khóa › **Xem sinh viên cần theo dõi** › Trần Minh Bảo › **Nhắc riêng** (mẫu "Lâu không truy cập") › **Hủy** (KHÔNG bấm Gửi) | N8 | "Mẫu nhắc dựng từ lý do thật như số ngày chưa vào khóa; ngoài danh sách lớp thì server từ chối." | 40 |
+
+
+**Bấm giờ (POLISH-5, 11/11/2026):** tổng ≈ 455 giây (≈ 7 phút 35 giây) + 15 giây kết luận. Đã tập trọn 17 bước trên emulator (DB demo, Portal UP, cache đã làm nóng). Cột "Giây" = thao tác đo trên emulator (1,5 s mỗi lần bấm, gồm thời gian tải màn) + thời gian nói câu thuyết minh (3 tiếng/giây) + 15 giây gõ mã số và mật khẩu ở bước 1 và 12; bước 15–16 tính theo cuộn tay (~10 s) thay vì công cụ dò chữ tự động.
 
 Kết (15 giây): "Ứng dụng không thay Moodle; nó gom dữ liệu LMS và Portal, giải thích, và chuyển thành việc làm cụ thể trên điện thoại."
 
 ## Nhánh dự phòng
 
-- **Mẹo trước giờ (giảm chờ ở bước 14):** sau Start-Demo, đăng nhập GV, mở Lớp cố vấn và một SV một lần rồi quay về màn chọn
-  vai trò. Cache Portal ở server giữ 10 phút.
+- **Trước giờ:** đợi bảng **SẴN SÀNG** của Start-Demo báo `prewarm 67/67` (khoảng 1–2 phút sau khi backend UP). Cache Portal khi demo
+  giữ 6 giờ. Chuyển giao diện sáng/tối: menu Tài khoản (góc trái trang chủ).
 
 - **Portal DOWN** (Tóm tắt ghi `Portal : DOWN` hoặc thẻ GPA không hiện): bỏ bước 2–4 và 13–14. Nói: "Phần Portal dùng API
   mô phỏng của Trường đang không phản hồi; phần học tập trên LMS vẫn chạy độc lập." Thay bằng bước 5 và 15 dài hơn.
@@ -79,7 +82,7 @@ Kết (15 giây): "Ứng dụng không thay Moodle; nó gom dữ liệu LMS và 
    điểm của SV. Điểm cần cho một xếp loại: need = (band × (C + R) − G × C) / R. Đây là dự kiến, không phải điểm chính thức.
 6. **Vì sao không dùng API miễn giảm học phí?** Dữ liệu miễn giảm cho biết đối tượng chính sách hoặc dân tộc — dữ liệu cá nhân nhạy
    cảm theo Nghị định 13/2023/NĐ-CP — và không cần cho học tập, nên ứng dụng không gọi endpoint đó (tối thiểu hóa dữ liệu).
-7. **Đã kiểm thử thế nào?** Backend JUnit 284 test (1 test schema tắt có chủ đích), Flutter 329 test kể cả cỡ chữ 1.3, màn 320–390 dp,
+7. **Đã kiểm thử thế nào?** Backend JUnit 290 test (1 test schema tắt có chủ đích), Flutter 333 test kể cả cỡ chữ 1.3, màn 320–390 dp,
    chế độ tối; test bảo mật 403/404, injection trong tìm kiếm. Mỗi chức năng chạy thật trên emulator với DB demo, có ảnh chụp; đo
    hiệu năng 12 endpoint × 200 lần: p95 3–29 ms, 0 lỗi. Số liệu cuối: `docs/RELEASE_NOTES.md`.
 8. **Triển khai thật cần gì?** (a) bật `MoodleTokenProvider` trỏ vào LMS của Trường (cần văn bản cho phép), MSSV lấy từ tài
@@ -87,3 +90,26 @@ Kết (15 giây): "Ứng dụng không thay Moodle; nó gom dữ liệu LMS và 
    Moodle thật thay bản sao; (c) key Portal thật, bật ẩn danh mặc định; (d) chạy backend trên máy chủ của Trường với HTTPS, đổi mật
    khẩu role ứng dụng (`tools\Rotate-AppRolePassword.ps1`); (e) ký APK bản phát hành; (f) đối chiếu ngưỡng xếp loại với quy chế
    đào tạo của Trường ĐH Đà Lạt.
+
+## Câu hỏi bổ sung (POLISH-6, đã đối chiếu với code)
+
+9. **Đăng nhập bằng MSSV an toàn ra sao?** Máy chủ so mật khẩu bằng BCrypt cost 12 (`LocalCredentialProvider`); sai 5 lần trong
+   15 phút cho cùng mã số và địa chỉ thì khóa tạm (429 kèm thời gian chờ, `LoginAttemptLimiter`); sai mật khẩu hay mã số không tồn tại
+   đều nhận một thông báo chung "Mã số hoặc mật khẩu không đúng" và cùng thời gian xử lý. App không lưu mật khẩu; "Ghi nhớ mã số" chỉ
+   lưu mã số; token JWT chỉ giữ trong bộ nhớ, đăng xuất là xóa. Vai trò sinh viên/giảng viên do máy chủ quyết định, app không gửi vai trò.
+   Log chỉ ghi kết quả, userId và độ dài mã số.
+10. **Vì sao chưa đăng nhập bằng tài khoản LMS thật?** `MoodleTokenProvider` đã viết sẵn theo đúng cách ứng dụng Moodle chính thức
+    đăng nhập (`login/token.php` rồi `core_webservice_get_site_info`) và đã kiểm thử bằng máy chủ giả lập (3 test). Gọi thật vào
+    lms.dlu.edu.vn cần văn bản cho phép của Trường, nên provider đang TẮT; bật thì chỉ cần cấu hình địa chỉ https.
+11. **Vì sao GitHub chỉ có vài commit ảnh chụp?** Lịch sử phát triển ban đầu có bảng mật khẩu demo của bản trước (nằm trong bản mã nguồn nhóm
+    nhận). Nhóm không đưa lịch sử đó lên repo công khai mà đưa ảnh chụp sạch của mã nguồn bản bảo vệ (bản 20/11 và bản r2 sau khi hoàn thiện) (đã quét bí mật và file cấm
+    trước khi đẩy). Lịch sử đầy đủ nằm trên máy của nhóm: hơn 40 commit cục bộ từ 09/11/2026 (khi nhận bản nguồn), xem bằng `git log`.
+12. **Dữ liệu Portal có lưu xuống đĩa không?** Không. Phản hồi Portal chỉ nằm trong cache bộ nhớ của backend: 6 giờ khi chạy demo
+    (dữ liệu mô phỏng không đổi, có làm nóng sẵn lớp cố vấn), 10 phút khi triển khai thật; app giữ thêm 5 phút trong bộ nhớ và xóa khi
+    đăng xuất. Không ghi vào CSDL, không ghi file; log chỉ có endpoint, mã trạng thái, thời gian, số bản ghi.
+13. **Mất mạng thì sao?** Hai trường hợp:
+    - *Máy demo mất internet:* backend, CSDL và emulator đều chạy trên máy nên toàn bộ phần LMS (trang chủ, khóa học, kế hoạch, ôn thẻ,
+      dự báo, nhắc riêng…) vẫn chạy. Chỉ phần Portal bị ảnh hưởng: lớp cố vấn vẫn mở được nếu cache đã làm nóng (6 giờ); thẻ GPA và
+      Học vụ của sinh viên báo "Portal đào tạo đang không phản hồi". Xử lý: bỏ bước 2–4 (xem "Nhánh dự phòng"), nói rõ phần LMS độc lập.
+    - *Điện thoại mất kết nối tới backend:* app hiện banner "Đang ngoại tuyến · dữ liệu lúc …" và vẫn cho xem trang chủ, việc cần làm,
+      khóa học, kế hoạch, thẻ đến hạn đã tải (N11); thao tác ghi bị khóa. Xử lý: chạy lại `adb reverse tcp:8081 tcp:8081` rồi kéo để làm mới.

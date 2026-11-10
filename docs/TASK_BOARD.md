@@ -56,7 +56,15 @@ edited without compile/run evidence.
 | FINAL-F6 | Rotate-AppRolePassword.ps1 (owner chạy) | final | owner (mật khẩu postgres) | DONE code (2026-11-10) — parse PS5/PS7 OK; chạy thật: NOT_RUN, chờ owner |
 | FINAL-F7 | Tag bao-ve-2026-11-20 + tổng kết | final | none | DONE (2026-11-10) — tag cục bộ, Stop-Demo, tổng kết cuối HANDOFF; push lần 2 BLOCKED cùng lý do PUSH |
 | LOGIN | Đăng nhập MSSV/tên tài khoản + mật khẩu (docs/LOGIN_MSSV_PROMPT.md) | sau F5, trước F7 | .local AUTH (hash) | DONE (2026-11-10) — BE 284, FE 329; emulator login-01..06; video sv-1 quay lại; MoodleTokenProvider TẮT (mock) |
-| PUSH | Push nhánh dlu-lms-group-bao-ve lên GitHub (cách b: một commit ảnh chụp) | owner chọn (b) 10/11 | remote GitHub | IN_PROGRESS — bước 1 (gỡ mật khẩu/hash khỏi cây, 6d88f2a), bước 2 (DB: không có app.auth_account) xong |
+| PUSH | Push nhánh dlu-lms-group-bao-ve lên GitHub (cách b: một commit ảnh chụp) | owner chọn (b) 10/11 | remote GitHub | DONE (2026-11-10 23:22) — snapshot 4d00d982 (cùng cây 41f888b), nhánh + tag trên GitHub = 4d00d982, main giữ nguyên |
+| POLISH-1 | Lớp cố vấn mở ngay (cache 6 h khi demo + làm nóng) | polish | none | DONE (2026-11-10) — lạnh 3,6 s/0,95 s (Portal nhanh), > 20 s khi Portal chậm → sau 77 ms/≈ 250 ms; emulator chi tiết SV hiện trong 2 s |
+| POLISH-2 | Sáng/Tối/Theo máy trong app (menu Tài khoản) | polish | none | DONE (2026-11-10) — FE test 4; emulator polish2-01..03 |
+| POLISH-3 | Nội dung demo chuyên nghiệp | polish | app (SV 205, GV 102) | DONE (2026-11-10) — sửa 2 thẻ, thêm 6 thẻ qua app API; nhật ký "s"/"hôm nay tôi đa" và ghi chú GV "s"/"a" không có Sửa → owner quyết |
+| POLISH-4 | Start-Demo kiểm tra sẵn sàng + bảng SẴN SÀNG | polish | none | DONE (2026-11-10) — chạy thật: phát hiện Windows chờ khởi động lại |
+| POLISH-5 | Tập trọn kịch bản, bấm giờ | polish | none | DONE (2026-11-11) — 17/17 bước trên emulator; tổng ≈ 7 phút 35 giây + 15 s; cột "Giây" trong DEMO_SCRIPT |
+| POLISH-6 | Câu hỏi hội đồng bổ sung + COMPARISON_FACTS Đăng nhập | polish | none | DONE (2026-11-11) — 5 câu (9–13) + dòng Đăng nhập + Hướng phát triển |
+| POLISH-7 | Video quay lại nếu cần | polish | none | DONE (2026-11-11) — quay lại sv-3 (thẻ mới) và gv-2 (không còn chờ); bản cũ -r1; sv-1 giữ (cần mật khẩu thật) |
+| POLISH-8 | Đóng gói lại + GitHub snapshot r2 | polish | remote GitHub | TODO |
 | T10 | Supabase role in stack | Claude | none | DONE (static) | No Supabase reference in source; connector stays unused |
 | T11 | Backup-status notes in baseline docs | Claude | docs/, database/README.md | DONE | Dated notes added |
 | T12 | Teacher notes need courseId (backend now requires it) | Claude | frontend teacher_notes_screen | DONE (static) | Only caller passes non-null courseId; confirm in T09 |

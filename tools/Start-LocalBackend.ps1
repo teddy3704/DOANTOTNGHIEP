@@ -1,5 +1,10 @@
 [CmdletBinding()]
-param([string]$ConfigPath = (Join-Path (Split-Path $PSScriptRoot) '.local\backend.json'))
+param(
+    [string]$ConfigPath = (Join-Path (Split-Path $PSScriptRoot) '.local\backend.json'),
+    # POLISH-1 (Start-Demo only): Portal cache 6 h (simulated data does not change) + warm-up of the demo advisor class.
+    # A real deployment keeps the default 10 minutes and no warm-up.
+    [switch]$DemoCache
+)
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'Use-LocalToolchain.ps1')
 if (-not (Test-Path -LiteralPath $ConfigPath)) {
@@ -21,7 +26,13 @@ $allKeys = $keys + @('SPRING_PROFILES_ACTIVE','DEMO_AUTH_ENABLED','SERVER_ADDRES
 $redact = @([string]$config.DB_URL, [string]$config.DB_USERNAME, [string]$config.DB_PASSWORD, [string]$config.JWT_SECRET)
 $portalJson = $null
 $app = @{}
-if ($config.PORTAL) { $app.portal = $config.PORTAL }
+if ($config.PORTAL) {
+    $app.portal = $config.PORTAL
+    if ($DemoCache) {
+        $app.portal | Add-Member -NotePropertyName cacheTtl -NotePropertyValue '6h' -Force
+        $app.portal | Add-Member -NotePropertyName prewarm -NotePropertyValue $true -Force
+    }
+}
 # LOGIN: optional AUTH block (tools\Set-DemoPasswords.ps1) -> app.auth.local.* (login, userId, role, BCrypt hash only).
 if ($config.AUTH -and $config.AUTH.users) {
     $app.auth = @{ local = @{ enabled = $true; users = @($config.AUTH.users) } }

@@ -114,7 +114,7 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
       title: const Text('Trang chủ Giảng viên'),
-      leading: const LogoutButton(),
+      leading: const AccountMenu(),
       actions: [
         IconButton(
           key: const Key('open-search'),

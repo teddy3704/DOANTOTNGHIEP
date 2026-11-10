@@ -94,6 +94,21 @@ Bước 0 dừng nếu ổ C < 15 GiB và cảnh báo nếu < 22 GiB. Portal DOW
 **Tóm tắt demo**: database, Portal UP/DOWN/TẮT, thiết bị (serial + model), ổ C. Mỗi dịch vụ chạy trong cửa sổ PowerShell riêng tên
 "DLU Demo - PostgreSQL/Backend/Emulator"; đóng cửa sổ Claude không làm tắt chúng.
 
+### Đọc bảng SẴN SÀNG (cuối Start-Demo)
+
+| Dòng | Đạt khi | Nếu không |
+| --- | --- | --- |
+| DB | `lms_mobile_group_demo` | chạy lại không kèm `-Database dev` |
+| Backend | `/health UP, database CONNECTED` | xem cửa sổ "DLU Demo - Backend" |
+| Portal | `UP, prewarm N/N` (N = M) | `prewarm 48/67` = đang làm nóng, đợi 1–2 phút; `DOWN` = bỏ đoạn Học vụ/Lớp cố vấn |
+| Thiết bị | `emulator-5554 (…)` hoặc serial điện thoại | xem bước 5/8 |
+| APK | `xxxxxxxxxxxx (= bản cuối)` | khác bản cuối → `Start-Demo.ps1 -Apk D:\DLU-LMS\Artifacts\final\dlu-lms-group-final-debug.apk` |
+| Ổ C | ≥ 22 GiB | dọn ổ C |
+| Kết luận | `SẴN SÀNG` | làm từng dòng "CẦN XỬ LÝ" in bên dưới |
+
+Các kiểm tra chỉ đọc, chỉ cảnh báo, không đổi cài đặt Windows: máy đang chạy pin (Win32_Battery), Windows chờ khởi động lại
+(RebootRequired, RebootPending, PendingFileRenameOperations), không có internet hoặc Portal không trả lời trong 5 s.
+
 ### Demo trên điện thoại thật qua USB (`-PhysicalDevice`)
 
 1. Trên điện thoại: Cài đặt > Giới thiệu > bấm 7 lần "Số bản dựng" → Tùy chọn nhà phát triển > bật **Gỡ lỗi USB**.

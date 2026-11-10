@@ -1221,7 +1221,7 @@ LOGIN bổ sung (23:08–23:12): sau khi hết khóa, `2212001` đăng nhập đ
   File mật khẩu tạm đã ghi đè và xóa. Emulator: đã tắt "hiện ký tự vừa gõ" (settings system show_password 0) và khóa xoay dọc.
 
 ## TỔNG KẾT CUỐI — FINAL 10/11/2026 (bản bảo vệ 20/11/2026)
-- STATUS: FINAL-F0…F7 DONE; LOGIN (đăng nhập MSSV) DONE; PUSH GitHub BLOCKED (mật khẩu demo dạng chữ thường trong lịch sử, chờ owner).
+- STATUS: FINAL-F0…F7 DONE; LOGIN (đăng nhập MSSV) DONE; PUSH GitHub DONE theo cách (b) — xem mục PUSH cách (b) cuối file.
 - Git cục bộ nhánh `codex/group-stack-takeover`, tag `bao-ve-2026-11-20` (không push, không remote). Mã nguồn bản cuối: `08e41e6`
   (sau đó chỉ tài liệu).
 - Test cuối (trên 08e41e6): Backend `Test-Backend -Package` exit 0 — 284 test, 0 lỗi, 1 bỏ qua có chủ đích (SchemaVerificationTest);
@@ -1256,3 +1256,79 @@ Bước 2 (chỉ đọc, role lms_group_app): `SELECT to_regclass('app.auth_acco
   lms_mobile_group_demo: bảng đăng nhập của bản cũ không tồn tại, hai tài khoản student205/teacher102 không có trong DB cục bộ.
   Không sửa DB. (Các hệ thống ngoài máy này — Render/Supabase cũ — không kiểm tra được.)
 F7: tag cục bộ `bao-ve-2026-11-20` được đặt lại vào commit có cây trùng snapshot (trước đó trỏ 6c5031e); không đổi hash commit nào.
+Bước 3: snapshot `4d00d9820fad6702307fdebc4b15baf36c50b8a4` (git commit-tree, 1 commit, không cha), **cùng cây với commit cục bộ
+  41f888beff685b1cbe02a08b8f6bbcd61bbee8df** (tree caceb9b247a10c522414d3c90f5469e34860f698); 534 file; không có .local/, .env*, *.apk,
+  *.jar, *.jks, *.keystore, *.log. Quét cây: 2 mật khẩu + 2 hash cũ = 0; bcrypt hash = 0; key mk_dev_ có giá trị = 0; private key = 0;
+  các dòng còn lại khớp mẫu là tên biến/placeholder/secret chỉ cho test/tài liệu liệt kê mẫu. Không tạo nhánh cục bộ, HEAD không đổi.
+Bước 4–5: remote `github` = https://github.com/teddy3704/DOANTOTNGHIEP.git; ls-remote trước khi push: chưa có nhánh/tag. Push
+  `<snap>:refs/heads/dlu-lms-group-bao-ve` (new branch) và `<snap>:refs/tags/bao-ve-2026-11-20` (new tag), không --force, không đẩy
+  HEAD/tag cục bộ. Thời gian push: 2026-11-10 23:22 (+07). ls-remote sau push: refs/heads/dlu-lms-group-bao-ve = refs/tags/bao-ve-2026-11-20
+  = 4d00d9820fad6702307fdebc4b15baf36c50b8a4; refs/heads/main giữ nguyên c773b7e. Đăng nhập GitHub: Git Credential Manager đã có sẵn
+  quyền, không cần owner thao tác; không đọc/ghi token.
+  Xem: https://github.com/teddy3704/DOANTOTNGHIEP/tree/dlu-lms-group-bao-ve
+  Cập nhật về sau (chỉ khi owner yêu cầu): `git commit-tree 'HEAD^{tree}' -p 4d00d9820fad6702307fdebc4b15baf36c50b8a4 -m '...'`, push
+  fast-forward vào nhánh; tag trên GitHub giữ nguyên.
+
+## POLISH (docs/POLISH_PROMPT.md, owner 23:30 10/11/2026)
+### POLISH-1/2/4 — commit 229ed71 (gate: BE 290/0/0/1 skip, FE 333, APK build exit 0)
+POLISH-1: PortalPrewarmer (app.portal.prewarm, mặc định tắt) — sau ApplicationReady, luồng nền daemon gọi tuần tự
+  AdvisorPortalService.overview rồi student(no) cho từng SV lớp cố vấn của GV demo (app.demo-auth.teacher-id), nghỉ 1 s sau mỗi lời gọi,
+  lỗi chỉ đếm; log "Portal prewarm finished: ok/failed/total/ms" (không dữ liệu); /health thêm `prewarm: "N/M"` (null khi tắt).
+  app.portal.cache-ttl đã có (mặc định 10 phút); Start-LocalBackend -DemoCache (chỉ Start-Demo dùng) đặt cacheTtl 6h + prewarm true qua
+  SPRING_APPLICATION_JSON. Test PortalPrewarmerTest 6 (TTL bind 6h/mặc định 10 phút, mặc định tắt, gọi đúng 1+3 lần với 4 lần nghỉ,
+  Portal DOWN không lỗi, 1 SV lỗi không chặn SV khác, log không có lớp/MSSV/tên).
+  Đo (API, cùng cách app gọi): trước — backend không làm nóng, cache lạnh, 23:33 Portal nhanh: tổng quan 3569 ms (17 lời gọi Portal nối
+  tiếp, tổng 3952 ms, chậm nhất 1693 ms), chi tiết SV đầu 954 ms; lúc 21:52 Portal chậm: chi tiết SV đầu > 20 s (app báo "phản hồi quá
+  lâu"). Sau — Start-Demo, prewarm 67/67 (≈ 70 s sau khi backend UP): tổng quan 77 ms, chi tiết SV 242–258 ms. Emulator (bản build
+  229ed71, Chế độ demo → GV → Lớp cố vấn → SV đầu): màn chi tiết đầy đủ khi chụp 2 s sau khi bấm (polish1-lop-co-van-2s,
+  polish1-chi-tiet-sv-2s).
+POLISH-2: AccountMenu (widgets/logout_button.dart) thay nút Đăng xuất ở góc trái trang chủ SV và GV: Giao diện Theo máy/Sáng/Tối (dấu ✓)
+  + Đăng xuất; tooltip "Tài khoản và giao diện". Test account_menu_test 4 (2 trang chủ × đổi tối/sáng; 320 dp × 1.3, mở menu không
+  tràn); login_test cập nhật. Emulator: polish2-01 menu, polish2-02 tối, polish2-03 về sáng.
+POLISH-4: Start-Demo bước 0 kiểm tra chỉ đọc: pin (Win32_Battery BatteryStatus 1), chờ khởi động lại (RebootRequired, RebootPending,
+  PendingFileRenameOperations), internet/Portal (HEAD baseUrl, 5 s; mọi phản hồi HTTP = có mạng); SHA của APK đang cài trên máy
+  (pm path + sha256sum) so với bản cuối; bảng "SẴN SÀNG?" (DB, Backend, Portal + prewarm, Thiết bị, APK, Ổ C, Kết luận). Parse PS5/PS7 0
+  lỗi. Chạy thật 23:35: Kết luận "CẦN XỬ LÝ — Windows đang chờ khởi động lại (cập nhật)" → việc cho owner. LOCAL_RUNBOOK có cách đọc bảng.
+
+### POLISH-3 Nội dung demo — 2026-11-10 23:44–23:47 (DB lms_mobile_group_demo, chỉ qua API của app, SV 205)
+Rà (chỉ đọc) dữ liệu app của SV 205 / GV 102: thẻ ôn, kế hoạch tuần, mục tiêu, nhật ký, thông báo, phiên học, ghi chú GV.
+Nội dung vô nghĩa tìm thấy (tạo 10/10/2026 khi thử nghiệm bản cũ):
+  - thẻ ôn id 8 (khóa Mobile 14): "ss" / "sss" → ĐÃ SỬA (PUT, chức năng Sửa của app) thành "Intent trong Android dùng để làm gì?";
+  - thẻ ôn id 9 (tạo hôm nay, tiếng Anh) → sửa thành "Vòng đời của Activity gồm những hàm nào?";
+  - nhật ký (reflections) id 2 "s" (khóa 13) và id 1 "hôm nay tôi đa" → app/API KHÔNG có Sửa (chỉ thêm/xem) → owner quyết định
+    (không xóa, không SQL); màn Nhật ký không có trong DEMO_SCRIPT;
+  - ghi chú GV id 1 "s", id 2 "a" (khóa 13, đã đóng "resolved") → API chỉ đổi trạng thái, không Sửa → owner quyết định; có thể hiện
+    trong mục "Hiệu quả hỗ trợ" của khóa Software Testing (DEMO_SCRIPT dùng khóa Hỗ trợ học tập số, nơi chỉ có ghi chú thật).
+  Mục tiêu (4), thông báo SV (3), kế hoạch tuần (8 mục, 1 đã xong), phiên học tập trung: nội dung có nghĩa, không đổi.
+Thêm qua app API (POST, như nút "Thêm thẻ"): 6 thẻ — Software Testing: kiểm thử hộp đen, hộp trắng, phân vùng tương đương; Mobile:
+  RecyclerView vs ListView, ViewModel; Hỗ trợ học tập số: Pomodoro. Tổng 8 thẻ có nghĩa ở 3 khóa, 6 thẻ đến hạn ôn (chip "Hôm nay
+  cần ôn"). Thành tích: có dữ liệu (1/6 huy hiệu + tiến độ). Kế hoạch: tuần 20/11 bấm "Lập lại kế hoạch" khi demo (giữ mục đã xong).
+Ảnh: final\screens\polish3-01-the-on-mobile.png.
+
+### POLISH-5 Tập trọn kịch bản và bấm giờ — 2026-11-11 02:35–02:50 (emulator, DB demo, Portal UP, prewarm 67/67, APK build 229ed71)
+Lượt 1 hỏng ngay từ bước 1 (chạm rơi vào ô mật khẩu rồi lạc sang ứng dụng Google trên emulator) → số đo bỏ. Nguyên nhân dịch tọa độ:
+  banner "Giảng viên … vừa nhắc bạn" biến mất vì thông báo đó đã thành "đã đọc" (lượt hỏng chạm vào banner) → các thẻ trang chủ dịch
+  lên; đây cũng là trạng thái ngày demo. Lượt 2 chạy theo 3 đoạn (1–6, 7–11, 12–17), mỗi đoạn kiểm khung hình: cả 17 bước đến đúng
+  màn (ảnh final\screens\rehearse-01..17). Đo thao tác + tải màn (1,5 s mỗi lần bấm): 12,5 / 5,2 / 14,8 / 8,7 / 11,3 / 11,3 / 37,8 /
+  23,2 / 27,2 / 11,3 / 15,7 / 30,5 / 17,1 / 6,7 / 62,1* / 38,6* / 33,9 s (*gồm thời gian công cụ dò chữ tự động khi cuộn).
+DEMO_SCRIPT thêm cột "Giây" (thao tác đo + nói câu thuyết minh 3 tiếng/giây + 15 s gõ mã số/mật khẩu ở bước 1 và 12; bước 15–16 tính
+  cuộn tay): tổng ≈ 455 s (7 phút 35 giây) + 15 s kết luận ≤ 10 phút → không phải chuyển bước nào. Bước 17 đổi sang đường ổn định:
+  khóa › "Xem sinh viên cần theo dõi" › Trần Minh Bảo › Nhắc riêng (mẫu "Lâu không truy cập") › Hủy. Không có bước lỗi chức năng.
+Ghi dữ liệu trong lượt (SV 205, qua app): chấm 1 thẻ ("Được") ở bước 7; thông báo nhắc riêng của GV thành đã đọc. Không gửi nhắc riêng.
+
+### POLISH-6 Tài liệu trả lời hội đồng — 2026-11-11
+DEMO_SCRIPT thêm câu 9–13 (an toàn đăng nhập MSSV, vì sao chưa dùng tài khoản LMS thật, vì sao GitHub là ảnh chụp, Portal có lưu đĩa
+  không, mất mạng — hai trường hợp máy demo mất internet / điện thoại mất kết nối backend), đối chiếu code: LocalCredentialProvider.COST=12,
+  LoginAttemptLimiter 5/15 phút, LoginController thông báo chung, ApiSession giữ token trong bộ nhớ, LoginMemory chỉ lưu mã số,
+  MoodleTokenProvider TẮT + 3 test mock, PortalCache bộ nhớ (6 h demo / 10 phút), portalCacheTtl app 5 phút, git rev-list 42 commit từ
+  09/11. COMPARISON_FACTS thêm dòng "Đăng nhập"; RELEASE_NOTES thêm "Hướng phát triển" (APK release, offline GV, unaccent, N14/N9, Portal đĩa).
+
+### POLISH-7 Video — 2026-11-11 02:53–02:58 (APK build 229ed71, Chế độ demo, cache đã làm nóng)
+Quay lại 2 đoạn (bản cũ giữ hậu tố -r1, không xóa; cùng lệnh screenrecord 6 Mbps, chưa ghép/biên tập):
+- sv-3-ke-hoach-on-the.mp4 (2:10, 2,5 MB) — thay vì thẻ test cũ: Kế hoạch tuần → chip "Hôm nay cần ôn 5 thẻ" → lật + "Được" 2 thẻ tiếng
+  Việt (kiểm thử hộp đen…) → Lịch tuần → tìm `ho tro hoc`. Bản cũ: sv-3-ke-hoach-on-the-r1.mp4 (2:28).
+- gv-2-co-van-nhac-rieng.mp4 (1:37, 2,4 MB) — chi tiết SV 09 hiện ngay (chờ 3 s thay vì ~8 s ở bản cũ), Xem SV cần theo dõi → Trần Minh
+  Bảo → Nhắc riêng → đóng (không gửi). Bản cũ: gv-2-co-van-nhac-rieng-r1.mp4 (1:45).
+Giữ nguyên: sv-1-tong-quan-gpa (có cảnh đăng nhập MSSV thật; quay lại cần mật khẩu thật mà POLISH cấm Set-DemoPasswords — khác biệt duy
+  nhất là biểu tượng góc trái trang chủ nay là menu Tài khoản), sv-2-ctdt-mo-phong, gv-1-du-bao-quiz (không có màn bị POLISH-2/3 đổi
+  ngoài biểu tượng đó; không có cảnh chờ tải lâu). Ghi dữ liệu: chấm 2 thẻ "Được" (SV 205); không gửi nhắc riêng.

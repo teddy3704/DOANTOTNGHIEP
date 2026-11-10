@@ -213,6 +213,8 @@ void main() {
         DateTime(2026),
       );
       final cancelsBefore = gateway.cancels;
+      await tester.tap(find.byKey(const Key('account-menu')));
+      await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('logout')));
       await tester.pumpAndSettle();
       expect(find.byType(LoginScreen), findsOneWidget);

@@ -130,7 +130,7 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      leading: const LogoutButton(),
+      leading: const AccountMenu(),
       title: const Text('Trang chủ'),
       actions: [
         IconButton(

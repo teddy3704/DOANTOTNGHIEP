@@ -42,6 +42,11 @@ public class AdvisorPortalService {
     public record TermKey(String yearStudy, String termId) {
     }
 
+    /** Advisor class ids configured for this teacher (same check as the endpoints). */
+    public List<String> identityClasses(Long teacherId) {
+        return identity.advisorClasses(teacherId);
+    }
+
     public Map<String, Object> classes(Long teacherId) {
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("classes", identity.advisorClasses(teacherId));

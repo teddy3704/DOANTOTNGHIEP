@@ -65,6 +65,7 @@ Trạng thái 10/11/2026 (hiện hành): chức năng cũ + V2 N1–N18, O1, E2 
 
 | Hạng mục | Cài đặt | Bằng chứng |
 | --- | --- | --- |
+| Đăng nhập | MSSV/tên tài khoản + mật khẩu; BCrypt cost 12; khóa tạm 5 lần sai/15 phút (429); thông báo lỗi chung; vai trò do máy chủ quyết định; app chỉ nhớ mã số, token trong bộ nhớ; `MoodleTokenProvider` (đăng nhập bằng tài khoản LMS) viết sẵn, TẮT | BE `LoginApiTest` (7), `MoodleTokenProviderTest` (3); FE `login_test` (11); emulator login-01..06 |
 | Danh tính theo đường dẫn | `PathIdentityAuthorizationManager`: userId đường dẫn = userId token; sai → 403 | BE `V2SecurityTest`, `PortalSecurityTest`, `SecurityVulnerabilityTest` |
 | Ghi danh/roster | Service kiểm tra; không thuộc → 404 | các `*SecurityTest`, `*ServiceTest` |
 | Runtime DB tối thiểu quyền | role `lms_group_app`: SELECT lms/derived, ghi bảng app được cấp, không DDL | báo cáo quyền 09/11 (HANDOFF) |
