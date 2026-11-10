@@ -1,0 +1,63 @@
+%% 02 — Thành phần: màn hình Flutter → controller → service → repository / PortalClient → nguồn dữ liệu (cập nhật FINAL-F1 10/11/2026)
+flowchart LR
+    subgraph F["Flutter (lib/screens)"]
+        F1["Sinh viên: dashboard, khóa học,<br/>việc cần làm, phân tích"]
+        F2["V2 học tập: N1 mô phỏng điểm, N9 tình trạng,<br/>N2 gợi ý ôn, N3 vị trí lớp, N5 ôn tập SM-2"]
+        F6["V2 thói quen: N6 kế hoạch tuần, N7 cài đặt nhắc,<br/>N10 học tập trung, N12 lịch, N13 tìm kiếm,<br/>N14 tuần của bạn, N17 thành tích"]
+        F3["V3 Học vụ: bảng điểm, CTĐT,<br/>mô phỏng GPA, rèn luyện, quyết định"]
+        F4["Giảng viên: khóa học, theo dõi, N4 dự báo lớp,<br/>N8 nhắc riêng, N15 bản đồ nhiệt, N16 phân tích quiz,<br/>N13 tìm kiếm, ghi chú"]
+        F5["V3 Lớp cố vấn + Nguồn dữ liệu"]
+        RS["ReminderService (N7)<br/>flutter_local_notifications"]
+        API["ApiService<br/>(JWT, cache Portal 5 phút,<br/>N11 OfflineStore theo môi trường + path)"]
+        F1 & F2 & F6 & F3 & F4 & F5 --> API
+        F6 --> RS
+        RS --> API
+    end
+
+    subgraph C["Controller /api/v1"]
+        C1["DevStudentController<br/>StudentInsightsController"]
+        C2["StudentForecastController, StudentHealthController,<br/>StudentRecommendationController, StudentFlashcardReviewController"]
+        C6["StudentStudyPlanController, StudentNotificationPreferenceController,<br/>StudentStudySessionController, StudentCalendarController,<br/>StudentWeeklyReportController, StudentAchievementController,<br/>SearchController"]
+        C3["StudentPortalController<br/>/dev/students/{id}/portal/*"]
+        C4["DevTeacherController, TeacherMonitoringController,<br/>TeacherInsightsController (reminders, engagement-heatmap),<br/>TeacherForecastController, TeacherQuizInsightsController,<br/>TeacherNoteController"]
+        C5["TeacherPortalController<br/>/dev/teachers/{id}/portal/*"]
+        SEC{{"SecurityConfig + PathIdentityAuthorizationManager"}}
+    end
+
+    subgraph S["Service"]
+        S1["StudentService, InsightsService, GoalService"]
+        S2["GradeForecastService (N1), LearningHealthService (N9),<br/>StudyRecommendationService (N2), PeerComparisonService (N3),<br/>FlashcardReviewService + Sm2 (N5)"]
+        S6["StudyPlanService + StudyPlanner (N6), NotificationPreferenceService (N7),<br/>StudySessionService (N10), StudentCalendarService (N12),<br/>SearchService (N13), WeeklyReportService (N14), AchievementService (N17)"]
+        S3["StudentPortalService, AcademicEngine,<br/>PortalSourcesService"]
+        S4["TeacherService, TeacherMonitoringService, ClassInsightsService,<br/>TeacherReminderService (N8), QuizInsightsService (N16),<br/>TeacherNoteService"]
+        S5["AdvisorPortalService"]
+    end
+
+    subgraph R["Truy cập dữ liệu"]
+        R1["StudentRepository, InsightsRepository, ForecastRepository,<br/>LearningHealthRepository, TeacherRepository, FlashcardReviewRepository,<br/>StudyPlanRepository, StudySessionRepository, NotificationPreferenceRepository,<br/>QuizInsightsRepository, AchievementRepository …"]
+        PC["PortalClient + PortalCache (TTL 10 phút)<br/>PortalParser (allow-list), PortalIdentity"]
+    end
+
+    DB1[("PostgreSQL 127.0.0.1:55432<br/>lms + derived (đọc)")]
+    DB2[("schema app (đọc/ghi)")]
+    P[["Portal đào tạo"]]
+
+    API --> SEC
+    SEC --> C1 & C2 & C6 & C3 & C4 & C5
+    C1 --> S1
+    C2 --> S2
+    C6 --> S6
+    C3 --> S3
+    C4 --> S4
+    C5 --> S5
+    S6 -->|"thẻ đến hạn N5, gợi ý N2, mức N9"| S2
+    S1 & S2 & S4 & S6 --> R1
+    S4 -->|"engine N1 cho cả lớp (N4)"| S2
+    S3 --> PC
+    S3 -->|"cầu nối: dự báo N1"| S2
+    S5 --> PC
+    S5 -->|"cầu nối: tín hiệu N9"| S2
+    S5 --> R1
+    R1 --> DB1
+    R1 --> DB2
+    PC --> P

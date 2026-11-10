@@ -1,0 +1,19 @@
+%% 03 — Triển khai local (máy Windows của nhóm), mọi dữ liệu trên ổ D
+flowchart TB
+    subgraph PC["Máy Windows (localhost)"]
+        subgraph EMU["Android Emulator DLU_LMS_Pixel (D:\\DLU-LMS\\Android\\AVD)"]
+            APK["App Flutter (debug APK)<br/>API_BASE_URL = http://127.0.0.1:8081/api/v1"]
+        end
+        ADB["adb reverse tcp:8081 tcp:8081"]
+        BE["Backend Spring Boot (JDK 21)<br/>bind 127.0.0.1:8081<br/>profile local-development, demo-login"]
+        CFG[".local\\backend.json (git-ignore, ACL chỉ owner)<br/>DB_*, JWT_SECRET, PORTAL (key, ánh xạ demo)"]
+        PG[("PostgreSQL 18 portable<br/>127.0.0.1:55432, scram-sha-256<br/>PGDATA D:\\DLU-LMS\\PostgreSQL\\data<br/>DB lms_mobile_group_dev / _demo")]
+        ROLE["role runtime lms_group_app<br/>SELECT lms/derived, ghi bảng app được cấp"]
+    end
+    NET(("Internet (HTTPS)"))
+    PORTAL[["quan-ly-dao-tao-api.nguyentronghieu.io.vn<br/>/health, /api/v1/LayBangDiem… (POST)"]]
+
+    APK -->|"127.0.0.1:8081 trong emulator"| ADB --> BE
+    CFG -->|"Start-LocalBackend.ps1<br/>env + SPRING_APPLICATION_JSON"| BE
+    BE -->|"JDBC"| ROLE --> PG
+    BE -->|"RestClient, timeout 5 s / 15 s,<br/>retry 1 lần"| NET --> PORTAL

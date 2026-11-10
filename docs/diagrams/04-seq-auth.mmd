@@ -1,0 +1,46 @@
+%% 04 — Xác thực: đăng nhập MSSV/tên tài khoản + mật khẩu → JWT → PathIdentity → 200 / 403 / 401 (cập nhật LOGIN 10/11/2026)
+sequenceDiagram
+    autonumber
+    actor U as Người dùng
+    participant A as App Flutter (LoginScreen, ApiService)
+    participant L as LoginController + LoginService
+    participant P as AuthProvider (LocalCredential BCrypt · MoodleToken TẮT)
+    participant F as JwtAuthenticationFilter
+    participant S as SecurityConfig / PathIdentityAuthorizationManager
+    participant C as Controller
+    participant E as /error (ERROR dispatch)
+
+    U->>A: Nhập "2312005" + mật khẩu, bấm Đăng nhập
+    A->>L: POST /api/v1/auth/login {login, password}
+    L->>L: Kiểm tra body (đúng 2 trường, 1–64 / 1–128 ký tự, ≤ 2 KB)<br/>Khóa tạm? (5 lần sai / 15 phút, theo login + IP)
+    alt đang bị khóa
+        L-->>A: 429 + Retry-After
+        A-->>U: "Đăng nhập sai nhiều lần… thử lại sau N phút"
+    else
+        L->>P: authenticate(login, password)
+        Note over P: BCrypt cost 12; login không tồn tại vẫn so một hash giả<br/>(thời gian như nhau). Moodle: token.php + core_webservice_get_site_info,<br/>chỉ khi được Trường cho phép
+        alt sai mật khẩu hoặc không có tài khoản
+            P-->>L: rỗng
+            L-->>A: 401 "Mã số hoặc mật khẩu không đúng" (một thông báo chung)
+        else đúng
+            P-->>L: userId 205, role STUDENT (do server quyết định)
+            L-->>A: {token (JWT HS256, 1 giờ), role, userId}
+            Note over L: Log chỉ ghi kết quả, userId, độ dài login — không ghi login/mật khẩu
+            A->>A: Vào thẳng giao diện theo role; chỉ lưu mã số nếu "Ghi nhớ"
+        end
+    end
+
+    A->>F: GET /dev/students/205/portal/summary<br/>Authorization: Bearer token
+    F->>S: Authentication(userId=205, ROLE_STUDENT)
+    S->>S: userId trong đường dẫn == userId trong token?
+    S->>C: Cho phép
+    C-->>A: 200 (dữ liệu của chính 205)
+
+    A->>F: GET /dev/students/205/… (token của SV 201)
+    F->>S: Authentication(201)
+    S-->>E: sendError(403)
+    E-->>A: 403 Forbidden
+
+    U->>A: Đăng xuất
+    A->>A: Xóa token, cache ngoại tuyến (N11), lịch nhắc trên máy (N7) → màn Đăng nhập
+    Note over A,L: demo-login cũ chỉ tồn tại khi profile local-development + DEMO_AUTH_ENABLED;<br/>trong app chỉ mở bằng nút nhỏ "Chế độ demo" của bản build local

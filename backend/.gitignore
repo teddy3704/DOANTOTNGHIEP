@@ -1,0 +1,21 @@
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+### Optionals ###
+.DS_Store
+.mvn/
+mvnw
+mvnw.cmd
+.idea/
+*.iml
+.classpath
+.project
+.settings/
+.vscode/
+*.log
+
+### Bi mat va du lieu cuc bo (khong dua len git) ###
+src/main/resources/application-secret.properties
+db/*.dump

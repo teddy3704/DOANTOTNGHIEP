@@ -1,0 +1,32 @@
+%% 09 — Use case: Giảng viên / cố vấn học tập — cập nhật FINAL-F1 10/11/2026
+flowchart LR
+    GV([Giảng viên])
+    subgraph LMSUC["Lớp học phần (LMS)"]
+        T1((Trợ lý giảng dạy:<br/>việc cần làm tuần này))
+        T2((Danh sách SV có lọc,<br/>điểm theo dõi kèm lý do))
+        T3((Theo dõi bài tập, quiz))
+        T4((N4 Dự báo qua môn của lớp))
+        T5((Ghi chú SV, nhắc nhóm))
+        T6((Hiệu quả hỗ trợ))
+        T13((N8 Nhắc riêng 1 SV<br/>theo mẫu số liệu thật))
+        T14((N8 Xuất CSV nhóm cần hỗ trợ))
+        T15((N16 Phân tích bài kiểm tra:<br/>quá khó, nhiều SV bỏ, quá nhanh))
+        T16((N15 Bản đồ nhiệt tương tác 4 mức))
+        T17((N13 Tìm SV trong roster,<br/>bài tập, quiz))
+    end
+    subgraph PORUC["Lớp cố vấn (Portal, V3)"]
+        T7((P6 Tổng quan lớp: sĩ số,<br/>phân bố ĐTB, xu hướng))
+        T8((P6 Danh sách cần quan tâm))
+        T9((P6 Chi tiết SV + tín hiệu LMS))
+        T10((Bật/tắt chế độ ẩn danh<br/>khi trình chiếu))
+        T11((Xuất CSV có xác nhận))
+        T12((P7 Nguồn dữ liệu))
+    end
+    GV --- T1 & T2 & T3 & T4 & T5 & T6 & T13 & T14 & T15 & T16 & T17
+    GV --- T7 & T8 & T9 & T10 & T11 & T12
+    T8 -. "«include»" .-> T7
+    T9 -. "«include» tín hiệu N9 trong khóa của GV" .-> T2
+    T11 -. "«precondition» ẩn danh TẮT" .-> T10
+    T13 -. "«extend» từ danh sách SV, N4, N16" .-> T2
+    T15 -. "«extend» nhắc SV chưa làm" .-> T13
+    T17 -. "«include» chỉ SV trong roster của GV" .-> T2

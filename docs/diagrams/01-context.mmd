@@ -1,0 +1,23 @@
+%% 01 — Ngữ cảnh hệ thống: ai dùng, dữ liệu đi từ đâu (V3, 09/11/2026)
+flowchart LR
+    SV([Sinh viên])
+    GV([Giảng viên / cố vấn học tập])
+
+    subgraph APP["Ứng dụng DLU LMS Group"]
+        FL["App Flutter (Android)"]
+        BE["Backend Spring Boot<br/>127.0.0.1:8081"]
+    end
+
+    LMS[("Moodle LMS<br/>bản sao CSDL: schema lms + derived<br/>(chỉ đọc)")]
+    APPDB[("Dữ liệu riêng của ứng dụng<br/>schema app: thẻ ghi nhớ, mục tiêu,<br/>nhật ký, ghi chú GV, thông báo")]
+    PORTAL[["Portal đào tạo DLU<br/>API Portal Online DLU Proxy (thầy Hiếu)<br/>HTTPS + X-API-KEY, dữ liệu mô phỏng"]]
+
+    SV -->|"xem việc cần làm, điểm, GPA,<br/>ôn tập, mô phỏng xếp loại"| FL
+    GV -->|"theo dõi lớp học phần,<br/>lớp cố vấn, nhắc SV"| FL
+    FL -->|"REST /api/v1 + JWT"| BE
+    BE -->|"đọc: hoạt động, bài nộp, quiz,<br/>điểm thành phần, chuyên cần, log"| LMS
+    BE -->|"đọc/ghi"| APPDB
+    BE -->|"đọc (POST): bảng điểm, CTĐT,<br/>điểm theo lớp, rèn luyện, quyết định"| PORTAL
+
+    PORTAL -. "không lấy: miễn giảm học phí,<br/>SĐT, ngày sinh, giới tính, *_Eng" .-x BE
+    FL -. "không gọi Portal trực tiếp" .-x PORTAL

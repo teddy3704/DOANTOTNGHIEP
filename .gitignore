@@ -1,0 +1,42 @@
+# Secrets and private local configuration
+.env
+.env.*
+!.env.example
+*.jks
+*.keystore
+*.p12
+*.pem
+**/application-secret.*
+**/application-local.properties
+**/application-local.yml
+**/local.properties
+/.local/
+/private/
+
+# Raw database exports are never source control artifacts
+**/*backup*.sql
+**/*.dump
+**/*.backup
+/database/raw/
+
+# Generated output, toolchains and caches
+**/target/
+**/build/
+**/.dart_tool/
+**/.gradle/
+**/.pub-cache/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/*.apk
+**/*.aab
+**/*.log
+**/.idea/
+**/.settings/
+**/.classpath
+**/.project
+/artifacts/
+/toolchains/
+/node_modules/
+
+# Local handoff locks are not a substitute for Git/worktree isolation
+/.agent-lock

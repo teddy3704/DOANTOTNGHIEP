@@ -1,0 +1,26 @@
+%% 11 — Thuật toán dự báo: N1 (điểm môn, GradeForecastService) và P3 (GPA tích lũy, AcademicEngine)
+flowchart TD
+    subgraph N1["N1 — điểm một môn trên LMS"]
+        A1([grade_categories + grade_items hidden=0]) --> A2[Dựng cây danh mục, trọng số hiệu dụng w_i<br/>= tích 1/số con theo tầng hoặc trọng số chuẩn hóa]
+        A2 --> A3[current = trung bình trên item đã chấm]
+        A3 --> A4[need = target − Σ w_i·s_i đã chấm<br/>÷ Σ w_j chưa chấm]
+        A4 --> A5{need}
+        A5 -- "≤ 0" --> R1[ACHIEVED]
+        A5 -- "≤ 100" --> R2[FEASIBLE]
+        A5 -- "> 100" --> R3[NOT_FEASIBLE]
+        A4 -- "không còn item" --> R4[NO_REMAINING]
+    end
+
+    subgraph P3["P3 — GPA tích lũy toàn khóa"]
+        B1([Bảng điểm Portal]) --> B2[GPA chính thức = TB_TL_HK_4 học kỳ cuối có điểm<br/>C = Σ TC tính GPA: IsGather, không NotCompute, lần học cuối]
+        B1 --> B3[Bảng quy đổi: min/max DiemTK_10 theo điểm chữ<br/>chữ chưa gặp → bảng mặc định]
+        B4([CTĐT gốc + chuyên ngành]) --> B5[R = TC bắt buộc chưa đạt + TC đang học]
+        A3 -->|"học phần có courseMap"| B6[current % ÷ 10 → hệ 10 → chữ → hệ 4]
+        B3 --> B6
+        B2 & B6 --> B7[GPA dự kiến = GPA·C + Σ TC·điểm4 ÷ C + Σ TC]
+        B7 & B5 --> B8["need(band) = band·(C+R) − GPA·C ÷ R<br/>band ∈ 3,6 / 3,2 / 2,5 / 2,0"]
+        B8 --> B9{need}
+        B9 -- "≤ 0" --> S1[Đã chắc]
+        B9 -- "≤ 4" --> S2[Khả thi]
+        B9 -- "> 4" --> S3[Không còn khả thi]
+    end

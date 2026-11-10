@@ -1,0 +1,25 @@
+%% 10 — N6 "Kế hoạch học tuần" THEO CODE: StudyPlanService.generate → StudyPlanner.plan (hàm thuần) — cập nhật FINAL-F1 10/11/2026
+flowchart TD
+    A([SV chọn quỹ phút/ngày ∈ 30, 60, 90, 120]) --> B[Lấy unified_tasks chưa xong của SV:<br/>quá hạn hoặc hạn trong 14 ngày]
+    B --> C[Thêm 'Ôn N thẻ' nếu có thẻ đến hạn N5<br/>+ tối đa 3 gợi ý ôn lại N2]
+    C --> D[Ước lượng: assign 90' · quiz 45' · tài liệu 20'<br/>· thẻ ⌈1,5' × số thẻ⌉]
+    D --> E[Đọc mục đã 'done' trong khoảng kế hoạch:<br/>phút done trừ vào quỹ ngày đó và vào thời lượng việc<br/>thẻ ôn: chỉ mục done HÔM NAY được trừ — sửa lỗi trùng thẻ ôn]
+    E --> F[Sắp xếp: quá hạn 'Gỡ việc tồn' → thẻ ôn hôm nay →<br/>việc có hạn theo hạn sớm nhất → gợi ý;<br/>hòa: khóa, mã nguồn, tên]
+    F --> G{Còn việc?}
+    G -- không --> K
+    G -- có --> R[Phút còn lại = ước lượng − phút đã done]
+    R --> R0{Còn > 0?}
+    R0 -- không --> G
+    R0 -- có --> H[Ngày sớm nhất trong 7 ngày còn đủ phút<br/>và ≤ hạn − 1 ngày; hạn hôm nay/mai → chỉ hôm nay<br/>thẻ ôn → chỉ hôm nay]
+    H --> H1{Tìm được?}
+    H1 -- có --> I[Đặt vào ngày đó]
+    H1 -- không --> J{assign đủ 90'?<br/>có 2 ngày khác nhau còn 45'?}
+    J -- có --> I2[Tách 'phần 1/2', 'phần 2/2'<br/>mỗi phần 45']
+    J -- không --> T{Loại việc}
+    T -- quá hạn --> W[Danh sách 'Quá tải' kèm tên, hạn, phút]
+    T -- có hạn, hạn − 1 ngày sau ngày thứ 7 --> DF[Chỉ hoãn: đếm deferred]
+    T -- có hạn trong 7 ngày --> W
+    T -- thẻ ôn, gợi ý --> DR[Bỏ: tùy chọn khi hết chỗ]
+    I & I2 & W & DF & DR --> G
+    K[Một transaction: xóa mục 'planned' từ hôm nay trở đi,<br/>GIỮ mục 'done' và 'skipped'] --> L[Ghi mục mới vào app.study_plan_items]
+    L --> M([Trả về 7 ngày: mục + phút kế hoạch/đã xong,<br/>danh sách quá tải, số việc hoãn])

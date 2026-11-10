@@ -1,0 +1,2 @@
+# Default tests are standalone/MVC slices with mocks; no datasource or network database.
+# Never place database credentials here. SchemaVerificationTest is explicitly disabled.

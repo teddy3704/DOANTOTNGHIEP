@@ -1,0 +1,39 @@
+%% 05 — Sinh viên mở P3 "Mô phỏng GPA": app → backend → cache/Portal → engine N1 → engine P3 → app
+sequenceDiagram
+    autonumber
+    actor SV as Sinh viên
+    participant A as App (GpaSimulationTab)
+    participant C as StudentPortalController
+    participant S as StudentPortalService
+    participant I as PortalIdentity
+    participant K as PortalCache (10 phút)
+    participant P as Portal đào tạo
+    participant N1 as GradeForecastService (N1)
+    participant E as AcademicEngine (P3)
+
+    SV->>A: Mở Học vụ › Mô phỏng GPA
+    A->>C: GET /dev/students/205/portal/gpa-simulation
+    C->>S: gpaSimulation(205)
+    S->>I: student(205)
+    I-->>S: MSSV, CTĐT, lớp (cấu hình server, người dùng không nhập MSSV)
+    S->>K: LayBangDiemSinhVien(MSSV, CTĐT)
+    alt chưa có trong cache
+        K->>P: POST + X-API-KEY (retry 1 lần nếu IO/5xx)
+        P-->>K: {ok:true, body:[NamHoc → HocKy → học phần]}
+    end
+    K-->>S: bảng điểm
+    S->>K: LayDanhSachHocPhanTheoCTDT(CQ23CT) + (CQ23CT-PM)
+    K-->>S: chương trình gốc + chuyên ngành
+    S->>E: programStatus(CTĐT, bảng điểm, courseMap LMS→MaHP)
+    E-->>S: học phần còn lại (bắt buộc chưa đạt + đang học)
+    loop mỗi học phần đang học trên LMS
+        S->>N1: studentForecast(205, courseId)
+        N1-->>S: current % (điểm hiện tại trên Moodle)
+        S->>E: % → hệ 10 → điểm chữ (bảng quy đổi suy từ bảng điểm) → hệ 4
+    end
+    S->>E: targets(GPA Portal, tín chỉ C, tín chỉ còn lại R, ngưỡng TT08/2021)
+    E-->>S: GPA dự kiến, mức cần đạt cho từng xếp loại
+    S-->>A: JSON (không có trường cá nhân ngoài allow-list)
+    A-->>SV: "Nếu giữ phong độ … GPA dự kiến 3,30, để đạt Giỏi cần 2,67 ở 21 TC"
+    SV->>A: Chọn điểm chữ "nếu tôi được…"
+    A->>A: GpaSimulator (cùng công thức) tính lại ngay, không gọi mạng

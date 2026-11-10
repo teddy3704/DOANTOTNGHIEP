@@ -1,0 +1,39 @@
+%% 06 — Luồng dữ liệu "cầu nối": LMS + Portal → engine → màn hình
+flowchart LR
+    subgraph LMS["Moodle LMS (tuần này đang học gì)"]
+        L1["grade_items / grade_grades<br/>(derived.student_grade_overview)"]
+        L2["student_risk_indicator, engagement,<br/>tiến độ, việc quá hạn"]
+        L3["lms.user.idnumber"]
+    end
+    subgraph POR["Portal đào tạo (cả khóa đã học được gì)"]
+        P1["Bảng điểm SV: điểm 10/4/chữ,<br/>TB học kỳ, TB tích lũy"]
+        P2["CTĐT: học phần, TC,<br/>bắt buộc/tự chọn, tiên quyết"]
+        P3["Điểm theo lớp + rèn luyện"]
+    end
+    subgraph CFG["Cấu hình server"]
+        M1["courseMap: khóa Moodle → MaHP"]
+        M2["students / lmsStudentLinks:<br/>userId ↔ MSSV"]
+    end
+
+    N1["N1 GradeForecastService<br/>% hiện tại, điểm cần đạt"]
+    N9["N9 LearningHealthService<br/>điểm theo dõi, Xanh/Vàng/Đỏ"]
+    EP2["P2 programStatus<br/>Đã đạt / Chưa đạt / Đang học trên LMS / Chưa học"]
+    EP3["P3 targets + project<br/>GPA dự kiến, mức cần đạt theo xếp loại"]
+    EP6["P6 AdvisorPortalService<br/>cần quan tâm + tín hiệu LMS"]
+
+    L1 --> N1
+    L2 --> N9
+    P1 & P2 --> EP2
+    M1 --> EP2
+    EP2 --> EP3
+    P1 --> EP3
+    N1 -->|"% → hệ 10 → chữ → hệ 4"| EP3
+    P3 --> EP6
+    N9 --> EP6
+    L3 & M2 --> EP6
+
+    EP2 --> S2["Màn Chương trình"]
+    EP3 --> S3["Màn Mô phỏng GPA<br/>+ thẻ GPA trên dashboard"]
+    EP6 --> S6["Màn Lớp cố vấn<br/>+ chi tiết sinh viên"]
+    N1 --> S1["Màn Mô phỏng điểm môn (N1)"]
+    N9 --> S9["Thẻ Tình trạng học tập (N9)"]

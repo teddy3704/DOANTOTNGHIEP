@@ -1,0 +1,48 @@
+%% 08 — Use case: Sinh viên (Mermaid không có ký hiệu use case UML; dùng flowchart, hình bầu dục = use case) — cập nhật FINAL-F1 10/11/2026
+flowchart LR
+    SV([Sinh viên])
+    subgraph LMSUC["Từ LMS"]
+        U1((Xem việc cần làm<br/>ưu tiên hôm nay))
+        U2((Xem khóa học, tiến độ,<br/>điểm, chuyên cần))
+        U3((N1 Mô phỏng điểm môn,<br/>điểm cần đạt))
+        U4((N9 Tình trạng học tập<br/>Xanh/Vàng/Đỏ))
+        U5((N2 Gợi ý ôn lại theo chương))
+        U6((N3 Vị trí trong lớp ẩn danh))
+        U20((N12 Lịch tháng/tuần<br/>+ xuất .ics))
+        U21((N13 Tìm kiếm không dấu))
+    end
+    subgraph APPUC["Dữ liệu riêng của ứng dụng"]
+        U7((Thẻ ghi nhớ + N5 ôn tập SM-2))
+        U8((Nhật ký mức hiểu bài))
+        U9((Mục tiêu học tập))
+        U10((Thông báo, nhắc riêng của GV))
+        U22((N6 Lập kế hoạch tuần,<br/>đánh dấu xong/bỏ qua))
+        U23((N7 Cài đặt nhắc,<br/>nhận thông báo trên máy))
+        U24((N10 Học tập trung,<br/>mục tiêu phút học))
+        U25((N14 Tuần của bạn,<br/>chia sẻ ảnh))
+        U26((N17 Thành tích))
+    end
+    subgraph DEVUC["Trên máy"]
+        U27((N11 Xem khi mất mạng))
+        U28((N18 Chế độ tối, chữ lớn,<br/>giới thiệu 3 bước))
+    end
+    subgraph PORUC["Từ Portal đào tạo (V3)"]
+        U11((P1 Bảng điểm, GPA tích lũy))
+        U12((P2 Tiến độ CTĐT,<br/>học phần đủ điều kiện))
+        U13((P3 Mô phỏng GPA,<br/>mục tiêu xếp loại))
+        U14((P4 Điểm rèn luyện))
+        U15((P5 Quyết định học vụ))
+        U16((P7 Xem nguồn dữ liệu,<br/>quyền riêng tư))
+    end
+    SV --- U1 & U2 & U3 & U4 & U5 & U6 & U20 & U21
+    SV --- U7 & U8 & U9 & U10 & U22 & U23 & U24 & U25 & U26
+    SV --- U27 & U28
+    SV --- U11 & U12 & U13 & U14 & U15 & U16
+    U13 -. "«include» dự báo" .-> U3
+    U12 -. "«include» khóa đang học" .-> U2
+    U15 -. "«extend» khi có cảnh báo học vụ" .-> U13
+    U8 -. "«extend» tạo thẻ từ mục chưa hiểu" .-> U7
+    U22 -. "«include» hạn nộp, thẻ đến hạn, gợi ý ôn" .-> U1
+    U24 -. "«extend» bắt đầu từ một mục kế hoạch" .-> U22
+    U23 -. "«include» hạn nộp + kế hoạch hôm nay" .-> U22
+    U20 -. "«include» hạn nộp, kế hoạch, buổi học" .-> U22

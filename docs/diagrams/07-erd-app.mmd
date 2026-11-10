@@ -1,0 +1,97 @@
+%% 07 — ERD schema app (dữ liệu riêng của ứng dụng). Khóa ngoại thật: chỉ 2 quan hệ V2.
+%% user_id / course_id tham chiếu logic tới lms.user / lms.course (không có FK vì lms là bản sao chỉ đọc).
+%% Dữ liệu Portal KHÔNG được lưu vào CSDL (chỉ cache trong bộ nhớ).
+erDiagram
+    flashcards {
+        bigint id PK
+        bigint course_id "→ lms.course (logic)"
+        bigint userid "→ lms.user (logic)"
+        text front_text
+        text back_text
+        timestamp created_at
+    }
+    flashcard_reviews {
+        bigserial id PK
+        bigint flashcard_id FK "ON DELETE CASCADE"
+        bigint user_id
+        int repetitions
+        numeric ease_factor "≥ 1,30"
+        int interval_days
+        timestamptz due_at
+        smallint last_rating "0..5"
+        timestamptz last_reviewed_at
+    }
+    study_plan_items {
+        bigserial id PK
+        bigint user_id
+        bigint course_id
+        date plan_date
+        varchar source_type "assign|quiz|resource|flashcards|custom"
+        bigint source_id
+        varchar title
+        int planned_minutes
+        varchar status "planned|done|skipped"
+    }
+    study_sessions {
+        bigserial id PK
+        bigint user_id
+        bigint course_id
+        bigint plan_item_id FK "ON DELETE SET NULL"
+        timestamptz started_at
+        timestamptz ended_at
+        int focus_minutes "1..180"
+    }
+    learning_goals {
+        bigint id PK
+        bigint user_id
+        bigint course_id
+        varchar goal_type "study_minutes|completion_percentage|target_grade|activity_count"
+        numeric target_value
+        date start_date
+        date end_date
+        varchar status
+    }
+    learning_reflections {
+        bigint id PK
+        bigint user_id
+        bigint course_id
+        text content
+        int understanding_level
+    }
+    learning_reminders {
+        bigint id PK
+        bigint user_id
+        bigint course_id
+        varchar source_type
+        varchar title
+        timestamptz remind_at
+        varchar status
+    }
+    notifications {
+        bigint id PK
+        bigint user_id
+        varchar notification_type
+        varchar title
+        bigint course_id
+        boolean is_read
+        timestamptz read_at
+    }
+    notification_preferences {
+        bigint id PK
+        bigint user_id UK
+        boolean push_enabled
+        boolean assignment_reminder_enabled
+        boolean learning_reminder_enabled
+        int default_reminder_before_hours
+    }
+    teacher_notes {
+        bigint id PK
+        bigint teacher_id
+        bigint student_id
+        bigint course_id
+        text note
+        varchar status
+    }
+
+    flashcards ||--o{ flashcard_reviews : "lịch ôn SM-2 (N5)"
+    study_plan_items |o--o{ study_sessions : "phiên học (N10)"
