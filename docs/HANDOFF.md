@@ -1332,3 +1332,32 @@ Quay lại 2 đoạn (bản cũ giữ hậu tố -r1, không xóa; cùng lệnh 
 Giữ nguyên: sv-1-tong-quan-gpa (có cảnh đăng nhập MSSV thật; quay lại cần mật khẩu thật mà POLISH cấm Set-DemoPasswords — khác biệt duy
   nhất là biểu tượng góc trái trang chủ nay là menu Tài khoản), sv-2-ctdt-mo-phong, gv-1-du-bao-quiz (không có màn bị POLISH-2/3 đổi
   ngoài biểu tượng đó; không có cảnh chờ tải lâu). Ghi dữ liệu: chấm 2 thẻ "Được" (SV 205); không gửi nhắc riêng.
+
+### POLISH-8 Đóng gói lại + GitHub r2 — 2026-11-11 02:58–03:08
+Gate (source 0fed544 = code 229ed71 + docs): Test-Backend -Package exit 0 — 290/0/0/1 skip (polish8-backend.log); Test-Flutter -BuildApk
+  exit 0 — 333, analyze sạch (polish8-flutter.log). Measure-Api (emulator cùng chạy): p95 2,1–75,5 ms, 0 lỗi (perf-20261111-025846.csv).
+Bản cuối r2 D:\DLU-LMS\Artifacts\final\ (SHA256SUMS.txt): dlu-lms-group-final-debug.apk 910CEF7591C547C585770592447E34357231E41E46265A7F0FCF397728477131
+  (trùng APK đã cài trên emulator lúc POLISH), lms_mobile_backend-final.jar F1038DC02FB103D470BF0BC88FEF56B29BB77C1C8525FF0120D42E6F68D2C3F7.
+  Bản r1 giữ: *-r1.apk/.jar, SHA256SUMS-r1.txt. RELEASE_NOTES cập nhật. Tag cục bộ bao-ve-2026-11-20-r2 → 53b685f (tag cũ giữ nguyên → 41f888b).
+GitHub: snapshot r2 `12ef5ca312a5e3a557eb2c93116b2c89f231f2ea` = commit-tree 'HEAD^{tree}' -p 4d00d98…, **cùng cây với commit cục bộ
+  53b685f11fdecd63517e50dd30d570a632204406**; rev-list count 2; quét cây: mật khẩu/hash cũ 0, bcrypt 0, key có giá trị 0, file cấm 0.
+  ls-remote trước: nhánh = 4d00d98, chưa có tag r2. Push fast-forward 4d00d98..12ef5ca vào refs/heads/dlu-lms-group-bao-ve + tag mới
+  refs/tags/bao-ve-2026-11-20-r2 lúc 2026-11-11 03:08 (+07); không --force, không đẩy HEAD/tag cục bộ. ls-remote sau: nhánh = tag r2 =
+  12ef5ca; tag bao-ve-2026-11-20 = 4d00d98; main = c773b7e (giữ nguyên).
+
+## TỔNG KẾT POLISH — 2026-11-11
+- Test: Backend 290 (0 lỗi, 1 bỏ qua có chủ đích), Flutter 333; gate exit 0 trên mã nguồn bản cuối (code 229ed71).
+- SHA mới: APK 910CEF7591C547C585770592447E34357231E41E46265A7F0FCF397728477131; JAR F1038DC02FB103D470BF0BC88FEF56B29BB77C1C8525FF0120D42E6F68D2C3F7.
+- Lớp cố vấn, chi tiết SV đầu tiên: trước — 0,95 s (sau tổng quan 3,6 s, 17 lời gọi Portal) khi Portal nhanh, > 20 s (lỗi "phản hồi quá
+  lâu") khi Portal chậm (10/11 21:52); sau — ≈ 0,25 s (tổng quan 77 ms), trên emulator hiện đủ trong 2 s.
+- Tổng thời gian kịch bản (bấm giờ POLISH-5): ≈ 7 phút 35 giây + 15 giây kết luận (≤ 10 phút), 17/17 bước.
+- Ảnh mới (final\screens\): polish1-lop-co-van-2s, polish1-chi-tiet-sv-2s, polish2-01..03, polish3-01-the-on-mobile, rehearse-01..17.
+  Video mới (final\video\): sv-3-ke-hoach-on-the.mp4 (2:10), gv-2-co-van-nhac-rieng.mp4 (1:37); bản cũ -r1.
+- NOT_RUN: Start-Demo -PhysicalDevice (không có điện thoại cắm USB).
+- Để owner quyết: nhật ký "s" / "hôm nay tôi đa" và ghi chú GV "s" / "a" (không có chức năng Sửa; không xóa, không SQL).
+- Việc cho owner (đúng thứ tự):
+  1. `.\tools\Set-DemoPasswords.ps1`.
+  2. `.\tools\Rotate-AppRolePassword.ps1`.
+  3. Đóng Claude, chạy `.\tools\Start-Demo.ps1`, đăng nhập thử `2312005` và `teacher02`, rồi `.\tools\Stop-Demo.ps1`.
+  4. Giữ ổ C ≥ 22 GiB (hiện 22,1 GiB — sát ngưỡng).
+  5. Tạm dừng Windows Update 2 tuần. Lưu ý: bảng SẴN SÀNG đang báo **Windows chờ khởi động lại** → khởi động lại máy trước ngày demo.

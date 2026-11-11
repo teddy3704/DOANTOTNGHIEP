@@ -64,7 +64,7 @@ edited without compile/run evidence.
 | POLISH-5 | Tập trọn kịch bản, bấm giờ | polish | none | DONE (2026-11-11) — 17/17 bước trên emulator; tổng ≈ 7 phút 35 giây + 15 s; cột "Giây" trong DEMO_SCRIPT |
 | POLISH-6 | Câu hỏi hội đồng bổ sung + COMPARISON_FACTS Đăng nhập | polish | none | DONE (2026-11-11) — 5 câu (9–13) + dòng Đăng nhập + Hướng phát triển |
 | POLISH-7 | Video quay lại nếu cần | polish | none | DONE (2026-11-11) — quay lại sv-3 (thẻ mới) và gv-2 (không còn chờ); bản cũ -r1; sv-1 giữ (cần mật khẩu thật) |
-| POLISH-8 | Đóng gói lại + GitHub snapshot r2 | polish | remote GitHub | TODO |
+| POLISH-8 | Đóng gói lại + GitHub snapshot r2 | polish | remote GitHub | DONE (2026-11-11) — BE 290, FE 333; APK 910CEF75…, JAR F1038DC0…; GitHub nhánh + tag r2 = 12ef5ca (cùng cây 53b685f) |
 | T10 | Supabase role in stack | Claude | none | DONE (static) | No Supabase reference in source; connector stays unused |
 | T11 | Backup-status notes in baseline docs | Claude | docs/, database/README.md | DONE | Dated notes added |
 | T12 | Teacher notes need courseId (backend now requires it) | Claude | frontend teacher_notes_screen | DONE (static) | Only caller passes non-null courseId; confirm in T09 |
