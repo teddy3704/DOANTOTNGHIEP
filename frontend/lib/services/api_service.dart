@@ -212,6 +212,30 @@ class ApiService {
 
   /// Sign-in with the student code (MSSV) or username and a password. The server decides the role;
   /// the password is sent once over the request and never stored.
+  /// REAL-DATA-2: the server's data profile from the public /health ("real" or "demo"); null when
+  /// unreachable. On "real" the sign-in screen hides the passwordless demo mode (the server refuses it).
+  Future<String?> serverDataProfile() async {
+    try {
+      final base = ApiConstants.validateBaseUrl(
+        baseUrl,
+        localDevelopment: localDevelopment,
+      );
+      final r = await _client
+          .get(
+            Uri.parse('$base/health'),
+            headers: const {'Accept': 'application/json'},
+          )
+          .timeout(const Duration(seconds: 5));
+      if (r.statusCode != 200) return null;
+      final j = jsonDecode(utf8.decode(r.bodyBytes));
+      return j is Map && j['dataProfile'] is String
+          ? j['dataProfile'] as String
+          : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<String> login(String login, String password) async {
     session.clear();
     clearPortalCache();

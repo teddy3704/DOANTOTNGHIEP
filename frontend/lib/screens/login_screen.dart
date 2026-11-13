@@ -59,9 +59,17 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _busy = false;
   String? _error;
 
+  /// Hidden once the server says it serves the real export (REAL-DATA-2).
+  bool _demoAllowed = true;
+
   @override
   void initState() {
     super.initState();
+    if (_api.localDevelopment) {
+      _api.serverDataProfile().then((p) {
+        if (mounted && p == 'real') setState(() => _demoAllowed = false);
+      });
+    }
     widget.memory
         .read()
         .then((v) {
@@ -250,7 +258,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               )
                             : const Text('Đăng nhập'),
                       ),
-                      if (_api.localDevelopment) ...[
+                      if (_api.localDevelopment && _demoAllowed) ...[
                         const SizedBox(height: 20),
                         TextButton(
                           key: const Key('login-demo-mode'),

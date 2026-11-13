@@ -115,6 +115,7 @@ class TeacherCourseSummary extends StatelessWidget {
     children: [
       if (course.courseShortname != null)
         DetailLine('Mã khóa học', course.courseShortname!),
+      if (course.startLabel != null) DetailLine('Học kỳ', course.startLabel!),
       DetailLine(
         'Tiến độ trung bình',
         detailValue(course.averageProgress, suffix: '%'),

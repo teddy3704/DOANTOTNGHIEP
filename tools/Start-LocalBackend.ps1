@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param(
     [string]$ConfigPath = (Join-Path (Split-Path $PSScriptRoot) '.local\backend.json'),
     # POLISH-1 (Start-Demo only): Portal cache 6 h (simulated data does not change) + warm-up of the demo advisor class.
@@ -15,8 +15,8 @@ $keys = @('DB_URL','DB_USERNAME','DB_PASSWORD','JWT_SECRET','DEMO_STUDENT_ID','D
 foreach ($key in $keys) {
     if ([string]::IsNullOrWhiteSpace([string]$config.$key)) { throw "Missing required local configuration key: $key" }
 }
-if ($config.DB_URL -notmatch '^jdbc:postgresql://(?:localhost|127\.0\.0\.1):[0-9]+/lms_mobile_group_(?:dev|demo)(?:\?|$)') {
-    throw 'Only the local lms_mobile_group_dev or lms_mobile_group_demo targets are allowed by this launcher. Remote cutover requires separate approval.'
+if ($config.DB_URL -notmatch '^jdbc:postgresql://(?:localhost|127\.0\.0\.1):[0-9]+/lms_mobile_group_(?:dev|demo|real)(?:\?|$)') {
+    throw 'Only the local lms_mobile_group_dev, _demo or _real targets are allowed by this launcher. Remote cutover requires separate approval.'
 }
 if ([Text.Encoding]::UTF8.GetByteCount([string]$config.JWT_SECRET) -lt 32) { throw 'JWT_SECRET must be at least 32 bytes.' }
 $prior = @{}
@@ -26,7 +26,29 @@ $allKeys = $keys + @('SPRING_PROFILES_ACTIVE','DEMO_AUTH_ENABLED','SERVER_ADDRES
 $redact = @([string]$config.DB_URL, [string]$config.DB_USERNAME, [string]$config.DB_PASSWORD, [string]$config.JWT_SECRET)
 $portalJson = $null
 $app = @{}
-if ($config.PORTAL) {
+# REAL-DATA-1: the real Moodle export. Labels switch to "nộp bài hoặc làm bài kiểm tra" / graded-activity
+# progress (app.data-profile=real); it is not demonstration data (data-source.mode=live). Sign-in uses the
+# separate AUTH_REAL block (Set-DemoPasswords.ps1 -Database real); demo user ids never apply to real rows.
+$isReal = [string]$config.DB_URL -match '/lms_mobile_group_real(?:\?|$)'
+$authBlock = if ($isReal) { $config.AUTH_REAL } else { $config.AUTH }
+$demoStudentId = [string]$config.DEMO_STUDENT_ID
+$demoTeacherId = [string]$config.DEMO_TEACHER_ID
+if ($isReal) {
+    $app.'data-profile' = 'real'
+    $app.'data-source' = @{ mode = 'live' }
+    $realStudent = @($authBlock.users | Where-Object { $_.role -eq 'STUDENT' }) | Select-Object -First 1
+    $realTeacher = @($authBlock.users | Where-Object { $_.role -eq 'TEACHER' }) | Select-Object -First 1
+    if (-not $realStudent) { throw 'AUTH_REAL has no student account: run tools\Set-DemoPasswords.ps1 -Database real first.' }
+    $demoStudentId = [string]$realStudent.userId
+    # No approved teacher account: keep an id that does not exist in the real export (empty teacher screens).
+    if ($realTeacher) { $demoTeacherId = [string]$realTeacher.userId }
+}
+if ($isReal) {
+    # REAL-DATA-2: the Portal API serves simulated data, so it is NOT passed on real (the backend also
+    # refuses it there). Transcript/GPA come only from the student's own file in this folder (outside the repo).
+    $app.'real-transcript' = @{ dir = 'D:\DLU-LMS\RealData\portal' }
+}
+if ($config.PORTAL -and -not $isReal) {
     $app.portal = $config.PORTAL
     if ($DemoCache) {
         $app.portal | Add-Member -NotePropertyName cacheTtl -NotePropertyValue '6h' -Force
@@ -34,9 +56,9 @@ if ($config.PORTAL) {
     }
 }
 # LOGIN: optional AUTH block (tools\Set-DemoPasswords.ps1) -> app.auth.local.* (login, userId, role, BCrypt hash only).
-if ($config.AUTH -and $config.AUTH.users) {
-    $app.auth = @{ local = @{ enabled = $true; users = @($config.AUTH.users) } }
-    foreach ($u in $config.AUTH.users) { $redact += [string]$u.bcrypt }
+if ($authBlock -and $authBlock.users) {
+    $app.auth = @{ local = @{ enabled = $true; users = @($authBlock.users) } }
+    foreach ($u in $authBlock.users) { $redact += [string]$u.bcrypt }
 }
 if ($app.Count -gt 0) { $portalJson = @{ app = $app } | ConvertTo-Json -Depth 10 -Compress }
 if ($config.PORTAL) {
@@ -58,17 +80,22 @@ foreach ($key in $allKeys) { $prior[$key] = [Environment]::GetEnvironmentVariabl
 Push-Location (Join-Path (Split-Path $PSScriptRoot) 'backend')
 try {
     foreach ($key in $keys) { [Environment]::SetEnvironmentVariable($key, [string]$config.$key, 'Process') }
+    $env:DEMO_STUDENT_ID = $demoStudentId
+    $env:DEMO_TEACHER_ID = $demoTeacherId
     $env:SPRING_PROFILES_ACTIVE = 'local-development'
     $env:DEMO_AUTH_ENABLED = 'true'
     $env:SERVER_ADDRESS = '127.0.0.1'
     $env:SERVER_PORT = '8081'
     if ($portalJson) { $env:SPRING_APPLICATION_JSON = $portalJson }
-    if ($config.AUTH -and $config.AUTH.users) {
-        Write-Output "Login: $(@($config.AUTH.users).Count) local account(s) configured (hashes withheld)."
+    if ($isReal) { Write-Output 'Data profile: REAL (lms_mobile_group_real, labels for hand-ins / graded activities).' }
+    if ($authBlock -and $authBlock.users) {
+        Write-Output "Login: $(@($authBlock.users).Count) local account(s) configured (hashes withheld)."
     } else {
         Write-Output 'Login: no local accounts (tools\Set-DemoPasswords.ps1); only the demo mode works.'
     }
-    if ($config.PORTAL) {
+    if ($isReal) {
+        Write-Output 'Portal API: OFF on real (simulated data); transcript from D:\DLU-LMS\RealData\portal if present.'
+    } elseif ($config.PORTAL) {
         Write-Output 'Portal integration: configured (values withheld).'
     } else {
         Write-Output 'Portal integration: not configured (tools\Set-PortalConfig.ps1); Portal screens show "Chua ket noi".'

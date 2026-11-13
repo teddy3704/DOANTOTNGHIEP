@@ -1,4 +1,5 @@
 import '../../widgets/chart_axis.dart';
+import '../../core/data_profile.dart';
 import '../../core/theme/app_colors.dart';
 import 'achievements_screen.dart';
 import 'weekly_report_card.dart';
@@ -131,19 +132,19 @@ class _StudentAnalyticsScreenState extends State<StudentAnalyticsScreen> {
           iconColor: Theme.of(context).colorScheme.primary,
         ),
         MetricCard(
-          title: 'Chuỗi học',
+          title: DataProfile.streak,
           value: '${streak.currentDays} ngày',
           icon: Icons.local_fire_department,
           iconColor: Colors.orange,
         ),
         MetricCard(
-          title: 'Tiến độ TB',
+          title: DataProfile.averageProgress,
           value: '${(summary.averageProgress ?? 0).toStringAsFixed(1)}%',
           icon: Icons.trending_up,
           iconColor: Colors.green,
         ),
         MetricCard(
-          title: 'Ngày HĐ',
+          title: DataProfile.activeDays,
           value: '${summary.activeDays ?? 0}',
           icon: Icons.calendar_today,
           iconColor: Colors.purple,
@@ -262,9 +263,9 @@ class _StudentAnalyticsScreenState extends State<StudentAnalyticsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Tiến độ hoàn thành bài tập (Theo tuần)',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            Text(
+              DataProfile.progressTimeline,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 4),
             Text(
@@ -578,13 +579,13 @@ class _StudentAnalyticsScreenState extends State<StudentAnalyticsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Biểu đồ hoạt động',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            Text(
+              DataProfile.activityChartTitle,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 4),
             Text(
-              'Số lượng hoạt động mỗi ngày. Càng đậm nghĩa là càng nhiều hoạt động.',
+              DataProfile.activityChartHelp,
               style: TextStyle(fontSize: 13, color: context.muted),
             ),
             const SizedBox(height: 16),
@@ -610,7 +611,7 @@ class _StudentAnalyticsScreenState extends State<StudentAnalyticsScreen> {
 
                   return Tooltip(
                     message:
-                        '${day.date.day}/${day.date.month}: ${day.events} hoạt động',
+                        '${day.date.day}/${day.date.month}: ${DataProfile.activityCount(day.events)}',
                     child: Container(
                       decoration: BoxDecoration(
                         color: day.events > 0

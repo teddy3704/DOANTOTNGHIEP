@@ -1,5 +1,6 @@
 package com.dlu.lmsmobile.controller;
 
+import com.dlu.lmsmobile.config.DataProfile;
 import com.dlu.lmsmobile.exception.InvalidRequestException;
 import com.dlu.lmsmobile.security.JwtTokenProvider;
 import com.dlu.lmsmobile.security.LocalDevelopmentSettings;
@@ -17,14 +18,22 @@ import java.util.Map;
 public class AuthController {
     private final JwtTokenProvider tokenProvider;
     private final LocalDevelopmentSettings settings;
+    private final DataProfile profile;
 
-    public AuthController(JwtTokenProvider tokenProvider, LocalDevelopmentSettings settings) {
+    public AuthController(JwtTokenProvider tokenProvider, LocalDevelopmentSettings settings, DataProfile profile) {
+        this.profile = profile;
         this.tokenProvider = tokenProvider;
         this.settings = settings;
     }
 
     @PostMapping("/demo-login")
-    public Map<String, String> demoLogin(@RequestBody Map<String, String> payload) {
+    public org.springframework.http.ResponseEntity<Map<String, String>> demoLogin(@RequestBody Map<String, String> payload) {
+        // REAL-DATA-2: on the real export every sign-in needs the account's password; the passwordless
+        // demo login is refused even when the local-development flag is on (demo profile unchanged).
+        if (profile.handInsOnly()) {
+            return org.springframework.http.ResponseEntity.status(403)
+                .body(Map.of("code", "DEMO_LOGIN_DISABLED", "message", "Dữ liệu thật: hãy đăng nhập bằng mật khẩu"));
+        }
         if (payload.size() != 1 || payload.get("role") == null) {
             throw new InvalidRequestException("Supply role only; the server owns demo user IDs");
         }
@@ -33,7 +42,7 @@ public class AuthController {
             throw new InvalidRequestException("Supported demo roles: STUDENT, TEACHER");
         }
         long userId = "TEACHER".equals(role) ? settings.teacherId() : settings.studentId();
-        return Map.of("token", tokenProvider.generateToken(userId, role),
-                "role", role, "userId", Long.toString(userId));
+        return org.springframework.http.ResponseEntity.ok(Map.of("token", tokenProvider.generateToken(userId, role),
+                "role", role, "userId", Long.toString(userId), "dataProfile", profile.name()));
     }
 }

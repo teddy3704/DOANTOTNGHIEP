@@ -40,3 +40,8 @@
 
 # Local handoff locks are not a substitute for Git/worktree isolation
 /.agent-lock
+
+# Real LMS data (personal data) - never commit
+/Data_*/
+**/RealData/
+*.rar

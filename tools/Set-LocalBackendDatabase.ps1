@@ -1,5 +1,5 @@
 [CmdletBinding()]
-param([Parameter(Mandatory)][ValidateSet('dev', 'demo')][string]$Target)
+param([Parameter(Mandatory)][ValidateSet('dev', 'demo', 'real')][string]$Target)
 $ErrorActionPreference = 'Stop'
 # Switches DB_URL in the git-ignored .local\backend.json between the untouched dev copy and the
 # date-shifted demo copy (DOI_NGAY_DEMO). Other values are kept and never printed. Restart the backend after.

@@ -2,6 +2,8 @@
 /// A template is offered only when its fact exists, so the text never states something untrue.
 library;
 
+import 'data_profile.dart';
+
 class ReminderFacts {
   final String name;
   final String? courseName;
@@ -69,10 +71,12 @@ List<ReminderTemplate> reminderTemplates(ReminderFacts f) {
     out.add(
       ReminderTemplate(
         TemplateKind.inactive,
-        'Lâu không truy cập',
-        'Đã $days ngày em chưa vào khóa học',
-        'Chào ${f.name}, đã $days ngày em chưa truy cập $course. '
-            'Em hãy vào xem lại bài mới và các hạn nộp sắp tới nhé.',
+        DataProfile.tt('Lâu không truy cập'),
+        DataProfile.tt('Đã $days ngày em chưa vào khóa học'),
+        DataProfile.tt(
+          'Chào ${f.name}, đã $days ngày em chưa truy cập $course. '
+          'Em hãy vào xem lại bài mới và các hạn nộp sắp tới nhé.',
+        ),
       ),
     );
   }

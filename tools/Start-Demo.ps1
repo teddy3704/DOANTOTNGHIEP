@@ -1,6 +1,7 @@
 ﻿[CmdletBinding()]
 param(
-    [ValidateSet('demo', 'dev')][string]$Database = 'demo',
+    # REAL-DATA-2: default 'real' = the imported real Moodle export (lms_mobile_group_real); -Target demo = rescue.
+    [Alias('Target')][ValidateSet('demo', 'dev', 'real')][string]$Database = 'real',
     [string]$Avd = 'DLU_LMS_Pixel',
     # Installed only when the app is missing on the device; default = latest archived debug APK.
     [string]$Apk = '',
@@ -59,11 +60,10 @@ function Test-Port([int]$port) {
     try { return $client.ConnectAsync('127.0.0.1', $port).Wait(1000) -and $client.Connected } catch { return $false } finally { $client.Dispose() }
 }
 
+# REAL-DATA-2: /health is public (status only); no sign-in is needed, so this works on real where the
+# passwordless demo login is refused.
 function Get-Health {
-    try {
-        $login = Invoke-RestMethod -Method Post -Uri "$api/auth/demo-login" -ContentType 'application/json' -Body '{"role":"STUDENT"}' -TimeoutSec 5
-        return Invoke-RestMethod -Uri "$api/health" -Headers @{ Authorization = "Bearer $($login.token)" } -TimeoutSec 10
-    } catch { return $null }
+    try { return Invoke-RestMethod -Uri "$api/health" -TimeoutSec 10 } catch { return $null }
 }
 
 # Serial of the target device (emulator or USB phone), or $null.
@@ -86,7 +86,8 @@ $config = Join-Path $root '.local\backend.json'
 if (-not (Test-Path -LiteralPath $config)) { Fail 'Thiếu .local\backend.json' 'Chạy tools\New-LocalBackendConfig.ps1 (owner).' }
 & (Join-Path $tools 'Set-LocalBackendDatabase.ps1') -Target $Database | Out-Null
 $cfg = [IO.File]::ReadAllText($config) | ConvertFrom-Json
-$portalOn = $cfg.PORTAL -and $cfg.PORTAL.enabled -eq $true
+# REAL-DATA-2: on real the Portal API (simulated data) is off by design; transcript comes from the student's file.
+$portalOn = $cfg.PORTAL -and $cfg.PORTAL.enabled -eq $true -and $Database -ne 'real'
 $portalBase = if ($portalOn) { [string]$cfg.PORTAL.baseUrl } else { '' }
 $cfg = $null
 
@@ -119,7 +120,7 @@ if ($portalOn -and $portalBase) {
         if (-not $_.Exception.Response) { Warn 'Không có internet hoặc Portal không trả lời trong 5 s: phần Học vụ/Lớp cố vấn có thể không chạy' }
     }
 }
-Ok "backend.json -> lms_mobile_group_$Database; Portal: $(if ($portalOn) { 'bật' } else { 'TẮT (màn Học vụ sẽ báo chưa kết nối)' })"
+Ok "backend.json -> lms_mobile_group_$Database; Portal: $(if ($portalOn) { 'bật' } elseif ($Database -eq 'real') { 'TẮT trên real (Học vụ đọc bảng điểm sinh viên nhập)' } else { 'TẮT (màn Học vụ sẽ báo chưa kết nối)' })"
 if ($PhysicalDevice -and $NoEmulator) { Fail '-PhysicalDevice và -NoEmulator không dùng chung' 'Chọn một trong hai.' }
 if (-not (Test-Path $adb) -and -not $NoEmulator) { Fail "Không thấy adb ở $adb" 'Kiểm tra Android SDK tại D:\DLU-LMS\Android\Sdk.' }
 
@@ -156,6 +157,9 @@ $health = $null
 for ($i = 0; $i -lt 90 -and -not ($health -and $health.status -eq 'UP'); $i++) { Start-Sleep 2; $health = Get-Health }
 if (-not ($health -and $health.status -eq 'UP')) { Fail 'Backend chưa UP sau 180 s' "Xem cửa sổ 'DLU Demo - Backend' (lỗi DB/mật khẩu sẽ in ở đó)." }
 Ok "status UP, database $($health.database), portal $($health.portal)"
+if ($Database -eq 'real') {
+    Ok 'backend tự làm nóng cache cho các tài khoản đăng nhập (xem 'làm nóng' ở bảng SẴN SÀNG)'
+}
 if ($portalOn -and $health.portal -ne 'UP') { Write-Host "      CẢNH BÁO Portal = $($health.portal): màn Học vụ sẽ báo chưa kết nối; phần LMS vẫn chạy." -ForegroundColor Yellow }
 
 $portalState = if (-not $portalOn) { 'TẮT' } elseif ($health.portal -eq 'UP') { 'UP' } else { "DOWN ($($health.portal))" }
@@ -163,7 +167,7 @@ if ($portalOn -and $health.portal -ne 'UP') { $issues.Add("Portal $($health.port
 $apkShort = 'chưa kiểm'
 function Summary {
     $h = Get-Health
-    $prewarm = if ($h -and $h.prewarm) { "prewarm $($h.prewarm)" } else { 'prewarm tắt' }
+    $prewarm = if ($h -and $h.prewarm) { "làm nóng $($h.prewarm)" } else { 'làm nóng tắt' }
     Write-Host ''
     Write-Host '==== SẴN SÀNG? ====' -ForegroundColor Green
     Write-Host ("  {0,-9}: {1}" -f 'DB', "lms_mobile_group_$Database")
@@ -221,6 +225,12 @@ if ($LASTEXITCODE -ne 0) { Fail 'adb reverse lỗi' 'Chạy: adb kill-server; ad
 Ok ((Adb reverse --list) -join '; ')
 
 Step '8/8' 'Mở ứng dụng'
+# REAL-DATA-1: the real target needs the build that reads dataProfile from the login response.
+$realApk = 'D:\DLU-LMS\Artifacts\real\dlu-lms-group-real-debug.apk'
+if (-not $Apk -and $Database -eq 'real') {
+    if (-not (Test-Path -LiteralPath $realApk)) { Fail "Thiếu $realApk" 'Build APK mới (tools\Test-Flutter.ps1 -BuildApk) rồi chép vào đó.' }
+    $Apk = $realApk
+}
 if (-not $Apk) {
     $Apk = if (Test-Path -LiteralPath $finalApk) { $finalApk } else {
         Get-ChildItem 'D:\DLU-LMS\Artifacts\dlu-lms-group-*.apk' -ErrorAction SilentlyContinue |
@@ -232,6 +242,11 @@ $installed = (Adb shell pm list packages $package) -match $package
 $marker = Join-Path $root ".local\device-apk-$($script:serial -replace '[^\w.-]', '_').txt"
 $apkHash = if ($Apk -and (Test-Path -LiteralPath $Apk)) { (Get-FileHash -LiteralPath $Apk -Algorithm SHA256).Hash } else { $null }
 $stale = $PhysicalDevice -and $apkHash -and (-not (Test-Path -LiteralPath $marker) -or (Get-Content -Raw -LiteralPath $marker).Trim() -ne $apkHash)
+if ($installed -and $Apk -eq $realApk -and $apkHash) {
+    $p0 = ((Adb shell pm path $package 2>$null) -join '') -replace '^package:', ''
+    $s0 = if ($p0) { (((Adb shell sha256sum $p0.Trim() 2>$null) -join '') -split '\s+')[0] } else { '' }
+    if ($s0.ToUpper() -ne $apkHash) { $stale = $true }
+}
 if (-not $installed -or $stale) {
     if (-not $apkHash) { Fail 'Ứng dụng chưa cài và không tìm thấy APK' 'Truyền -Apk <đường dẫn .apk>.' }
     Adb install -r -t $Apk | Out-Null
@@ -247,7 +262,8 @@ if ($installedSha) {
     $apkShort = $installedSha.Substring(0, 12).ToUpper()
     if (Test-Path -LiteralPath $finalApk) {
         $finalSha = (Get-FileHash -LiteralPath $finalApk -Algorithm SHA256).Hash
-        if ($finalSha -ne $installedSha.ToUpper()) { $issues.Add("APK trên máy ($apkShort) khác bản cuối ($($finalSha.Substring(0, 12))): cài lại bằng -Apk") }
+        if ($Database -eq 'real') { if ($installedSha.ToUpper() -eq $apkHash) { $apkShort += ' (= bản real)' } }
+        elseif ($finalSha -ne $installedSha.ToUpper()) { $issues.Add("APK trên máy ($apkShort) khác bản cuối ($($finalSha.Substring(0, 12))): cài lại bằng -Apk") }
         else { $apkShort += ' (= bản cuối)' }
     }
 }

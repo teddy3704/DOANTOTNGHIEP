@@ -26,10 +26,21 @@ public class SearchService {
     private final FlashcardRepository flashcards;
     private final TeacherRepository teachers;
 
+    private boolean noStudentSearch;
+
     public SearchService(StudentRepository students, FlashcardRepository flashcards, TeacherRepository teachers) {
         this.students = students;
         this.flashcards = flashcards;
         this.teachers = teachers;
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public SearchService(StudentRepository students, FlashcardRepository flashcards, TeacherRepository teachers,
+                         com.dlu.lmsmobile.config.DataProfile profile) {
+        this(students, flashcards, teachers);
+        // REAL-DATA-2: teacher screens are anonymous on real data, so a teacher cannot look a student
+        // up by name or student code there (a match would tie an alias to a real identity).
+        this.noStudentSearch = profile.handInsOnly();
     }
 
     /** Pure: accent- and case-insensitive form. */
@@ -135,7 +146,7 @@ public class SearchService {
             String name = str(course.get("course_name"));
             c.add(new Candidate("course", name, str(course.get("course_shortname")),
                 name + " " + str(course.get("course_shortname")), Map.of("courseId", courseId)));
-            for (Map<String, Object> s : teachers.findStudents(teacherId, courseId)) {
+            for (Map<String, Object> s : noStudentSearch ? List.<Map<String, Object>>of() : teachers.findStudents(teacherId, courseId)) {
                 String code = str(s.get("student_code"));
                 c.add(new Candidate("student", str(s.get("fullname")), (code == null ? "" : code + " · ") + name,
                     str(s.get("fullname")) + " " + nz(code),

@@ -11,6 +11,19 @@ class TeacherCourse {
   final int? upcomingDeadlines7Days;
   final int? needsGradingCount;
 
+  /// Course start (epoch seconds); shown as "Bắt đầu MM/YYYY" so every screen says which term it is.
+  final int? startEpoch;
+
+  /// Real data only: course of the current term (null on demo, where every course counts).
+  final bool? currentTerm;
+
+  String? get startLabel {
+    final e = startEpoch;
+    if (e == null || e <= 0) return null;
+    final d = DateTime.fromMillisecondsSinceEpoch(e * 1000);
+    return 'Bắt đầu ${d.month.toString().padLeft(2, '0')}/${d.year}';
+  }
+
   TeacherCourse({
     required this.courseId,
     required this.courseName,
@@ -21,6 +34,8 @@ class TeacherCourse {
     this.studentsNeedAttention,
     this.upcomingDeadlines7Days,
     this.needsGradingCount,
+    this.startEpoch,
+    this.currentTerm,
   });
 
   factory TeacherCourse.fromJson(Map<String, dynamic> json) {
@@ -49,6 +64,8 @@ class TeacherCourse {
       upcomingDeadlines7Days: (json['upcoming_deadlines_7_days'] as num?)
           ?.toInt(),
       needsGradingCount: (json['needs_grading_count'] as num?)?.toInt(),
+      startEpoch: (json['course_startdate'] as num?)?.toInt(),
+      currentTerm: json['current_term'] as bool?,
     );
 
     debugPrint(

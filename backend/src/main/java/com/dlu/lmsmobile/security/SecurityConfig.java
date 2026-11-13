@@ -41,6 +41,8 @@ public class SecurityConfig {
                 // re-authorized anonymously and every 403 surfaces to clients as 401.
                 auth.dispatcherTypeMatchers(DispatcherType.ERROR).permitAll();
                 auth.requestMatchers(HttpMethod.POST, "/api/v1/auth/login").permitAll();
+                // REAL-DATA-2: status only (UP/DOWN, database, Portal, data profile); no data, no identity.
+                auth.requestMatchers(HttpMethod.GET, "/api/v1/health").permitAll();
                 if (localSettings.demoEnabled()) {
                     auth.requestMatchers(HttpMethod.POST, "/api/v1/auth/demo-login").permitAll();
                 }
@@ -49,7 +51,6 @@ public class SecurityConfig {
                     .requestMatchers("/api/v1/dev/teachers/**", "/api/v1/teachers/**")
                     .access(new PathIdentityAuthorizationManager("TEACHER", "^/api/v1/(?:dev/)?teachers/([1-9][0-9]*)(?:/.*)?$"))
                     .requestMatchers("/api/v1/courses/**", "/api/v1/students/me/**").hasRole("STUDENT")
-                    .requestMatchers("/api/v1/health").authenticated()
                     .anyRequest().denyAll();
             })
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

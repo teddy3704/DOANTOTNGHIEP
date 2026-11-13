@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/data_profile.dart';
 
 import '../../models/learning_health.dart';
 import '../../models/student_course.dart';
@@ -46,14 +47,10 @@ class LearningHealthScreen extends StatelessWidget {
     body: SafeArea(
       child: AsyncTab<LearningHealthOverview>(
         load: api.getLearningHealth,
-        leading: const [
+        leading: [
           Padding(
-            padding: EdgeInsets.only(bottom: 8),
-            child: Text(
-              'Đây là đúng điểm theo dõi giảng viên thấy về bạn, tính từ truy cập, '
-              'bài quá hạn, tiến độ và hoạt động 7 ngày gần nhất. '
-              'Xanh: dưới 30 · Vàng: 30–59 · Đỏ: từ 60.',
-            ),
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Text(DataProfile.learningHealthIntro),
           ),
         ],
         children: (data) => [

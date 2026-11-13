@@ -1,5 +1,8 @@
 package com.dlu.lmsmobile.service;
 
+import com.dlu.lmsmobile.config.DataProfile;
+import org.springframework.beans.factory.annotation.Autowired;
+
 import com.dlu.lmsmobile.repository.InsightsRepository;
 import com.dlu.lmsmobile.repository.StudentRepository;
 import org.springframework.beans.factory.annotation.Value;
@@ -36,14 +39,23 @@ public class InsightsService {
     private final GoalService goals;
     private final Clock clock;
     private final String dataMode;
+    private final boolean handInsOnly;
 
     public InsightsService(InsightsRepository insights, StudentRepository students, GoalService goals, Clock clock,
                            @Value("${app.data-source.mode:demo}") String dataMode) {
+        this(insights, students, goals, clock, dataMode, DataProfile.demo());
+    }
+
+    @Autowired
+    public InsightsService(InsightsRepository insights, StudentRepository students, GoalService goals, Clock clock,
+                           @Value("${app.data-source.mode:demo}") String dataMode, DataProfile profile) {
+        this.handInsOnly = profile.handInsOnly();
         this.insights = insights;
         this.students = students;
         this.goals = goals;
         this.clock = clock;
-        this.dataMode = "live".equalsIgnoreCase(dataMode) ? "live" : "demo";
+        // The real export is not demonstration data, whatever the mode flag says.
+        this.dataMode = "live".equalsIgnoreCase(dataMode) || profile.handInsOnly() ? "live" : "demo";
     }
 
     public Map<String, Object> getStudentInsights(Long userId, int requestedDays) {
@@ -60,12 +72,16 @@ public class InsightsService {
         List<Map<String, Object>> goalList = goals.list(userId);
 
         Map<String, Object> heatmap = heatmap(events, windowStart, today);
+        // Real data: the only events are hand-ins (submitted assignment, finished quiz attempt).
+        heatmap.put("unit", heatmapUnit(handInsOnly));
         Map<String, Object> streak = streak(events, today);
         Map<String, Object> timeline = timeline(completions, courses, windowStart, today);
         Map<String, Object> taskStatus = taskStatus(tasks, nowEpoch);
         List<Map<String, Object>> courseProgress = courseProgress(courses);
         List<Map<String, Object>> deadlines = upcomingDeadlines(tasks, nowEpoch);
-        List<Map<String, Object>> suggestions = suggestions(taskStatus, courses, streak, goalList);
+        // Real export: inactivity notices only for courses with tasks in scope (the current term).
+        Set<Long> inScope = handInsOnly ? tasks.stream().map(t -> lng(t.get("courseid"))).collect(java.util.stream.Collectors.toSet()) : null;
+        List<Map<String, Object>> suggestions = suggestions(taskStatus, courses, streak, goalList, inScope);
 
         Map<String, Object> summary = new LinkedHashMap<>();
         summary.put("course_count", courses.size());
@@ -108,6 +124,12 @@ public class InsightsService {
         }
         return out;
     }
+
+    static String heatmapUnit(boolean handInsOnly) {
+        return handInsOnly ? "lượt nộp bài và làm bài kiểm tra / ngày" : "sự kiện học tập / ngày";
+    }
+
+    String dataMode() { return dataMode; }
 
     static Map<String, Object> heatmap(Map<LocalDate, Long> events, LocalDate from, LocalDate to) {
         List<Map<String, Object>> cells = new ArrayList<>();
@@ -284,6 +306,16 @@ public class InsightsService {
 
     static List<Map<String, Object>> suggestions(Map<String, Object> taskStatus, List<Map<String, Object>> courses,
                                                  Map<String, Object> streak, List<Map<String, Object>> goalList) {
+        return suggestions(taskStatus, courses, streak, goalList, null);
+    }
+
+    /**
+     * {@code handInScope} non-null = real export: "activity" is a hand-in, and inactivity is only
+     * reported for these courses (the current term), never for courses of past years.
+     */
+    static List<Map<String, Object>> suggestions(Map<String, Object> taskStatus, List<Map<String, Object>> courses,
+                                                 Map<String, Object> streak, List<Map<String, Object>> goalList,
+                                                 Set<Long> handInScope) {
         List<Map<String, Object>> out = new ArrayList<>();
         long overdue = lng(taskStatus.get("overdue")), dueSoon = lng(taskStatus.get("due_soon"));
         long total = lng(taskStatus.get("total"));
@@ -307,15 +339,19 @@ public class InsightsService {
             Long courseId = lng(c.get("courseid"));
             String name = str(c.get("course_name"));
             Object inactive = c.get("days_since_last_activity");
-            if (inactive instanceof Number n && n.intValue() >= INACTIVE_NOTICE_DAYS) {
+            boolean inScope = handInScope == null || handInScope.contains(courseId);
+            if (inScope && inactive instanceof Number n && n.intValue() >= INACTIVE_NOTICE_DAYS) {
                 int d = n.intValue();
                 out.add(suggestion("INACTIVE_COURSE", d >= INACTIVE_ATTENTION_DAYS ? "attention" : "info",
-                    "Chưa có hoạt động ở " + name + " trong " + d + " ngày",
-                    "Lần hoạt động gần nhất ở khóa học này cách đây " + d + " ngày theo nhật ký LMS.",
+                    handInScope != null ? d + " ngày chưa nộp bài hoặc làm bài kiểm tra ở " + name
+                        : "Chưa có hoạt động ở " + name + " trong " + d + " ngày",
+                    handInScope != null ? "Lần nộp bài hoặc làm bài kiểm tra gần nhất ở khóa học này cách đây " + d + " ngày."
+                        : "Lần hoạt động gần nhất ở khóa học này cách đây " + d + " ngày theo nhật ký LMS.",
                     Map.of("days_since_last_activity", d, "course_id", courseId), action("open_course", courseId)));
             }
-            if (progress != null && lng(c.get("total_tracked_activities")) > 0 && progress < LOW_PROGRESS_PERCENT) {
-                out.add(suggestion("LOW_PROGRESS", "info", "Tiến độ " + name + " đang ở " + round1(progress) + "%",
+            if (inScope && progress != null && lng(c.get("total_tracked_activities")) > 0 && progress < LOW_PROGRESS_PERCENT) {
+                out.add(suggestion("LOW_PROGRESS", "info", (handInScope != null ? "Tiến độ (theo hoạt động có chấm điểm) " : "Tiến độ ")
+                    + name + " đang ở " + round1(progress) + "%",
                     "Mức này thấp hơn mốc " + (int) LOW_PROGRESS_PERCENT
                         + "% mà ứng dụng dùng để nhắc. Xem nội dung tiếp theo có thể giúp bạn tiến nhanh hơn.",
                     Map.of("progress_percentage", round1(progress), "course_id", courseId),
@@ -344,7 +380,8 @@ public class InsightsService {
         }
         long current = lng(streak.get("current_days"));
         if (current >= 3) {
-            out.add(suggestion("STREAK_POSITIVE", "positive", "Bạn đã học " + current + " ngày liên tiếp",
+            out.add(suggestion("STREAK_POSITIVE", "positive", handInScope != null ? current + " ngày liên tiếp có nộp bài hoặc làm bài kiểm tra"
+                : "Bạn đã học " + current + " ngày liên tiếp",
                 "Duy trì nhịp học đều là tốt; hãy nhớ nghỉ ngơi hợp lý.",
                 Map.of("current_days", current), action("none", null)));
         }

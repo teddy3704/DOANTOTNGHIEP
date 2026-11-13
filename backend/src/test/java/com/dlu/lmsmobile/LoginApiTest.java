@@ -1,5 +1,6 @@
 package com.dlu.lmsmobile;
 
+import com.dlu.lmsmobile.config.DataProfile;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.dlu.lmsmobile.controller.LoginController;
 import com.dlu.lmsmobile.controller.StudentWeeklyReportController;
@@ -44,7 +45,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(controllers = {LoginController.class, StudentWeeklyReportController.class},
         excludeAutoConfiguration = UserDetailsServiceAutoConfiguration.class,
         properties = {"app.jwt.secret=isolated-test-only-secret-not-for-runtime-1234", "server.address=127.0.0.1"})
-@Import({SecurityConfig.class, JwtAuthenticationFilter.class, JwtTokenProvider.class, LocalDevelopmentSettings.class,
+@Import({SecurityConfig.class, JwtAuthenticationFilter.class, JwtTokenProvider.class, LocalDevelopmentSettings.class, DataProfile.class,
         AuthConfig.class, LoginApiTest.Clocks.class})
 @ExtendWith(OutputCaptureExtension.class)
 class LoginApiTest {
@@ -106,7 +107,8 @@ class LoginApiTest {
     @Test
     void studentAndTeacherGetTheirOwnIdentityAndRoleFromTheServer() throws Exception {
         DecodedJWT sv = tokenOf(login(" 2312005 ", STUDENT_PW).andExpect(status().isOk())
-            .andExpect(jsonPath("$.role").value("STUDENT")).andExpect(jsonPath("$.userId").value("205")));
+            .andExpect(jsonPath("$.role").value("STUDENT")).andExpect(jsonPath("$.userId").value("205"))
+            .andExpect(jsonPath("$.dataProfile").value("demo")));
         assertEquals("205", sv.getSubject());
         assertEquals("STUDENT", sv.getClaim("role").asString());
         DecodedJWT gv = tokenOf(login("TEACHER02", TEACHER_PW).andExpect(status().isOk()));

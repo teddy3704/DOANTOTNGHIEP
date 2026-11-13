@@ -1,4 +1,5 @@
 import '../../core/display_text.dart';
+import '../../core/data_profile.dart';
 
 import 'package:flutter/material.dart';
 
@@ -127,7 +128,7 @@ class _StudentCourseDetailScreenState extends State<StudentCourseDetailScreen> {
             course.courseShortname ?? 'Chưa có dữ liệu',
           ),
           DetailLine(
-            'Tiến độ',
+            DataProfile.progress,
             detailValue(course.progressPercentage, suffix: '%'),
           ),
           if (course.progressPercentage != null)
@@ -140,7 +141,7 @@ class _StudentCourseDetailScreenState extends State<StudentCourseDetailScreen> {
           ),
           if (course.attendancePercentage != null)
             DetailLine(
-              'Chuyên cần',
+              DataProfile.attendance,
               detailValue(course.attendancePercentage, suffix: '%'),
             ),
         ],
@@ -370,21 +371,24 @@ class _StudentCourseDetailScreenState extends State<StudentCourseDetailScreen> {
   }
 
   List<Widget> _attendance(StudentAttendance? data) => data == null
-      ? [const DetailCard(title: 'Khóa học chưa có dữ liệu chuyên cần')]
+      ? [DetailCard(title: DataProfile.noAttendanceForCourse)]
       : [
           DetailCard(
-            title: 'Chuyên cần',
+            title: DataProfile.attendance,
             children: [
               DetailLine(
-                'Tỷ lệ chuyên cần',
+                DataProfile.attendanceRate,
                 detailValue(data.percentage, suffix: '%'),
               ),
-              DetailLine('Tổng số buổi', detailValue(data.totalSessions)),
-              DetailLine('Có mặt', detailValue(data.present)),
-              DetailLine('Đi trễ', detailValue(data.late)),
-              if (data.excused != null)
-                DetailLine('Có phép', detailValue(data.excused)),
-              DetailLine('Vắng', detailValue(data.absent)),
+              // Real export: no session tables, so no per-session breakdown is shown.
+              if (!DataProfile.isReal) ...[
+                DetailLine('Tổng số buổi', detailValue(data.totalSessions)),
+                DetailLine('Có mặt', detailValue(data.present)),
+                DetailLine('Đi trễ', detailValue(data.late)),
+                if (data.excused != null)
+                  DetailLine('Có phép', detailValue(data.excused)),
+                DetailLine('Vắng', detailValue(data.absent)),
+              ],
             ],
           ),
         ];

@@ -1,3 +1,4 @@
+import '../../core/data_profile.dart';
 import '../../core/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 
@@ -283,9 +284,11 @@ class WeeklyChangeCard extends StatelessWidget {
           ? 'So sánh lớp hôm nay với 7 ngày trước (${_dm(c.asOf!)}).'
           : 'So sánh lớp hôm nay với 7 ngày trước.',
       takeaway: takeaway,
-      howCalculated: const [
-        'Số liệu 7 ngày trước được tính lại từ lịch sử trên Moodle: lần truy cập cuối, bài đã quá hạn '
-            'mà chưa nộp vào lúc đó, hoạt động đã hoàn thành vào lúc đó, số lượt hoạt động trong 7 ngày trước đó.',
+      howCalculated: [
+        DataProfile.tt(
+          'Số liệu 7 ngày trước được tính lại từ lịch sử trên Moodle: lần truy cập cuối, bài đã quá hạn '
+          'mà chưa nộp vào lúc đó, hoạt động đã hoàn thành vào lúc đó, số lượt hoạt động trong 7 ngày trước đó.',
+        ),
         'Dùng cùng quy tắc chấm điểm theo dõi như hiện tại, nên hai mốc so sánh được với nhau.',
         'Đây là ước tính: nếu giảng viên thêm hoặc bớt hoạt động trong tuần, tiến độ cũ có thể lệch đôi chút.',
       ],

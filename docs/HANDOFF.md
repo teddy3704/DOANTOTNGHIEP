@@ -1361,3 +1361,69 @@ GitHub: snapshot r2 `12ef5ca312a5e3a557eb2c93116b2c89f231f2ea` = commit-tree 'HE
   3. Đóng Claude, chạy `.\tools\Start-Demo.ps1`, đăng nhập thử `2312005` và `teacher02`, rồi `.\tools\Stop-Demo.ps1`.
   4. Giữ ổ C ≥ 22 GiB (hiện 22,1 GiB — sát ngưỡng).
   5. Tạm dừng Windows Update 2 tuần. Lưu ý: bảng SẴN SÀNG đang báo **Windows chờ khởi động lại** → khởi động lại máy trước ngày demo.
+
+### GitHub — cập nhật nhánh theo 4ffd284 — 2026-11-11 18:11 (+07)
+Snapshot `d4d535ca44dcbf0a2587fa0123345d84ea57a6e2` = commit-tree 'HEAD^{tree}' -p 12ef5ca…, **cùng cây với commit cục bộ 4ffd284**
+  (tree 52c9e09e1a71abaaa95efdb12bd5b7994b5b6efe); so với 12ef5ca chỉ khác docs/HANDOFF.md, docs/RESUME_STATE.md, docs/TASK_BOARD.md;
+  rev-list count 3; 538 file. Quét cây (cách cũ, giá trị đọc từ 6f8c0ab vào bộ nhớ, không in): 2 mật khẩu + 2 hash cũ = 0; bcrypt 0;
+  mk_dev_ có giá trị 0; private key 0; file cấm (.local/, .env*, apk/jar/jks/keystore/log) 0. Dòng thêm khớp mẫu: chỉ tên script
+  Set-DemoPasswords/Rotate-AppRolePassword; chuỗi dài thêm vào chỉ là hash commit + SHA-256 APK/JAR.
+ls-remote trước: nhánh = 12ef5ca. Push fast-forward 12ef5ca..d4d535c vào refs/heads/dlu-lms-group-bao-ve (không --force, không đẩy
+  HEAD/tag cục bộ, không đổi tag). ls-remote sau: nhánh = d4d535c; tag bao-ve-2026-11-20-r2 = 12ef5ca; tag bao-ve-2026-11-20 = 4d00d98;
+  main = c773b7e (giữ nguyên).
+
+## SHIFT-1113 — dời DB demo sang 13/11 cho báo cáo hội đồng đợt 2 (14:00 13/11/2026) — 2026-11-12
+Owner duyệt. Không sửa code app, không DDL, không push, không đụng lms_mobile_group_dev, không đọc/in mật khẩu.
+- Script mới `tools/Set-DemoDate.ps1 -TargetDate yyyy-MM-dd` (owner chạy): chỉ lms_mobile_group_demo trên 127.0.0.1:55432; dừng nếu
+  backend còn chạy; mật khẩu postgres qua Read-Host -AsSecureString, xóa ở finally; pg_dump toàn bộ DB demo → `D:\DLU-LMS\Backups\
+  demo-before-shift-<ngày>-<stamp>.sql` + SHA-256 (dump lỗi thì dừng); `database\demo\shift_demo_dates.sql` --single-transaction.
+  Sửa 2 lần sau khi chạy thật: (1) PS 5.1 + ErrorActionPreference Stop coi stderr của pg_dump/psql là lỗi → lời gọi native chạy với
+  Continue, xét exit code; (2) cửa sổ 5.1 mở từ pwsh kế thừa PSModulePath của PS 7 → Get-FileHash lỗi → dựng lại PSModulePath 5.1,
+  SHA-256 bằng .NET, kiểm tra cổng bằng TcpClient; PostgreSQL (nếu chưa chạy) mở trong cửa sổ riêng để không chết khi đóng cửa sổ
+  owner. Parse + chạy thử hàm trên PS 5.1 và 7.7: OK. Commit 8069956, e8a84a9, cb66385.
+- Kết quả (owner chạy 11:26:40, log demo-shift-2026-11-13-20261112-112640.txt): shift_days = −7; hạn muộn nhất 25/11 20:47:35 →
+  **18/11 20:47:35** (+07; dời ngày chẵn nên giữ giờ trong ngày); 71 cột, 2145 dòng-cột; hạn trước 13/11: 19, trong 7 ngày: 7,
+  sau đó: 0. Backup …-112640.sql sha256 2EEF9FD22E2568D3E8CC5A1F61A972FC5A8F7BCBAEE2E81D28598AC890685155. Các lần 11:19 (×2) và 11:25
+  chỉ tạo backup rồi dừng (lỗi script ở trên), 11:26:25 sai mật khẩu — không lần nào khác dời ngày. PostgreSQL bị tắt đột ngột
+  lúc 11:27:03 khi đóng cửa sổ owner (bản script cũ); lần Start-Demo sau khởi động bình thường.
+- Kiểm tra emulator (Start-Demo 11:30, Portal UP, /health prewarm 67/67, vào bằng "Chế độ demo") — đạt cả 5 ý:
+  SV trang chủ "Hôm nay: 1 việc · 45 phút", "Hôm nay cần ôn 8 thẻ"; Kế hoạch tuần 12/11–17/11 có mục (Android API Assignment phần
+  1/2, 45′); ôn tập 8 thẻ đến hạn; danh sách SV GV (Hỗ trợ học tập số, 9 SV) không còn "sau hôm nay" — "Hoạt động gần nhất: 7/12/20
+  ngày trước"; lớp cố vấn ITK47A mở ngay (66 SV, 21 cần quan tâm), prewarm 67/67.
+  Ảnh `D:\DLU-LMS\Artifacts\final\screens\shift1113-01..05` (+06 cần quan tâm ẩn danh, +07 hộp nhắc riêng mẫu "Lâu không truy cập").
+- Đi demo 15 phút (bước 1–7, 12–15, 17): không lỗi app. Bước 7 ôn 1 thẻ (Được → 6 ngày) — ghi app schema SV 205; bước 17 bấm Hủy,
+  KHÔNG Gửi. Thời gian đo + mốc + thứ tự bỏ bước: mục "Bản 15 phút (13/11)" đầu docs/DEMO_SCRIPT.md (commit 7fc8d2e): SV 165 s
+  (xong 10:50), GV 150 s (xong 13:20). Ghi nhận: Kế hoạch tuần hiện "Hôm nay, 12/11" vì đồng hồ thật là 12/11 — ngày 13/11 sẽ là 13/11.
+- `D:\DLU-LMS\BaoCao-13-11\`: video ghép DLU-LMS-Group_demo-quay-man-hinh_2026-11-11.mp4; video-goc\ (sv-1, sv-2, sv-3, gv-1, gv-2 bản
+  cuối); anh\ shift1113-01..07. Không xóa gì.
+- Stop-Demo 11:5x: emulator, 2 Java, PostgreSQL (pg_ctl fast) đã tắt; cổng 8081/55432 đóng.
+- Mật khẩu demo: owner tự chạy `.\tools\Set-DemoPasswords.ps1` (owner yêu cầu Claude không tự mở cửa sổ PowerShell nữa).
+- Việc cho owner:
+  1. Chạy `.\tools\Set-DemoPasswords.ps1` (nhập mật khẩu demo, ghi ra giấy) — nếu chưa chạy.
+  2. Khởi động lại máy (Windows đang chờ khởi động lại), rồi tạm dừng Windows Update.
+  3. Đóng Claude, chạy `.\tools\Start-Demo.ps1`, đăng nhập thật `2312005` và `teacher02`, rồi `.\tools\Stop-Demo.ps1`.
+  4. Chép slide PDF và báo cáo PDF vào `D:\DLU-LMS\BaoCao-13-11`.
+  5. SAU buổi 13/11, trước buổi 20/11: dừng backend, chạy `.\tools\Set-DemoDate.ps1 -TargetDate 2026-11-20` (kỳ vọng shift_days = 7,
+     hạn muộn nhất 25/11 20:47).
+
+## REAL-DATA-1 (2026-11-12, tối) — dữ liệu LMS thật Khoa CNTT → `lms_mobile_group_real`
+
+Chỉ số tổng hợp; chi tiết cách tính: docs/REAL_DATA_IMPORT.md. Không push. Dữ liệu và ảnh nằm ngoài repo.
+- Bước 0: `Data_11-2026` → `D:\DLU-LMS\RealData\Data_11-2026` (robocopy /MOVE, 20 file, 832.396.770 B khớp; không có .rar trong repo).
+  `.gitignore`: `/Data_*/`, `**/RealData/`, `*.rar`. `git status --short` sạch dữ liệu.
+- Import: `tools\Import-RealData.ps1` (owner, SecureString) + `database/real/10..60`. Đã chạy trọn trên cụm PostgreSQL 18 DÙNG MỘT LẦN
+  (127.0.0.1:55499, `D:\DLU-LMS\RealData\pgtest`, trust, dựng từ đúng backup + V2 + grants): 39–61 s, 173 khóa, 2.996 user (0 email),
+  bảng dựng thay thế quiz 150 / grade_categories 166 / completion 77.737 / log nộp bài 65.105; khớp trọng số 99,82%.
+  Cụm 55432 (demo/dev) KHÔNG bị đụng. CSDL real trên cụm của owner: NOT_RUN (cần mật khẩu postgres).
+- Backend/app: profile `real` (nhãn "nộp bài hoặc làm bài kiểm tra", "Tiến độ (theo hoạt động có chấm điểm)", "Điểm chuyên cần (theo
+  điểm danh trên LMS)", "Việc cần làm · Học kỳ hiện tại", "Chưa có dữ liệu Portal cho MSSV này"). Demo không đổi nhãn.
+  mvn test 299/0/0/1; RealDatabaseQueriesIT 6/6 (cụm thử); flutter analyze sạch, flutter test 338 đạt.
+  APK real: `D:\DLU-LMS\Artifacts\real\dlu-lms-group-real-debug.apk` (SHA-256 trong SHA256.txt cạnh file).
+- Portal (`tools\Test-PortalStudents.ps1`, chỉ 3 MSSV nhóm): Portal hoạt động nhưng KHÔNG có dữ liệu cho 2212472, 2212496, 2212412.
+- Emulator trên real (cụm thử, mật khẩu thử ngẫu nhiên đã xóa): 2212472 đi hết Trang chủ, Việc cần làm, Khóa học, Điểm, Mô phỏng điểm,
+  Tình trạng học tập, Kế hoạch tuần, Lịch, Tìm kiếm, Ôn thẻ, Phân tích, Học vụ/Mô phỏng GPA (trạng thái trống); 2212496 Trang chủ +
+  Việc cần làm. Không lỗi app. Ảnh `D:\DLU-LMS\RealData\screens\real-*.png`. Phần giảng viên: chưa làm (chưa có đồng ý của GVHD).
+- Sửa trong lúc đi màn: phạm vi việc/cảnh báo = học kỳ hiện tại; hoạt động giới hạn theo nhóm chỉ tính khi có bằng chứng; khóa không
+  có hoạt động chấm điểm không hiện "0%"; gợi ý ôn không gọi tài liệu chưa theo dõi là "chưa hoàn thành"; tìm kiếm 6,4 s → 0,6 s.
+- Đã biết: avatar hiện chữ số đầu của MSSV (không có tên); Lịch có chú giải "Buổi học" nhưng real không có buổi điểm danh.
+- Việc cho owner (theo thứ tự): xem tin nhắn báo cáo REAL-DATA-1.

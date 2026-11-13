@@ -1,4 +1,5 @@
 import '../../widgets/chart_axis.dart';
+import '../../core/data_profile.dart';
 import '../../core/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -202,11 +203,22 @@ class _TeacherAnalyticsTabState extends State<TeacherAnalyticsTab> {
                         if (data.students.isNotEmpty)
                           Align(
                             alignment: Alignment.centerRight,
+                            // Real data: names are anonymous on screen, so no CSV leaves the device.
                             child: OutlinedButton.icon(
                               key: const Key('export-support-csv'),
-                              onPressed: () => _export(data),
-                              icon: const Icon(Icons.file_download_outlined),
-                              label: const Text('Xuất danh sách cần hỗ trợ'),
+                              onPressed: DataProfile.isReal
+                                  ? null
+                                  : () => _export(data),
+                              icon: Icon(
+                                DataProfile.isReal
+                                    ? Icons.lock_outline
+                                    : Icons.file_download_outlined,
+                              ),
+                              label: Text(
+                                DataProfile.isReal
+                                    ? 'Ẩn danh đang bật: khóa xuất CSV'
+                                    : 'Xuất danh sách cần hỗ trợ',
+                              ),
                             ),
                           ),
                         const AnalyticsSectionHeader(
@@ -598,7 +610,10 @@ class _TeacherAnalyticsTabState extends State<TeacherAnalyticsTab> {
   /// Quick filters offered inside a group sheet, one per strong signal.
   static final _signalFilters = [
     for (final (code, label) in _criteria)
-      SheetFilter(label, (InsightStudent s) => s.matchesCriterion(code)),
+      SheetFilter(
+        DataProfile.tt(label),
+        (InsightStudent s) => s.matchesCriterion(code),
+      ),
   ];
 
   void _openGroup(ClassInsights data, WatchGroup g) => showStudentListSheet(
@@ -754,7 +769,9 @@ class _TeacherAnalyticsTabState extends State<TeacherAnalyticsTab> {
               for (final (code, label) in _criteria)
                 ActionChip(
                   visualDensity: VisualDensity.compact,
-                  label: Text('$label · ${data.signalCounts[code] ?? 0}'),
+                  label: Text(
+                    '${DataProfile.tt(label)} · ${data.signalCounts[code] ?? 0}',
+                  ),
                   onPressed: (data.signalCounts[code] ?? 0) == 0
                       ? null
                       : () => _openCriterion(data, code, label),
@@ -909,7 +926,9 @@ class _TeacherAnalyticsTabState extends State<TeacherAnalyticsTab> {
               (points.length - 1)
         : null;
     final takeaway = !trend.engagementAvailable
-        ? 'Chưa ghi nhận lượt truy cập nào trong ${points.length} tuần qua.'
+        ? DataProfile.tt(
+            'Chưa ghi nhận lượt truy cập nào trong ${points.length} tuần qua.',
+          )
         : earlier == null
         ? 'Tuần này có $last sinh viên vào học.'
         : 'Tuần này có $last${trend.studentCount > 0 ? '/${trend.studentCount}' : ''} sinh viên vào học, '
@@ -1038,7 +1057,10 @@ class _TeacherAnalyticsTabState extends State<TeacherAnalyticsTab> {
           spacing: 16,
           runSpacing: 8,
           children: [
-            _LegendItem(color: primary, text: 'SV có hoạt động'),
+            _LegendItem(
+              color: primary,
+              text: DataProfile.tt('SV có hoạt động'),
+            ),
             const _LegendItem(
               color: Colors.green,
               text: 'Hoạt động hoàn thành',
@@ -1057,8 +1079,10 @@ class _TeacherAnalyticsTabState extends State<TeacherAnalyticsTab> {
     String d(DateTime t) => '${t.day}/${t.month}';
     final lines = <String>[
       trend.studentCount > 0
-          ? '${p.activeStudents}/${trend.studentCount} sinh viên có truy cập (${percentOf(p.activeStudents, trend.studentCount)})'
-          : '${p.activeStudents} sinh viên có truy cập',
+          ? DataProfile.tt(
+              '${p.activeStudents}/${trend.studentCount} sinh viên có truy cập (${percentOf(p.activeStudents, trend.studentCount)})',
+            )
+          : DataProfile.tt('${p.activeStudents} sinh viên có truy cập'),
       '${p.completed} hoạt động được hoàn thành',
       '${p.events} lượt thao tác trên LMS',
     ];
@@ -1087,7 +1111,9 @@ class _TeacherAnalyticsTabState extends State<TeacherAnalyticsTab> {
           const SizedBox(height: 4),
           if (!trend.engagementAvailable)
             Text(
-              'Chưa ghi nhận lượt truy cập nào trong khoảng thời gian này.',
+              DataProfile.tt(
+                'Chưa ghi nhận lượt truy cập nào trong khoảng thời gian này.',
+              ),
               style: TextStyle(fontSize: 13, color: context.muted),
             )
           else
@@ -1551,7 +1577,10 @@ class _RuleRow extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
-            child: Text('• $rule', style: const TextStyle(fontSize: 13)),
+            child: Text(
+              '• ${DataProfile.tt(rule)}',
+              style: const TextStyle(fontSize: 13),
+            ),
           ),
           const SizedBox(width: 8),
           Text(

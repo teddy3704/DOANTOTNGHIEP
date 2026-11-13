@@ -1,4 +1,5 @@
 import '../core/theme/app_colors.dart';
+import '../core/data_profile.dart';
 import '../core/display_text.dart';
 
 import 'package:flutter/material.dart';
@@ -31,8 +32,8 @@ class CourseCard extends StatelessWidget {
         : 'Chưa có dữ liệu';
 
     final attendanceText = attendancePercentage != null
-        ? 'Chuyên cần: ${vietnameseDecimal(attendancePercentage!)}%'
-        : 'Chưa có dữ liệu chuyên cần';
+        ? '${DataProfile.isReal ? 'Điểm chuyên cần' : 'Chuyên cần'}: ${vietnameseDecimal(attendancePercentage!)}%'
+        : DataProfile.noAttendance;
 
     final taskText = (completedTasks != null && totalTasks != null)
         ? '$completedTasks / $totalTasks hoạt động hoàn thành'
@@ -86,7 +87,9 @@ class CourseCard extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Tiến độ học tập:',
+                    DataProfile.isReal
+                        ? '${DataProfile.progress}:'
+                        : 'Tiến độ học tập:',
                     style: TextStyle(fontSize: 13, color: context.strong),
                   ),
                   Text(

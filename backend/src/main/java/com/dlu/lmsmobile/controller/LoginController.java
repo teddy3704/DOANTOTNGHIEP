@@ -1,5 +1,6 @@
 package com.dlu.lmsmobile.controller;
 
+import com.dlu.lmsmobile.config.DataProfile;
 import com.dlu.lmsmobile.exception.InvalidRequestException;
 import com.dlu.lmsmobile.security.auth.AuthProvider;
 import com.dlu.lmsmobile.security.auth.LoginService;
@@ -9,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -23,9 +25,11 @@ public class LoginController {
     private static final int MAX_BODY_BYTES = 2048;
     private static final Set<String> FIELDS = Set.of("login", "password");
     private final LoginService logins;
+    private final DataProfile profile;
 
-    public LoginController(LoginService logins) {
+    public LoginController(LoginService logins, DataProfile profile) {
         this.logins = logins;
+        this.profile = profile;
     }
 
     @PostMapping("/login")
@@ -38,7 +42,10 @@ public class LoginController {
         if (login.isEmpty() || login.length() > 64 || password.isEmpty() || password.length() > 128) {
             throw new InvalidRequestException("Mã số 1–64 ký tự, mật khẩu 1–128 ký tự");
         }
-        return logins.login(login, password, request.getRemoteAddr());
+        // dataProfile tells the app which labels match how the numbers were computed (REAL-DATA-1).
+        Map<String, String> out = new LinkedHashMap<>(logins.login(login, password, request.getRemoteAddr()));
+        out.put("dataProfile", profile.name());
+        return out;
     }
 
     @ExceptionHandler(LoginService.FailedException.class)

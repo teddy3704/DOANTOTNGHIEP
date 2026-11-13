@@ -393,7 +393,7 @@ class TeacherActivitiesTab extends StatelessWidget {
           children: [
             DetailLine(
               type == 'assignment' ? 'Hạn nộp' : 'Đóng lúc',
-              formatDeadline(activity.deadline),
+              formatDeadline(activity.deadline, quiz: type != 'assignment'),
             ),
             if (activity.deadline != null)
               Builder(

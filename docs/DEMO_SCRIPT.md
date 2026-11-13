@@ -1,3 +1,44 @@
+## Bản 15 phút (13/11) — báo cáo hội đồng đợt 2, 14:00 13/11/2026
+
+DB demo đã dời theo mốc 13/11 (`.\tools\Set-DemoDate.ps1 -TargetDate 2026-11-13`, shift_days = −7, hạn muộn nhất 18/11 20:47).
+Buổi 15 phút (mốc tính từ đầu buổi): slide 0:00–8:05, demo 8:05–13:20, kết luận + dự phòng đến 15:00. Chỉ dùng bước 1–7 (SV) và 12–15, 17 (GV)
+của kịch bản đầy đủ bên dưới; bỏ 8–11 và 16.
+
+Đi thử 12/11/2026 trên emulator (11:30–11:52, Portal UP, prewarm 67/67), không lỗi. Cột "Thao tác đo" là thời gian bấm + chờ màn,
+đo bằng công cụ tự động (mỗi lần dò giao diện thêm khoảng 1,5 s, nên số đo hơi cao hơn tay người bấm); bước 1 và 12 vào bằng
+**Chế độ demo** vì mật khẩu demo chưa đặt lúc đó — đăng nhập thật cộng khoảng 15 s gõ mã số + mật khẩu. Cột "Giây" = kế hoạch khi
+nói (thao tác + câu thuyết minh).
+
+| # | Việc (xem chi tiết ở bảng đầy đủ) | Thao tác đo 12/11 | Giây | Mốc phải xong |
+| --- | --- | ---: | ---: | ---: |
+| 1 | Đăng nhập SV `2312005` | 15 s (+15 s gõ) | 35 | 8:40 |
+| 2 | Thẻ GPA tích lũy | — (chỉ nhìn) | 10 | 8:50 |
+| 3 | Thẻ GPA › tab Chương trình | 16 s | 20 | 9:10 |
+| 4 | Tab Mô phỏng GPA | 8 s | 15 | 9:25 |
+| 5 | Thẻ Tình trạng học tập | 15 s | 20 | 9:45 |
+| 6 | Thẻ **Hôm nay: N việc** › Kế hoạch tuần (12/11 đo được: "Hôm nay: 1 việc · 45 phút") | 13 s | 20 | 10:05 |
+| 7 | Mobile Application Development › Flashcards › ôn 1 thẻ › **Được** (12/11: 4 thẻ đến hạn) | 54 s | 45 | **10:50** — SV xong |
+| 12 | Đăng xuất › đăng nhập `teacher02` (nói ngắn) | 23 s (+15 s gõ) | 40 | 11:30 |
+| 13 | Lớp cố vấn ITK47A › **Ẩn danh** › **Cần quan tâm** (21 SV) | 15 s | 25 | 11:55 |
+| 14 | Một SV trong danh sách cần quan tâm | 5 s | 15 | 12:10 |
+| 15 | Hỗ trợ học tập số › Phân tích › cuộn tới **Dự báo qua môn** | ≈ 30 s | 35 | 12:45 |
+| 17 | Xem SV cần theo dõi › Trần Minh Bảo › **Nhắc riêng** › mẫu "Lâu không truy cập" › **Hủy** (KHÔNG Gửi) | ≈ 35 s | 35 | **13:20** — GV xong |
+
+Tổng demo ≈ 315 giây (SV 165 + GV 150). Kết luận 15 giây (câu kết ở cuối bảng đầy đủ) → 13:35; 1 phút 25 giây dự phòng.
+
+**Trễ thì bỏ (theo thứ tự):**
+1. Đến bước 3 sau 9:00 → bỏ bước 4 (Mô phỏng GPA), nói một câu khi đang ở tab Chương trình.
+2. Đến bước 6 sau 10:00 → bỏ bước 5 (Tình trạng học tập).
+3. 10:50 mà SV chưa xong → dừng bước 7 ngay sau khi lật thẻ (không cần bấm nút), chuyển sang GV.
+4. Đến bước 13 sau 11:45 → bỏ bước 14 (chi tiết SV cố vấn).
+5. Đến bước 15 sau 12:30 → bỏ bước 15, đi thẳng bước 17.
+6. 13:20 mà GV chưa xong → nói câu kết luôn; bước 17 chỉ mở hộp nhắc rồi **Hủy**.
+Portal DOWN → bỏ 2–4 và 13–14 (xem Nhánh dự phòng); lỗi app nặng → chiếu `DLU-LMS-Group_demo-quay-man-hinh_2026-11-11.mp4`.
+
+Sau buổi 13/11, trước buổi 20/11: `.\tools\Set-DemoDate.ps1 -TargetDate 2026-11-20` (trả DB demo về mốc 20/11).
+
+---
+
 # Kịch bản demo 10 phút — bảo vệ 20/11/2026
 
 Dữ liệu: DB `lms_mobile_group_demo` (bản sao LMS đã dời ngày theo mốc 20/11/2026) + Portal Online DLU Proxy (**dữ liệu mô

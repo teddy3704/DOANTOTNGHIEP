@@ -1,4 +1,5 @@
 import '../../core/theme/app_colors.dart';
+import '../../core/data_profile.dart';
 import '../../core/relative_days.dart';
 import '../../core/reminder_templates.dart';
 import 'package:flutter/material.dart';
@@ -27,7 +28,7 @@ String percentOf(int part, int total) =>
 
 String lastAccessLabel(InsightStudent s) {
   final d = s.inactiveDays;
-  if (d == null) return s.detailed ? 'Chưa truy cập' : '—';
+  if (d == null) return s.detailed ? DataProfile.tt('Chưa truy cập') : '—';
   return daysAgoTitle(d);
 }
 

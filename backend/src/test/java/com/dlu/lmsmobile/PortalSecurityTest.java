@@ -34,6 +34,7 @@ class PortalSecurityTest {
     @MockBean StudentPortalService students;
     @MockBean AdvisorPortalService advisor;
     @MockBean PortalSourcesService sources;
+    @MockBean com.dlu.lmsmobile.portal.LocalTranscriptService localTranscript;
 
     private String student() {
         return "Bearer " + tokens.generateToken(205L, "STUDENT");

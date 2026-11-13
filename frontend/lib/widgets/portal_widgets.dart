@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../core/data_profile.dart';
 
 import '../models/portal.dart';
 import '../services/api_exception.dart';
@@ -72,7 +73,9 @@ class PortalErrorView extends StatelessWidget {
       return ListView(
         children: [
           EmptyState(
-            e.portalNotLinked
+            DataProfile.isReal
+                ? DataProfile.portalNotLinked
+                : e.portalNotLinked
                 ? 'Tài khoản chưa liên kết Portal đào tạo'
                 : 'Chưa kết nối Portal đào tạo',
             icon: Icons.link_off,

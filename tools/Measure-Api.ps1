@@ -5,7 +5,10 @@ param(
     [string]$BaseUrl = 'http://127.0.0.1:8081/api/v1',
     [int]$StudentCourse = 14,
     [int]$TeacherCourse = 14,
-    [string]$OutDir = 'D:\DLU-LMS\Artifacts\v2'
+    [string]$OutDir = 'D:\DLU-LMS\Artifacts\v2',
+    # REAL-DATA-2: ids of the accounts demo-login returns (real: the group student and the supervisor).
+    [long]$StudentId = 205,
+    [long]$TeacherId = 102
 )
 $ErrorActionPreference = 'Stop'
 # V2-E2: local API latency for the report (Chapter 5). GET requests only (no database writes).
@@ -13,7 +16,7 @@ $ErrorActionPreference = 'Stop'
 # $Iterations timed calls, sequentially (1 user). Writes perf-<stamp>.csv + perf-<stamp>-machine.txt.
 # Endpoints with p95 > 500 ms are listed with a note; no index is created anywhere.
 
-$student = 205; $teacher = 102
+$student = $StudentId; $teacher = $TeacherId
 $endpoints = @(
     @{ Name = 'dashboard';               Role = 'STUDENT'; Path = "/dev/students/$student/dashboard" },
     @{ Name = 'tasks';                   Role = 'STUDENT'; Path = "/dev/students/$student/tasks" },

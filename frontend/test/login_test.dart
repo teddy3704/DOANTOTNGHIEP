@@ -39,7 +39,11 @@ http.Response _json(
 /// 'locked' -> 429, anything else -> 401. Every other request -> 404 (screens show their own errors).
 class _Server {
   final logins = <Map<String, dynamic>>[];
+  String? profile;
   late final MockClient client = MockClient((r) async {
+    if (r.url.path.endsWith('/health') && profile != null) {
+      return _json({'status': 'UP', 'dataProfile': profile});
+    }
     if (r.url.path.endsWith('/auth/login')) {
       final body = jsonDecode(r.body) as Map<String, dynamic>;
       logins.add(body);
@@ -280,5 +284,21 @@ void main() {
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull, reason: 'dark=$dark');
     }
+  });
+
+  testWidgets('real data: the passwordless demo mode is not offered', (
+    tester,
+  ) async {
+    server.profile = 'real';
+    await tester.pumpWidget(app());
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('login-demo-mode')), findsNothing);
+  });
+
+  testWidgets('demo data keeps the demo mode', (tester) async {
+    server.profile = 'demo';
+    await tester.pumpWidget(app());
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('login-demo-mode')), findsOneWidget);
   });
 }

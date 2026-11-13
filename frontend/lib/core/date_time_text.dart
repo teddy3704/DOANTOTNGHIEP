@@ -1,5 +1,8 @@
-String formatDeadline(DateTime? date) {
-  if (date == null) return 'Không có hạn';
+/// A quiz without a close time in Moodle: "Không đặt hạn đóng" (it simply has none).
+const noQuizClose = 'Không đặt hạn đóng';
+
+String formatDeadline(DateTime? date, {bool quiz = false}) {
+  if (date == null) return quiz ? noQuizClose : 'Không có hạn';
   String two(int value) => value.toString().padLeft(2, '0');
   return '${two(date.day)}/${two(date.month)}/${date.year} '
       '${two(date.hour)}:${two(date.minute)}';
@@ -37,7 +40,7 @@ String? activityDeadlineState(
   required bool quiz,
   DateTime? now,
 }) {
-  if (deadline == null) return 'Không có hạn';
+  if (deadline == null) return quiz ? noQuizClose : 'Không có hạn';
   final remaining = deadline.difference(now ?? DateTime.now());
   if (remaining.isNegative) return quiz ? 'Đã đóng' : 'Đã hết hạn';
   if (remaining <= const Duration(hours: 48)) return 'Sắp đến hạn';

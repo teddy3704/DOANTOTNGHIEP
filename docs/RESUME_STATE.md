@@ -1,33 +1,30 @@
 # RESUME_STATE — checkpoint hiện tại (thay nguyên file mỗi lần cập nhật)
 
-Cập nhật: 2026-11-10 (+07) · Workspace D:\DLU-LMS-Group · Branch codex/group-stack-takeover · Writer: Claude Code native (phiên duy nhất)
-Nguồn việc: docs/FINAL_DEFENSE_PROMPT.md (F0→F7) + docs/EXECUTION_RULES.md. Không push, không remote, không DDL, không đổi DB target.
+Cập nhật: 2026-11-13 08:00 (+07) · Branch codex/group-stack-takeover · Writer: Claude Code (phiên duy nhất)
+Nguồn việc: FINAL 13/11 (owner): chốt bản demo dữ liệu thật cho buổi báo cáo 14:00. Không push.
+Luật: dữ liệu cá nhân thật (không commit/không copy vào docs/log/fixture/APK/HANDOFF); không đọc/gõ mật khẩu
+(owner gõ trên emulator); không sửa demo/dev; không gọi lms.dlu.edu.vn; không bịa dữ liệu; không import hôm nay.
 
-## Milestone
-- FINAL F0–F7, LOGIN, PUSH (b), POLISH-1…8 DONE. Tổng kết: cuối docs/HANDOFF.md "TỔNG KẾT POLISH".
-- GitHub: nhánh dlu-lms-group-bao-ve = tag bao-ve-2026-11-20-r2 = snapshot 12ef5ca312a5e3a557eb2c93116b2c89f231f2ea (cùng cây với commit
-  cục bộ 53b685f), con của 4d00d98 (tag bao-ve-2026-11-20). Push 2026-11-11 03:08. Tag cục bộ: bao-ve-2026-11-20 → 41f888b,
-  bao-ve-2026-11-20-r2 → 53b685f (lịch sử đầy đủ, KHÔNG push).
+## Trạng thái
+- KHÓA CODE từ 10:00 13/11: không sửa code, không build, không import, không đổi cấu hình. Lỗi làm hỏng demo:
+  báo owner (lỗi, cách sửa, rủi ro) và chỉ sửa khi owner đồng ý.
+- Commit cuối có code: 39c7a4e (trang chủ GV chỉ cộng khóa học kỳ hiện tại trên real, nhãn "· Học kỳ hiện tại").
+- APK real đang cài: SHA-256 80e646fc410f189e34e6184526f61dcf9ffe91a85b76392c1a0eea22b6fe4ad0
+  (D:\DLU-LMS\Artifacts\real\, SHA256.txt). Backend chạy bản 39c7a4e (Start-Demo, cửa sổ Backend).
+- Test: mvn 327/0/0/1; flutter 345; analyze sạch.
+- Không quay video (owner bỏ). Dự phòng: Start-Demo + đăng nhập lại; hết cách: ảnh slide.
+- Kịch bản: D:\DLU-LMS\RealData\kich-ban-demo.txt (ngoài repo). Ảnh: D:\DLU-LMS\RealData\screens\slides\.
+- Windows đang chờ khởi động lại: owner khởi động lại máy trước 13:00 rồi Start-Demo.
 
-## Trạng thái tách riêng
-- CODE: N1–N18, O1, E2, P0–P8, LOGIN, POLISH-1/2/4. Mã nguồn bản cuối 229ed71.
-- TESTS: Backend 290/0/0/1 skip; Flutter 333, analyze sạch.
-- APK final 910CEF7591C547C585770592447E34357231E41E46265A7F0FCF397728477131; JAR F1038DC02FB103D470BF0BC88FEF56B29BB77C1C8525FF0120D42E6F68D2C3F7.
-- RUNTIME: emulator DB demo + Portal UP — DEMO_SCRIPT tập trọn (≈ 7:35), lớp cố vấn ≈ 0,25 s sau làm nóng; -PhysicalDevice NOT_RUN.
-- OWNER_VALIDATION: Set-DemoPasswords, Rotate-AppRolePassword, Start-Demo sau khi đóng Claude — NOT_RUN (cần owner).
+## Lịch
+- 10:00–11:30 chạy thử cùng owner theo kịch bản (SV ~3', chuyển vai ~20", GV ~2,5'); chỉ sửa kịch bản.
+- 13:30 owner Start-Demo (SẴN SÀNG), đăng nhập 2212472 ≤ 1 giờ trước giờ; agent kiểm 5 dòng DEMO_DAY_REAL.md §2.
 
-## Database
-- Target lms_mobile_group_demo. Ghi app schema SV 205 qua API: thẻ (sửa 2, thêm 6, vài lần ôn), thông báo nhắc riêng đã đọc.
-
-## Đang chạy
-- Không (Stop-Demo trước gate POLISH-8).
-
-NEXT_ACTION: không còn việc trong phạm vi; chờ owner (5 việc ở TỔNG KẾT POLISH). Cập nhật GitHub sau này chỉ khi owner yêu cầu:
-  commit-tree 'HEAD^{tree}' -p 12ef5ca312a5e3a557eb2c93116b2c89f231f2ea, push fast-forward.
+NEXT_ACTION: chạy thử 10:00 cùng owner; không sửa code.
 NEXT_ACTION_IS_MUTATING: no.
 
 ## DO_NOT_REPEAT
-- Không làm lại N1–N18, O1, E2, P0–P8, chạy emulator hạng A/B/C, migration V2, tạo DB demo.
-- Không làm lại F0–F7, LOGIN, POLISH-1…8, quay video, đi DEMO_SCRIPT, push GitHub. CẤM push HEAD/tag cục bộ/--tags/--all (lịch sử có 6f8c0ab).
-- Không gửi lại nhắc riêng N8 (đã gửi 1 lần cho SV 205), không generate lại kế hoạch chỉ để thử.
-- Không chạy lại cleanup Storage-Maintenance-2026-11-09.
+- Không làm lại REAL-DATA-1/2, không import lại, không chép dữ liệu vào repo, không chạy shift_demo_dates lên real. CẤM push.
+- Không ghi đè D:\DLU-LMS\RealData\portal\2212472_bangdiem.csv / _renluyen.csv.
+- Nhắc riêng / "Nhắc N SV" chỉ bấm Hủy; không tạo ghi chú/dữ liệu cho sinh viên thật.
+- Không quay video.

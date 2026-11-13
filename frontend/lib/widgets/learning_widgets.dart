@@ -1,4 +1,5 @@
 import '../core/display_text.dart';
+import '../core/data_profile.dart';
 import '../core/date_time_text.dart';
 
 import 'package:flutter/material.dart';
@@ -136,9 +137,10 @@ class UserAvatar extends StatelessWidget {
   Widget build(BuildContext context) => CircleAvatar(
     radius: 24,
     backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-    child: Text(
-      name.trim().isEmpty ? '?' : name.trim().characters.first.toUpperCase(),
-    ),
+    // No real name (only a student code): a person icon, never the first digit of the code.
+    child: name.trim().isEmpty || RegExp(r'^[0-9]').hasMatch(name.trim())
+        ? const Icon(Icons.person_outline)
+        : Text(name.trim().characters.first.toUpperCase()),
   );
 }
 
@@ -231,7 +233,7 @@ class CourseProgressCard extends StatelessWidget {
         ),
       const SizedBox(height: 4),
       Text(
-        'Tiến độ ${detailValue(course.progressPercentage, suffix: '%')}',
+        '${DataProfile.progress} ${detailValue(course.progressPercentage, suffix: '%')}',
         style: Theme.of(context).textTheme.bodySmall,
       ),
       if (course.progressPercentage != null)
@@ -319,7 +321,9 @@ class TaskCard extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         Text(
-          'Hạn: ${formatDeadline(task.deadline)}',
+          task.deadline == null && task.type == 'quiz'
+              ? noQuizClose
+              : 'Hạn: ${formatDeadline(task.deadline)}',
           style: Theme.of(context).textTheme.bodySmall,
         ),
         Align(
@@ -592,9 +596,9 @@ class TeacherCourseCard extends StatelessWidget {
     onTap: onTap,
     trailing: const Icon(Icons.chevron_right, size: 20),
     children: [
-      if (course.courseShortname != null)
+      if (course.courseShortname != null || course.startLabel != null)
         Text(
-          course.courseShortname!,
+          [?course.courseShortname, ?course.startLabel].join(' · '),
           style: Theme.of(context).textTheme.bodySmall,
         ),
       const SizedBox(height: 4),
@@ -604,7 +608,7 @@ class TeacherCourseCard extends StatelessWidget {
         children: [
           WrapConstrainedText('${detailValue(course.studentCount)} sinh viên'),
           WrapConstrainedText(
-            'Tiến độ trung bình ${formatPercentageVi(course.averageProgress)}',
+            '${DataProfile.isReal ? 'Tiến độ trung bình (theo hoạt động có chấm điểm)' : 'Tiến độ trung bình'} ${formatPercentageVi(course.averageProgress)}',
           ),
         ],
       ),

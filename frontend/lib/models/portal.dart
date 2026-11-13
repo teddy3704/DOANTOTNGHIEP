@@ -1,6 +1,8 @@
 /// V3: DLU training-portal data as returned by the backend (never the Portal directly).
 library;
 
+import '../core/data_profile.dart';
+
 double? _d(Object? v) => v is num ? v.toDouble() : null;
 int? _i(Object? v) => v is num ? v.toInt() : null;
 String? _s(Object? v) => v?.toString();
@@ -30,7 +32,10 @@ class DataUntil {
       ? DataUntil(_s(j['yearStudy']) ?? '', _s(j['termId']) ?? '')
       : null;
 
-  String get label => 'Dữ liệu Portal đến ${termLabel(termId)} năm $yearStudy';
+  String get label => DataProfile.isReal
+      // Real export: the student's own transcript file; the term is the text they typed.
+      ? '${DataProfile.transcriptSource} · đến ${termLabel(termId)} $yearStudy'
+      : 'Dữ liệu Portal đến ${termLabel(termId)} năm $yearStudy';
 }
 
 // ---------------------------------------------------------------- P1
@@ -312,6 +317,10 @@ class SimCourse {
   final double? forecastPercent;
   final String? forecastLetter;
 
+  /// Grade-improvement retake (real transcript): replaces [previousScore4] if higher, adds no credits.
+  final bool improvement;
+  final double? previousScore4;
+
   const SimCourse({
     required this.name,
     required this.credits,
@@ -320,6 +329,8 @@ class SimCourse {
     this.lmsCourseName,
     this.forecastPercent,
     this.forecastLetter,
+    this.improvement = false,
+    this.previousScore4,
   });
 
   factory SimCourse.fromJson(Map<String, dynamic> j) => SimCourse(
@@ -330,6 +341,8 @@ class SimCourse {
     lmsCourseName: _s(j['lmsCourseName']),
     forecastPercent: _d(j['forecastPercent']),
     forecastLetter: _s(j['forecastLetter']),
+    improvement: j['improvement'] == true,
+    previousScore4: _d(j['previousScore4']),
   );
 }
 

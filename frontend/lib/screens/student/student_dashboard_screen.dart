@@ -1,4 +1,5 @@
 import '../../widgets/logout_button.dart';
+import '../../core/data_profile.dart';
 import 'package:flutter/material.dart';
 
 import '../../models/student_dashboard.dart';
@@ -221,10 +222,15 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
                 ),
                 const SizedBox(height: 16),
                 CompactMetrics({
-                  'Tiến độ': detailValue(profile.averageProgress, suffix: '%'),
+                  DataProfile.progress: detailValue(
+                    profile.averageProgress,
+                    suffix: '%',
+                  ),
                   'Khóa học': detailValue(profile.totalCourses),
                   if (profile.averageAttendancePercentage != null)
-                    'Chuyên cần': detailValue(
+                    DataProfile.isReal
+                        ? 'Điểm chuyên cần'
+                        : 'Chuyên cần': detailValue(
                       profile.averageAttendancePercentage,
                       suffix: '%',
                     ),
@@ -238,7 +244,7 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
           FocusEntryCard(api: _api),
           DueFlashcardsChip(api: _api),
           SectionHeader(
-            'Ưu tiên hôm nay',
+            DataProfile.todayPriority,
             action: 'Tất cả việc cần làm',
             onAction: _tasks,
           ),

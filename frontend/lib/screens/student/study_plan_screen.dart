@@ -188,7 +188,8 @@ class _StudyPlanScreenState extends State<StudyPlanScreen> {
                   : 'Lập lại kế hoạch $_budget phút/ngày',
             ),
           ),
-          if (week.overloaded.isNotEmpty) _OverloadCard(week.overloaded),
+          if (week.overloaded.isNotEmpty)
+            _OverloadCard(week.overloaded, week.today),
           const SizedBox(height: 12),
           SizedBox(
             // Fixed parts (padding, bar) + text that grows with the user's text scale.
@@ -353,7 +354,23 @@ class _DayChip extends StatelessWidget {
 
 class _OverloadCard extends StatelessWidget {
   final List<OverloadItem> items;
-  const _OverloadCard(this.items);
+  final DateTime today;
+  const _OverloadCard(this.items, this.today);
+
+  /// Past-due work that does not fit is not "late because of overload": it is already overdue.
+  static String _title(List<OverloadItem> items, DateTime today) {
+    final start = DateTime(today.year, today.month, today.day);
+    final overdue = items
+        .where((i) => i.due != null && i.due!.isBefore(start))
+        .length;
+    if (overdue == items.length) {
+      return 'Chưa xếp vào kế hoạch: $overdue việc đã quá hạn';
+    }
+    if (overdue == 0) {
+      return 'Quá tải: ${items.length} việc không kịp trước hạn';
+    }
+    return 'Quá tải: ${items.length - overdue} việc không kịp trước hạn, $overdue việc đã quá hạn';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -368,7 +385,7 @@ class _OverloadCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Quá tải: ${items.length} việc không kịp trước hạn',
+              _title(items, today),
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 color: scheme.onErrorContainer,

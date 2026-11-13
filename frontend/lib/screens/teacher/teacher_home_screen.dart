@@ -46,7 +46,8 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
     _ => c.upcomingDeadlines7Days,
   };
 
-  void _pick(List<TeacherCourse> courses, int tab) {
+  void _pick(List<TeacherCourse> all, int tab) {
+    final courses = summaryCourses(all);
     final relevant = courses
         .where((c) => (_actionCount(c, tab) ?? 0) > 0)
         .toList();
@@ -104,12 +105,20 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
     );
   }
 
-  int? _total(
-    List<TeacherCourse> courses,
-    int? Function(TeacherCourse) value,
-  ) => courses.any((c) => value(c) == null)
-      ? null
-      : courses.fold<int>(0, (sum, c) => sum + value(c)!);
+  /// Real data: the work summary counts only current-term courses (old courses keep ungraded
+  /// hand-ins forever), like the student side; demo counts every course.
+  static List<TeacherCourse> summaryCourses(List<TeacherCourse> courses) =>
+      courses.any((c) => c.currentTerm != null)
+      ? courses.where((c) => c.currentTerm == true).toList()
+      : courses;
+
+  int? _total(List<TeacherCourse> all, int? Function(TeacherCourse) value) {
+    final courses = summaryCourses(all);
+    return courses.any((c) => value(c) == null)
+        ? null
+        : courses.fold<int>(0, (sum, c) => sum + value(c)!);
+  }
+
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
@@ -156,7 +165,9 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
         const SizedBox(height: 8),
         const SectionHeader('Chi tiết công việc'),
         Text(
-          'Được tổng hợp từ các khóa học',
+          courses.any((c) => c.currentTerm != null)
+              ? 'Được tổng hợp từ các khóa học · Học kỳ hiện tại'
+              : 'Được tổng hợp từ các khóa học',
           style: Theme.of(context).textTheme.bodySmall,
         ),
         Card(

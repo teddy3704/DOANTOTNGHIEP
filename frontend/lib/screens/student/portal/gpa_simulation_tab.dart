@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/data_profile.dart';
 
 import '../../../core/gpa_simulator.dart';
 import '../../../models/portal.dart';
@@ -72,7 +73,7 @@ class _GpaSimulationViewState extends State<GpaSimulationView> {
         target.needed != null &&
         r.remainingCredits > 0) {
       buffer.write(
-        '; để đạt ${target.band.name} cần trung bình ${vn(target.needed)} ở ${r.remainingCredits} tín chỉ còn lại',
+        '; để đạt ${target.band.name} cần trung bình ${vn(target.needed)} ở ${r.remainingCredits} ${DataProfile.isReal ? 'tín chỉ đang học' : 'tín chỉ còn lại'}',
       );
     }
     buffer.write('.');
@@ -82,9 +83,22 @@ class _GpaSimulationViewState extends State<GpaSimulationView> {
   @override
   Widget build(BuildContext context) {
     final s = widget.sim;
-    final r = _engine.simulate([
-      for (final e in _chosen.entries) (s.courses[e.key].credits, e.value),
-    ]);
+    final r = _engine.simulate(
+      [
+        for (final e in _chosen.entries)
+          if (!s.courses[e.key].improvement)
+            (s.courses[e.key].credits, e.value),
+      ],
+      improvements: [
+        for (final e in _chosen.entries)
+          if (s.courses[e.key].improvement)
+            (
+              s.courses[e.key].credits,
+              e.value,
+              s.courses[e.key].previousScore4 ?? 0,
+            ),
+      ],
+    );
     final t = Theme.of(context).textTheme;
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -194,7 +208,9 @@ class _CoursePicker extends StatelessWidget {
   Widget build(BuildContext context) {
     final lms = course.lmsCourseName != null;
     final details = [
-      '${course.credits} TC',
+      course.improvement
+          ? 'Học cải thiện ${course.credits} TC (thay điểm cũ ${vn(course.previousScore4)} nếu cao hơn)'
+          : '${course.credits} TC',
       if (lms) 'LMS: ${course.lmsCourseName}',
       if (course.forecastPercent != null)
         'hiện ${vn(course.forecastPercent, 1)}%',

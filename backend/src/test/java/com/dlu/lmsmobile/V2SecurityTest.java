@@ -1,5 +1,6 @@
 package com.dlu.lmsmobile;
 
+import com.dlu.lmsmobile.config.DataProfile;
 import com.dlu.lmsmobile.controller.*;
 import com.dlu.lmsmobile.exception.InvalidRequestException;
 import com.dlu.lmsmobile.exception.ResourceNotFoundException;
@@ -36,7 +37,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
                 "app.demo-auth.enabled=true", "app.demo-auth.student-id=205",
                 "app.demo-auth.teacher-id=102", "server.address=127.0.0.1"})
 @ActiveProfiles("local-development")
-@Import({SecurityConfig.class, JwtAuthenticationFilter.class, JwtTokenProvider.class, LocalDevelopmentSettings.class})
+@Import({SecurityConfig.class, JwtAuthenticationFilter.class, JwtTokenProvider.class, LocalDevelopmentSettings.class, DataProfile.class})
 class V2SecurityTest {
     @Autowired MockMvc mvc;
     @Autowired JwtTokenProvider tokens;

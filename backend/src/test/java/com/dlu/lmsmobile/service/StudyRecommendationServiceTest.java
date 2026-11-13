@@ -75,6 +75,21 @@ class StudyRecommendationServiceTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
+    void realExportNeverCallsUntrackedMaterialUnfinished() {
+        // REAL-DATA-1: no completion data for ungraded material; only graded (tracked) work is "chưa hoàn thành".
+        Map<String, Object> link = item(1, 2, "url", 11, "Liên kết · Chương 2", 0, null, null);
+        link.put("completion_tracking", 0);
+        Map<String, Object> work = item(2, 2, "assign", 21, "Bài tập 2", 0, NOW - 86400, "overdue");
+        work.put("completion_tracking", 1);
+        Map<String, Object> ch = StudyRecommendationService.recommend(List.of(link, work), List.of(), Map.of(), 50, NOW, true).get(0);
+        List<Map<String, Object>> s = (List<Map<String, Object>>) ch.get("suggestions");
+        assertEquals(1, s.size());
+        assertEquals("Bài tập 2", s.get(0).get("activityName"));
+        assertTrue(s.stream().noneMatch(x -> "Chưa hoàn thành trong chương này".equals(x.get("reason"))));
+    }
+
+    @Test
     void submittedWorkIsNotOverdue() {
         List<Map<String, Object>> items = List.of(item(2, 2, "assign", 21, "Bài tập 2", 0, NOW - 86400, "submitted"));
         assertTrue(StudyRecommendationService.recommend(items, List.of(), Map.of(), 50, NOW).isEmpty());

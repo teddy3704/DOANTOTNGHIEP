@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../core/data_profile.dart';
 
 import '../models/portal.dart';
 import '../services/api_exception.dart';
@@ -178,6 +179,18 @@ class _PortalSummaryCardState extends State<PortalSummaryCard> {
       }
       if (snap.hasError) {
         final e = snap.error;
+        // Real export (REAL-DATA-1): say plainly that the Portal has no record for this student code.
+        if (DataProfile.isReal && e is ApiException && e.portalNotLinked) {
+          return Card(
+            child: ListTile(
+              leading: const Icon(Icons.school_outlined),
+              title: const Text('Học vụ · GPA'),
+              subtitle: Text(DataProfile.portalNotLinked),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: widget.onOpen,
+            ),
+          );
+        }
         // Only a Portal outage gets a retry; anything else keeps the dashboard clean.
         if (e is! ApiException || e.code != 'PORTAL_UNAVAILABLE') {
           return const SizedBox.shrink();

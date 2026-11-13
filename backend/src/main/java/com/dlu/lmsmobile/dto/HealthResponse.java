@@ -22,6 +22,13 @@ public class HealthResponse {
     /** POLISH-1: Portal warm-up progress "N/M" (calls done / planned); null when off. Counts only. */
     private String prewarm;
 
+    /** REAL-DATA-2: "demo" or "real" so the sign-in screen knows whether to offer the demo mode. */
+    private String dataProfile;
+
+    public String getDataProfile() { return dataProfile; }
+
+    public void setDataProfile(String dataProfile) { this.dataProfile = dataProfile; }
+
     public String getPrewarm() { return prewarm; }
 
     public void setPrewarm(String prewarm) { this.prewarm = prewarm; }

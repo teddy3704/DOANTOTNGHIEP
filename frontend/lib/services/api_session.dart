@@ -1,3 +1,5 @@
+import '../core/data_profile.dart';
+
 /// Memory-only session. Closing the app discards the local development token.
 /// Production authentication/secure persistence is intentionally not simulated.
 class ApiSession {
@@ -23,6 +25,7 @@ class ApiSession {
     _token = token;
     _userId = id;
     _role = role as String;
+    DataProfile.set(response['dataProfile']);
   }
 
   int userIdFor(String role) {
@@ -33,6 +36,7 @@ class ApiSession {
   }
 
   void clear() {
+    DataProfile.reset();
     _token = null;
     _userId = null;
     _role = null;

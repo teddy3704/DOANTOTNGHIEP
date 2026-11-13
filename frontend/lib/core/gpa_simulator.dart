@@ -86,7 +86,12 @@ class GpaSimulator {
   ];
 
   /// [chosen]: credits → letter for the courses the student has set ("nếu tôi được…").
-  SimulationResult simulate(List<(int credits, String letter)> chosen) {
+  /// [improvements]: grade-improvement retakes; the new score replaces [old4] only when higher and
+  /// adds no credits (the course is already counted in [credits]).
+  SimulationResult simulate(
+    List<(int credits, String letter)> chosen, {
+    List<(int credits, String letter, double old4)> improvements = const [],
+  }) {
     var points = gpa * credits;
     var total = credits;
     var used = 0;
@@ -96,6 +101,11 @@ class GpaSimulator {
       points += s4 * cr;
       total += cr;
       used += cr;
+    }
+    for (final (cr, letter, old4) in improvements) {
+      final s4 = score4(letter);
+      if (s4 == null || cr <= 0 || s4 <= old4) continue;
+      points += (s4 - old4) * cr;
     }
     final projected = total == 0 ? null : points / total;
     final remaining = (remainingCredits - used).clamp(0, 1 << 30);

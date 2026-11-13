@@ -433,6 +433,37 @@ void main() {
       expect(find.byType(TeacherHomeScreen), findsOneWidget);
     });
   }
+  testWidgets('Teacher Home on real data totals only current-term courses', (
+    t,
+  ) async {
+    viewport(t);
+    courseData = [
+      {...course(42, grading: 3), 'current_term': true},
+      {...course(43, grading: 500, attention: 0), 'current_term': false},
+    ];
+    await t.pumpWidget(app(TeacherHomeScreen(apiService: service())));
+    await t.pumpAndSettle();
+    // Summary row (the course card below shows its own count too).
+    expect(find.text('3 bài cần chấm'), findsWidgets);
+    expect(find.text('503 bài cần chấm'), findsNothing);
+    expect(find.text('2 trường hợp cần theo dõi'), findsOneWidget);
+    expect(
+      find.text('Được tổng hợp từ các khóa học · Học kỳ hiện tại'),
+      findsOneWidget,
+    );
+    // Old course is not offered from the summary; with one match it opens directly.
+    await t.tap(find.text('3 bài cần chấm').first);
+    await t.pumpAndSettle();
+    expect(
+      t
+          .widget<TeacherCourseDetailScreen>(
+            find.byType(TeacherCourseDetailScreen),
+          )
+          .course
+          .courseId,
+      42,
+    );
+  });
   testWidgets(
     'Student Home actions reuse bottom navigation and course returns to Courses',
     (t) async {

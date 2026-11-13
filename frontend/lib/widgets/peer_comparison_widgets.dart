@@ -1,4 +1,5 @@
 import 'package:fl_chart/fl_chart.dart';
+import '../core/data_profile.dart';
 import 'package:flutter/material.dart';
 
 import '../core/display_text.dart';
@@ -67,7 +68,9 @@ class _PeerComparisonCardState extends State<PeerComparisonCard> {
               ),
               const SizedBox(height: 8),
               Text(
-                metric.conclusion(_grade ? 'Điểm trung bình' : 'Tiến độ'),
+                metric.conclusion(
+                  _grade ? 'Điểm trung bình' : DataProfile.progress,
+                ),
                 key: const Key('peer-conclusion'),
                 style: theme.textTheme.bodyLarge,
               ),

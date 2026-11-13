@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/data_profile.dart';
 
 import '../../models/student_course_detail.dart';
 import '../../services/api_service.dart';
@@ -44,7 +45,9 @@ class _StudentTaskCenterScreenState extends State<StudentTaskCenterScreen> {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      title: Text(widget.reminders ? 'Nhắc hạn học tập' : 'Việc cần làm'),
+      title: Text(
+        widget.reminders ? 'Nhắc hạn học tập' : DataProfile.tasksTitle,
+      ),
     ),
     body: AsyncTab<List<StudentTask>>(
       load: widget.api.getAllStudentTasks,

@@ -40,6 +40,11 @@ public class InsightsRepository {
             """.formatted(ZONE), userId, sinceEpochSeconds, userId);
     }
 
+    // REAL-DATA-1: completion rows are counted without "cm.completion <> 0". In the snapshot every
+    // completion row belongs to a tracked module (checked 2026-11-12: 412 rows, 0 untracked), so dev/demo
+    // results are unchanged; in the real import the completion table is derived for graded activities,
+    // whose course modules mostly have completion tracking switched off in Moodle.
+
     /**
      * Activity completions per local day and course. {@code day} is the last time Moodle
      * updated the completion state, which only approximates when it was completed.
@@ -52,7 +57,7 @@ public class InsightsRepository {
             JOIN lms.course_modules cm ON cm.id = cmc.coursemoduleid
             JOIN derived.student_course_progress p ON p.userid = cmc.userid AND p.courseid = cm.course
             WHERE cmc.userid = ? AND cmc.completionstate IN (1, 2, 3) AND cmc.timemodified > 0
-              AND cm.completion <> 0 AND cm.deletioninprogress = 0 AND cm.visible = 1
+              AND cm.deletioninprogress = 0 AND cm.visible = 1
             GROUP BY 1, 2 ORDER BY 1
             """.formatted(ZONE), userId);
     }
@@ -188,7 +193,7 @@ public class InsightsRepository {
                    (SELECT count(*) FROM lms.course_modules_completion cmc
                     JOIN lms.course_modules cm ON cm.id = cmc.coursemoduleid
                     WHERE cmc.userid = m.studentid AND cm.course = m.courseid AND cmc.completionstate IN (1, 2, 3)
-                      AND cm.completion <> 0 AND cm.deletioninprogress = 0 AND cm.visible = 1
+                      AND cm.deletioninprogress = 0 AND cm.visible = 1
                       AND cmc.timemodified <= ?) AS completed_activities
             FROM derived.teacher_student_monitoring m
             WHERE m.teacherid = ? AND m.courseid = ?
@@ -259,7 +264,7 @@ public class InsightsRepository {
             FROM lms.course_modules_completion cmc
             JOIN lms.course_modules cm ON cm.id = cmc.coursemoduleid
             WHERE cm.course = ? AND cmc.completionstate IN (1, 2, 3) AND cmc.timemodified >= ?
-              AND cm.completion <> 0 AND cm.deletioninprogress = 0 AND cm.visible = 1
+              AND cm.deletioninprogress = 0 AND cm.visible = 1
               AND cmc.userid IN\s""".formatted(ZONE) + ROSTER_IDS + " GROUP BY 1 ORDER BY 1",
             courseId, sinceEpochSeconds, teacherId, courseId);
     }

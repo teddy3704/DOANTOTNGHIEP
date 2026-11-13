@@ -140,7 +140,10 @@ void main() {
         ),
         isNull,
       );
-      expect(activityDeadlineState(null, quiz: true, now: now), 'Không có hạn');
+      expect(
+        activityDeadlineState(null, quiz: true, now: now),
+        'Không đặt hạn đóng',
+      );
     },
   );
 
@@ -206,7 +209,9 @@ void main() {
         if (due == null) {
           expect(
             find.text(
-              '${type == 'quiz' ? 'Đóng lúc' : 'Hạn nộp'}: Không có hạn',
+              type == 'quiz'
+                  ? 'Đóng lúc: Không đặt hạn đóng'
+                  : 'Hạn nộp: Không có hạn',
             ),
             findsOneWidget,
           );

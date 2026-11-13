@@ -1,5 +1,8 @@
 package com.dlu.lmsmobile.service;
 
+import com.dlu.lmsmobile.config.DataProfile;
+import org.springframework.beans.factory.annotation.Autowired;
+
 import com.dlu.lmsmobile.exception.ResourceNotFoundException;
 import com.dlu.lmsmobile.repository.ForecastRepository;
 import com.dlu.lmsmobile.repository.InsightsRepository;
@@ -38,9 +41,19 @@ public class StudyRecommendationService {
     private final ForecastRepository grades;
     private final InsightsRepository insights;
     private final Clock clock;
+    private final boolean trackedOnly;
 
     public StudyRecommendationService(StudentRepository students, ForecastRepository grades,
                                       InsightsRepository insights, Clock clock) {
+        this(students, grades, insights, clock, DataProfile.demo());
+    }
+
+    @Autowired
+    public StudyRecommendationService(StudentRepository students, ForecastRepository grades,
+                                      InsightsRepository insights, Clock clock, DataProfile profile) {
+        // Real export: completion of ungraded material (resource, url, forum...) is unknown, so it is
+        // never called "chưa hoàn thành"; only graded (tracked) activities are.
+        this.trackedOnly = profile.handInsOnly();
         this.students = students;
         this.grades = grades;
         this.insights = insights;
@@ -89,7 +102,7 @@ public class StudyRecommendationService {
         out.put("courseName", courseName != null ? courseName
             : items.isEmpty() ? null : str(items.get(0).get("course_name")));
         out.put("passPercent", pass);
-        out.put("chapters", recommend(items, myGrades, stats, pass, clock.instant().getEpochSecond()));
+        out.put("chapters", recommend(items, myGrades, stats, pass, clock.instant().getEpochSecond(), trackedOnly));
         return out;
     }
 
@@ -116,6 +129,12 @@ public class StudyRecommendationService {
      */
     public static List<Map<String, Object>> recommend(List<Map<String, Object>> items, List<Map<String, Object>> myGrades,
                                                       Map<String, ClassStat> stats, double pass, long now) {
+        return recommend(items, myGrades, stats, pass, now, false);
+    }
+
+    public static List<Map<String, Object>> recommend(List<Map<String, Object>> items, List<Map<String, Object>> myGrades,
+                                                      Map<String, ClassStat> stats, double pass, long now,
+                                                      boolean trackedOnly) {
         Map<String, Double> mine = new HashMap<>();
         for (Map<String, Object> g : myGrades) {
             Double p = num(g.get("grade_percentage"));
@@ -146,7 +165,7 @@ public class StudyRecommendationService {
                     ClassStat s = stats.get(k);
                     if (s != null && s.gradedCount() >= MIN_CLASS_SIZE) classScores.add(s.average());
                 }
-                if (!done) unfinished.add(i);
+                if (!done && (!trackedOnly || lng(i.get("completion_tracking")) != 0)) unfinished.add(i);
                 long due = lng(i.get("due_time"));
                 if (in(GRADED, type) && !done && score == null && due > 0 && due < now) overdue.add(i);
             }

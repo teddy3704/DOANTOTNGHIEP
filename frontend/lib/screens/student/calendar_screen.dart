@@ -304,17 +304,20 @@ class _CalendarScreenState extends State<CalendarScreen> {
           spacing: 12,
           children: [
             for (final k in CalendarKind.values)
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  CircleAvatar(
-                    radius: 4,
-                    backgroundColor: kindColor(context, k),
-                  ),
-                  const SizedBox(width: 4),
-                  Text(k.label, style: theme.textTheme.bodySmall),
-                ],
-              ),
+              // No attendance sessions loaded (e.g. the real export): no "Buổi học" legend.
+              if (k != CalendarKind.attendance ||
+                  events.any((e) => e.kind == CalendarKind.attendance))
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CircleAvatar(
+                      radius: 4,
+                      backgroundColor: kindColor(context, k),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(k.label, style: theme.textTheme.bodySmall),
+                  ],
+                ),
           ],
         ),
         const SizedBox(height: 12),

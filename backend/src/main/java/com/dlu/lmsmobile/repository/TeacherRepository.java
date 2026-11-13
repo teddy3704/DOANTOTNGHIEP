@@ -99,8 +99,18 @@ public class TeacherRepository {
     }
 
     public List<Map<String, Object>> findCoursesByTeacherId(Long teacherId) {
-        String sql = "SELECT * FROM derived.teacher_course_overview WHERE teacherid = ? ORDER BY courseid";
+        // REAL-DATA-2: start/end dates so every screen can say which course and which term it shows;
+        // newest first.
+        String sql = """
+            SELECT o.*, c.startdate AS course_startdate, c.enddate AS course_enddate
+            FROM derived.teacher_course_overview o JOIN lms.course c ON c.id = o.courseid
+            WHERE o.teacherid = ? ORDER BY c.startdate DESC, o.courseid""";
         return jdbcTemplate.queryForList(sql, teacherId);
+    }
+
+    /** Real profile only: course ids of the current term (same rule as the student side, REAL-DATA-1). */
+    public List<Long> findCurrentTermCourseIds() {
+        return jdbcTemplate.queryForList("SELECT courseid FROM derived.real_courses_in_progress", Long.class);
     }
 
     public Optional<Map<String, Object>> findCourseAnalyticsByTeacherIdAndCourseId(Long teacherId, Long courseId) {

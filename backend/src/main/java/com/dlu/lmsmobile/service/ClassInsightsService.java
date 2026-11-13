@@ -34,8 +34,23 @@ public class ClassInsightsService {
     private final Clock clock;
     private final String dataMode;
 
+    /**
+     * Real export (REAL-DATA-2): "no hand-in" signals/points only when the student has overdue work.
+     * Static because the scoring helpers are static; set by the Spring singleton's constructor.
+     */
+    static volatile boolean handInsOnly;
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public ClassInsightsService(TeacherRepository teachers, InsightsRepository insights, Clock clock,
+                                @Value("${app.data-source.mode:demo}") String dataMode,
+                                com.dlu.lmsmobile.config.DataProfile profile) {
+        this(teachers, insights, clock, dataMode);
+        handInsOnly = profile.handInsOnly();
+    }
+
     public ClassInsightsService(TeacherRepository teachers, InsightsRepository insights, Clock clock,
                                 @Value("${app.data-source.mode:demo}") String dataMode) {
+        handInsOnly = false;
         this.teachers = teachers;
         this.insights = insights;
         this.clock = clock;
@@ -202,7 +217,7 @@ public class ClassInsightsService {
                 reasons.add(overdue + " bài đã quá hạn");
                 actions.add("Nhắc sinh viên về các bài đã quá hạn và hỏi về khó khăn khi hoàn thành");
             }
-            if (inactive instanceof Number n && n.intValue() >= 7) {
+            if ((!handInsOnly || overdue > 0) && inactive instanceof Number n && n.intValue() >= 7) {
                 reasons.add(n.intValue() + " ngày chưa hoạt động");
                 actions.add("Liên hệ để biết sinh viên có gặp khó khăn khi truy cập khóa học không");
             }
@@ -269,7 +284,9 @@ public class ClassInsightsService {
                     rate >= ABSENCE_RATE));
                 if (rate >= ABSENCE_RATE) actions.add("Trao đổi về lý do vắng học và nhắc quy định chuyên cần");
             }
-            if (inactive == null) {
+            if (handInsOnly && overdue == 0) {
+                // nothing owed: no inactivity signal on hand-in data
+            } else if (inactive == null) {
                 signals.add(signal("NEVER_ACCESSED", "Chưa từng truy cập môn học", true));
                 actions.add("Kiểm tra sinh viên đã vào được khóa học trên LMS chưa");
             } else if (inactive instanceof Number n && n.intValue() >= INACTIVE_DAYS) {
@@ -330,7 +347,7 @@ public class ClassInsightsService {
      */
     static List<Map<String, Object>> scoreBreakdown(Object inactive, long overdue, Double progress, long events7d) {
         // Shared with the student's own learning health (V2-N9) so both sides always agree.
-        return RiskScore.breakdown(inactive, overdue, progress, events7d);
+        return RiskScore.breakdown(inactive, overdue, progress, events7d, handInsOnly);
     }
 
     static final double ABSENCE_RATE = 20.0, LOW_GRADE = 50.0;
